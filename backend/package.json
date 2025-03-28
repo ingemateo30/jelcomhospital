@@ -1,5 +1,5 @@
 {
-  "name": "backend",
+  "name": "projectojelcom-sms",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
@@ -29,6 +29,7 @@
     "mysql2": "^3.12.0",
     "node-cron": "^3.0.3",
     "nodemailer": "^6.10.0",
+    "projectojelcom-sms": "file:",
     "sequelize": "^6.37.5",
     "twilio": "^5.4.5",
     "xlsx": "^0.18.5"
