@@ -63,11 +63,10 @@ const SendWhatsApp = () => {
 
                 {/* Mensajes de Éxito/Error con colores naranjas */}
                 {response && (
-                    <div className={`p-4 mt-4 rounded-lg flex items-center gap-3 border transform transition-all duration-300 ${
-                        response.success
+                    <div className={`p-4 mt-4 rounded-lg flex items-center gap-3 border transform transition-all duration-300 ${response.success
                             ? "bg-orange-600/10 border-orange-500/20 text-orange-400 shadow-md shadow-orange-500/30"
                             : "bg-red-500/10 border-red-500/20 text-red-400 shadow-md shadow-red-500/30"
-                    }`}>
+                        }`}>
                         {response.success ? (
                             <CheckCircle className="w-5 h-5 flex-shrink-0" />
                         ) : (
