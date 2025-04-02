@@ -9,7 +9,6 @@ WHERE (FECHA_CITA, NUMERO_IDE) IN (
 );
 
 
-/*ver los duplicados en las citas medicas*/
 WITH duplicados AS (
     SELECT *,
            ROW_NUMBER() OVER (
@@ -23,12 +22,8 @@ FROM duplicados
 WHERE fila_num > 1;
 
 
-/*base de datos duplicado de tabla citas*/
 CREATE TABLE IF NOT EXISTS citas_historico LIKE citas;
 
-
-/*este evento se ejecutará cada día a la medianoche y trasladará las citas del día anterior a citas_historico, luego las eliminará de la tabla principal.
-DELIMITER $$ */
 CREATE EVENT IF NOT EXISTS mover_citas_a_historico
 ON SCHEDULE EVERY 1 DAY 
 STARTS TIMESTAMP(CURDATE() + INTERVAL 1 DAY)

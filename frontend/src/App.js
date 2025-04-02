@@ -16,6 +16,7 @@ import SendManualSms from "./pages/SendManualSms";
 import SendWhatsApp from "./pages/SendWhatsApp";
 import ConfigAdmin from "./pages/ConfigAdmin";
 import ResponsesList from "./pages/ResponsesList";
+import Recordatoriovoz from "./pages/ProgramarRecordatorio";
 
 const App = () => {
   return (
@@ -36,6 +37,7 @@ const App = () => {
             <Route path="enviar-sms" element={<SendSMS />} />
             <Route path="enviar-sms-manual" element={<SendManualSms />} />
             <Route path="enviar-whatsapp" element={<SendWhatsApp />} />
+            <Route path="enviar-voz" element={<Recordatoriovoz />} />
             <Route path="respuestas" element={<ResponsesList />} />
             <Route element={<PrivateRoute requiredRole="admin" />}>
               <Route path="usuarios" element={<RegisterUser />} />

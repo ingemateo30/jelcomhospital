@@ -44,6 +44,8 @@ const whatsappRoutes = require("./routes/whatsappRoutes");
 app.use("/api/whatsapp", whatsappRoutes);
 const configRoutes = require("./routes/configRoutes");
 app.use("/api/config", configRoutes);
+const vozRoutes = require("./routes/voiceRoutes");
+app.use("/api/voz", vozRoutes);
 
 app.use((err, req, res, next) => {
     console.error(err.stack);

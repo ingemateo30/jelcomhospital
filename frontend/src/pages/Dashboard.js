@@ -185,6 +185,25 @@ const Dashboard = () => {
                 />
               </div>
             )}
+              {!isCollapsed ? (
+              <div className={`pl-6 space-y-1 transition-all duration-300 ${openSections.whatsapp ? "block" : "hidden"}`}>
+                <SidebarButton
+                  icon={<FaWhatsapp />}
+                  text="Enviar voz"
+                  collapsed={isCollapsed}
+                  onClick={() => navigate("/dashboard/enviar-voz")}
+                />
+              </div>
+            ) : (
+              <div className="absolute left-full top-0 bg-gray-800 text-white p-2 rounded-lg shadow-lg w-48 hidden group-hover:block">
+                <SidebarButton
+                  icon={<FaWhatsapp />}
+                  text="Enviar voz"
+                  collapsed={false}
+                  onClick={() => navigate("/dashboard/enviar-voz")}
+                />
+              </div>
+            )}
           </div>
         </nav>
       </aside>
