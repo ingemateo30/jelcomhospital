@@ -81,7 +81,6 @@ exports.enviarRecordatoriosDiarios = async (req, res) => {
                 .map(resultado => resultado.value);
         };
 
-        // Enviar correos en tandas de 10
         for (let i = 0; i < citas.length; i += 10) {
             const tanda = citas.slice(i, i + 10);
             console.log(`📧 Enviando tanda ${Math.floor(i/10) + 1} de correos...`);
@@ -89,7 +88,6 @@ exports.enviarRecordatoriosDiarios = async (req, res) => {
             const enviadosEnTanda = await enviarTandaCorreos(tanda);
             recordatoriosEnviados.push(...enviadosEnTanda);
 
-            // Si no es la última tanda, esperar 30 segundos
             if (i + 10 < citas.length) {
                 console.log("⏳ Esperando 30 segundos antes de la próxima tanda...");
                 await new Promise(resolve => setTimeout(resolve, 30000));

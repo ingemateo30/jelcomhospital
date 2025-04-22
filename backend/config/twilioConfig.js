@@ -1,42 +1,72 @@
-// backend/config/twilioConfig.js
 const twilio = require('twilio');
-const pool = require('./db'); // Asumiendo que usas mysql2/promise
+const pool = require('./db');
 
-const twilioClient = new twilio(
-  process.env.TWILIO_ACCOUNT_SID,
-  process.env.TWILIO_AUTH_TOKEN
-);
+// Configuración de credenciales Twilio
+const accountSid = process.env.TWILIO_ACCOUNT_SID;
+const authToken = process.env.TWILIO_AUTH_TOKEN;
+const twilioNumber = process.env.TWILIO_PHONE_NUMBER;
+
+// Inicializar el cliente de Twilio
+const client = twilio(accountSid, authToken);
 
 const iniciarLlamada = async (telefono, citaId) => {
   try {
-    const llamada = await twilioClient.calls.create({
-      url: `${process.env.BASE_URL}/api/voz/handle-call/${citaId}`,
-      to: `+57${telefono}`, // Asegurar formato internacional
-      from: process.env.TWILIO_PHONE_NUMBER,
-      statusCallback: `${process.env.BASE_URL}/api/voz/status-callback/${citaId}`
+    // 1. Validación estricta del teléfono
+    const numeroLimpio = telefono.replace(/\D/g, '');
+    if (numeroLimpio.length !== 10) throw new Error('Número debe tener 10 dígitos');
+    const numeroFormateado = `+57${numeroLimpio}`;
+
+    // 2. Crear la llamada con Twilio
+    const call = await client.calls.create({
+      to: numeroFormateado,
+      from: twilioNumber,
+      url: `${process.env.BASE_URL}/api/voz/handle-call/${citaId}`, // TwiML URL para gestionar la llamada
+      statusCallback: `${process.env.BASE_URL}/api/voz/status-callback/${citaId}`,
+      statusCallbackEvent: ['initiated', 'ringing', 'answered', 'completed'],
+      statusCallbackMethod: 'POST',
+      machineDetection: 'Enable', // Opcional: detectar si responde una máquina
+      timeout: 15
     });
 
-    await pool.query(
-      `UPDATE citas 
-       SET llamada_id = ?, intentos_llamada = intentos_llamada + 1 
-       WHERE ID = ?`,
-      [llamada.sid, citaId]
-    );
+    console.log('Llamada iniciada con Twilio:', call.sid);
 
-    return llamada;
+    // Devolver el objeto con el ID de la llamada
+    return {
+      id: call.sid,
+      status: call.status
+    };
+
   } catch (error) {
+    // Log detallado del error
+    console.error('Error en la llamada con Twilio:', {
+      message: error.message,
+      code: error.code,
+      details: error.details
+    });
+    
+    // Registrar el error en la base de datos
     await registrarErrorLlamada(citaId, error.message);
+    
+    // Relanzar el error para manejarlo en el controlador
     throw error;
   }
 };
 
+// Función para registrar errores de llamada en la base de datos
 const registrarErrorLlamada = async (citaId, error) => {
-  await pool.query(
-    `UPDATE citas 
-     SET estado_llamada = 'fallida', fecha_llamada = NOW() 
-     WHERE ID = ?`,
-    [citaId]
-  );
+  try {
+    await pool.query(
+      `UPDATE citas 
+       SET estado_llamada = 'fallida', 
+           fecha_llamada = NOW(),
+           intentos_llamada = intentos_llamada + 1
+       WHERE ID = ?`,
+      ['Error: ' + error.substring(0, 255), citaId] // Limitar longitud del error
+    );
+  } catch (dbError) {
+    console.error('Error al registrar fallo en BD:', dbError);
+  }
 };
 
-module.exports = { twilioClient, iniciarLlamada };
+module.exports = { iniciarLlamada };
+
