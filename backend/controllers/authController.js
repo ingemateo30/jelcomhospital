@@ -49,7 +49,6 @@ exports.login = async (req, res) => {
             return res.status(403).json({ message: "Cuenta inactiva. Contacta al administrador." });
         }
 
-        // 📌 Validar la contraseña con bcrypt
         const validPassword = bcrypt.compareSync(password, user.password);
         if (!validPassword) return res.status(401).json({ message: "Credenciales inválidas" });
 

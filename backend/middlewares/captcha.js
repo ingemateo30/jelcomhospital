@@ -8,7 +8,7 @@ const verifyCaptcha = async (req, res, next) => {
     }
 
     try {
-        const secretKey = process.env.RECAPTCHA_SECRET_KEY; // Guarda tu clave secreta en variables de entorno
+        const secretKey = process.env.RECAPTCHA_SECRET_KEY;
         const response = await axios.post(`https://www.google.com/recaptcha/api/siteverify`, null, {
             params: {
                 secret: secretKey,

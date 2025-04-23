@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const db = require('../config/db.js');
 
-// Obtener datos del dashboard
 router.get('/stats', async (req, res) => {
   try {
     const [stats] = await db.query(`

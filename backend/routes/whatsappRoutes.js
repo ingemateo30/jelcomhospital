@@ -4,7 +4,6 @@ const {handleWhatsAppResponse }  = require("../controllers/chatbotController");
 
 const router = express.Router();
 
-// Ruta para enviar recordatorios de WhatsApp
 router.get("/enviar-recordatorios", sendWhatsAppReminder);
 
 router.post("/webhook-ultramsg", handleWhatsAppResponse);

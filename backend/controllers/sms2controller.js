@@ -21,7 +21,7 @@ exports.sendReminderSMS = async () => {
         for (let cita of citas) {
             console.log(`📩 Enviando recordatorio para: ${cita.NOMBRE} con ${cita.PROFESIONAL}`);
             const fechaFormateada = new Date(cita.FECHA_CITA).toISOString().split('T')[0];
-            const mensaje = `Hola ${cita.NOMBRE},recuerda tu cita ${cita.SERVICIO} el día ${fechaFormateada} hora ${cita.HORA_CITA},si necesitas reprogramarla contáctanos al 3007015239.`;
+            const mensaje = `Hola ${cita.NOMBRE},recuerda tu cita ${cita.SERVICIO} el día ${fechaFormateada} hora ${cita.HORA_CITA},porfavor llega con 10 minutos de anticipación,te esperamos.`;
             let telefono = cita.TELEFONO_FIJO.replace(/\D/g, '');
             if (!telefono.startsWith('57')) {
                 telefono = `57${telefono}`;
@@ -79,7 +79,7 @@ exports.sendManualSMS = async (req, res) => {
             return res.status(400).json({ success: false, message: "Número de teléfono inválido" });
         }
         console.log(`📲 Enviando SMS a ${correo}...`);
-        const apiUser = process.env.LABSMOBILE_USER;  // Usuario de LabsMobile
+        const apiUser = process.env.LABSMOBILE_USER;
         const apiToken = process.env.LABSMOBILE_API_KEY;
         const clientLabsMobile = new LabsMobileClient(apiUser, apiToken);
         const bodySms = new LabsMobileModelTextMessage([numeroFormateado], mensaje);
@@ -116,7 +116,7 @@ exports.getSaldoLabsMobile = async (req, res) => {
                 'Authorization': authHeader,
                 'Accept': 'application/json'
             },
-            timeout: 10000 // Timeout de 10 segundos
+            timeout: 10000
         });
 
         console.log("📌 Respuesta completa:", JSON.stringify(response.data, null, 2));

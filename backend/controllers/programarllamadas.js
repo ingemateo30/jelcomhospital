@@ -36,7 +36,7 @@ const programarLlamadasDelDiaSiguiente = async () => {
       }
 
       index++;
-      setTimeout(ejecutarLlamadas, 1000); // 1 llamada por segundo
+      setTimeout(ejecutarLlamadas, 3000);
     };
 
     ejecutarLlamadas();
@@ -46,7 +46,6 @@ const programarLlamadasDelDiaSiguiente = async () => {
   }
 };
 
-// Ejecutar si se llama directamente con `node llamadasProgramadas.js`
 if (require.main === module) {
   programarLlamadasDelDiaSiguiente();
 }

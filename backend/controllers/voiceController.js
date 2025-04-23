@@ -107,15 +107,12 @@ exports.actualizarEstadoLlamada = async (req, res) => {
   try {
     const citaId = req.params.citaId;
     
-    // Capturar datos del callback de estado de Twilio
     const callStatus = req.body.CallStatus || 'desconocido';
     const duracion = parseInt(req.body.CallDuration) || 0;
     const callSid = req.body.CallSid || '';
     
-    // Mapear estados de Twilio a nuestros estados
     let estadoNormalizado = callStatus.toLowerCase();
     
-    // Registrar información en la base de datos
     await pool.query(
       `UPDATE citas 
        SET estado_llamada = ?,
