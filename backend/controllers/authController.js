@@ -31,9 +31,8 @@ exports.register = async (req, res) => {
     }
 };
 
-// 🔹 Inicio de sesión seguro con JWT mejorado
 exports.login = async (req, res) => {
-    // 📌 Verificar si hay errores de validación
+    
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });

@@ -6,7 +6,7 @@ exports.programarLlamada = async (req, res) => {
   try {
     const { citaId } = req.body;
     console.log('ID de cita recibido:', citaId);
-    
+
     if (!citaId) {
       return res.status(400).json({ error: 'ID de cita requerido' });
     }
@@ -31,9 +31,9 @@ exports.programarLlamada = async (req, res) => {
       estado: resultado.status,
       mensaje: `📞 Recordatorio programado para ${cita[0].NOMBRE}`
     });
-    
+
   } catch (error) {
-    res.status(500).json({ 
+    res.status(500).json({
       error: error.message,
       codigo: error.code
     });
@@ -43,7 +43,7 @@ exports.programarLlamada = async (req, res) => {
 exports.manejarLlamada = async (req, res) => {
   try {
     const citaId = req.params.citaId;
-    
+
     const [cita] = await pool.query(
       `SELECT FECHA_CITA, HORA_CITA, SERVICIO, NOMBRE 
        FROM citas 
@@ -58,19 +58,19 @@ exports.manejarLlamada = async (req, res) => {
         language: 'es-MX'
       }, 'Lo sentimos, no encontramos su cita.');
       twiml.hangup();
-      
+
       res.type('text/xml');
       return res.send(twiml.toString());
     }
 
     const { FECHA_CITA, HORA_CITA, SERVICIO, NOMBRE } = cita[0];
     const fecha = new Date(FECHA_CITA).toLocaleDateString('es-CO', {
-      weekday: 'long', 
-      year: 'numeric', 
-      month: 'long', 
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
       day: 'numeric'
     });
-    
+
     const mensaje = `
       Hola ${NOMBRE} te saluda hospital regional de san gil, le recordamos su cita de ${SERVICIO}, 
       programada para el ${fecha} a las ${HORA_CITA.substring(0, 5)}. 
@@ -90,14 +90,14 @@ exports.manejarLlamada = async (req, res) => {
 
   } catch (error) {
     console.error('Error al manejar llamada:', error);
-    
+
     const twiml = new VoiceResponse();
     twiml.say({
       voice: 'Polly.Mia-Neural',
       language: 'es-MX'
-    }, 'Disculpe, ha ocurrido un error con su cita.');
+    }, 'Disculpe, ha ocurrido un error en la llamada.');
     twiml.hangup();
-    
+
     res.type('text/xml');
     return res.send(twiml.toString());
   }
@@ -106,13 +106,13 @@ exports.manejarLlamada = async (req, res) => {
 exports.actualizarEstadoLlamada = async (req, res) => {
   try {
     const citaId = req.params.citaId;
-    
+
     const callStatus = req.body.CallStatus || 'desconocido';
     const duracion = parseInt(req.body.CallDuration) || 0;
     const callSid = req.body.CallSid || '';
-    
+
     let estadoNormalizado = callStatus.toLowerCase();
-    
+
     await pool.query(
       `UPDATE citas 
        SET estado_llamada = ?,
@@ -125,8 +125,8 @@ exports.actualizarEstadoLlamada = async (req, res) => {
     );
 
     console.log('Estado actualizado:', { citaId, estado: estadoNormalizado, duracion });
-    res.status(204).end(); 
-    
+    res.status(204).end();
+
   } catch (error) {
     console.error('Error al actualizar estado de llamada:', error);
     res.status(500).json({ error: 'Error al actualizar estado' });
