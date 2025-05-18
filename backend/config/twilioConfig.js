@@ -1,30 +1,25 @@
 const twilio = require('twilio');
 const pool = require('./db');
 
-// Configuración de credenciales Twilio
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
 const twilioNumber = process.env.TWILIO_PHONE_NUMBER;
 
-// Inicializar el cliente de Twilio
 const client = twilio(accountSid, authToken);
 
 const iniciarLlamada = async (telefono, citaId) => {
   try {
-    // 1. Validación estricta del teléfono
     const numeroLimpio = telefono.replace(/\D/g, '');
     if (numeroLimpio.length !== 10) throw new Error('Número debe tener 10 dígitos');
     const numeroFormateado = `+57${numeroLimpio}`;
-
-    // 2. Crear la llamada con Twilio
     const call = await client.calls.create({
       to: numeroFormateado,
       from: twilioNumber,
-      url: `${process.env.BASE_URL}/api/voz/handle-call/${citaId}`, // TwiML URL para gestionar la llamada
+      url: `${process.env.BASE_URL}/api/voz/mensaje/${citaId}`,
       statusCallback: `${process.env.BASE_URL}/api/voz/status-callback/${citaId}`,
       statusCallbackEvent: ['initiated', 'ringing', 'answered', 'completed'],
       statusCallbackMethod: 'POST',
-      machineDetection: 'Enable', // Opcional: detectar si responde una máquina
+      machineDetection: 'Enable',
       timeout: 15
     });
 
@@ -61,7 +56,7 @@ const registrarErrorLlamada = async (citaId, error) => {
            fecha_llamada = NOW(),
            intentos_llamada = intentos_llamada + 1
        WHERE ID = ?`,
-      ['Error: ' + error.substring(0, 255), citaId] // Limitar longitud del error
+      ['Error: ' + error.substring(0, 255), citaId] 
     );
   } catch (dbError) {
     console.error('Error al registrar fallo en BD:', dbError);

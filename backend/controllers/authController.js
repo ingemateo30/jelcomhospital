@@ -7,7 +7,6 @@ const crypto = require('crypto');
 const { body, validationResult } = require("express-validator");
 require('dotenv').config();
 
-// 🔹 Registro de usuario con mayor seguridad
 exports.register = async (req, res) => {
     const { nombre, email, password } = req.body;
 

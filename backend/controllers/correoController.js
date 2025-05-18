@@ -49,8 +49,6 @@ exports.enviarRecordatoriosDiarios = async (req, res) => {
 
         let recordatoriosEnviados = [];
         let errores = [];
-
-        // Función para enviar una tanda de correos
         const enviarTandaCorreos = async (tanda) => {
             const promesas = tanda.map(async (cita) => {
                 try {
@@ -83,8 +81,8 @@ exports.enviarRecordatoriosDiarios = async (req, res) => {
 
         for (let i = 0; i < citas.length; i += 10) {
             const tanda = citas.slice(i, i + 10);
-            console.log(`📧 Enviando tanda ${Math.floor(i/10) + 1} de correos...`);
-            
+            console.log(`📧 Enviando tanda ${Math.floor(i / 10) + 1} de correos...`);
+
             const enviadosEnTanda = await enviarTandaCorreos(tanda);
             recordatoriosEnviados.push(...enviadosEnTanda);
 
@@ -101,16 +99,16 @@ exports.enviarRecordatoriosDiarios = async (req, res) => {
             totalErrores: errores.length,
         };
 
-        if (!req.fake) return res.json({ 
-            message: "Envío de recordatorios completado.", 
+        if (!req.fake) return res.json({
+            message: "Envío de recordatorios completado.",
             estadoCron,
             errores
         });
     } catch (error) {
         console.error("❌ Error en el proceso de recordatorios:", error);
-        if (!req.fake) return res.status(500).json({ 
-            message: "Error al enviar recordatorios.", 
-            error: error.message 
+        if (!req.fake) return res.status(500).json({
+            message: "Error al enviar recordatorios.",
+            error: error.message
         });
     }
 };
@@ -126,7 +124,6 @@ exports.obtenerEstadoCron = (req, res) => {
 
     const tiempoRestante = moment.duration(proximaEjecucion.diff(ahora));
     const tiempoRestanteEnSegundos = tiempoRestante.asSeconds();
-
     console.log("Tiempo restante en segundos (backend):", tiempoRestanteEnSegundos);
 
     res.json({

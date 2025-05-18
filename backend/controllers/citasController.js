@@ -36,7 +36,7 @@ const procesarExcel = async (req, res) => {
 
             if (!NUMERO_IDE || !NOMBRE || !FECHA_CITA || !HORA_CITA) {
                 console.warn(`Fila con datos incompletos:`, row);
-                continue; 
+                continue;
             }
             NUMERO_IDE = NUMERO_IDE.toString().trim();
             TELEFONO_FIJO = TELEFONO_FIJO ? TELEFONO_FIJO.toString().trim() : null;

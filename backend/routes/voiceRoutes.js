@@ -8,6 +8,7 @@ const programarLlamadas = require('../controllers/programarllamadas');
 router.post('/programar-llamada', voiceController.programarLlamada);
 
 router.get('/mensaje/:citaId', voiceController.manejarLlamada);
+router.post('/mensaje/:citaId', voiceController.manejarLlamada);
 
 router.post('/status-callback/:citaId', voiceController.actualizarEstadoLlamada);
 

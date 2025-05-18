@@ -57,7 +57,7 @@ export const getCronStatus = async () => {
             }
         });
 
-        handleUnauthorized(response); // Verifica si el token ha expirado
+        handleUnauthorized(response); // Verifica si el token ha expirado y vence y lo saca de la sesión
 
         if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
 

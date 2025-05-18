@@ -38,7 +38,6 @@ exports.sendReminderSMS = async () => {
                     console.log(response);
                     console.log(`✅ Recordatorio enviado a: ${cita.TELEFONO_FIJO}`);
                     console.log(response);
-
                     await db.query('UPDATE citas SET ESTADO = "Recordatorio enviado" WHERE ID = ?', [cita.ID]);
                 } catch (error) {
                     console.error(`⚠️ Error al enviar SMS a ${cita.TELEFONO_FIJO}:`, error);
@@ -98,8 +97,8 @@ exports.sendManualSMS = async (req, res) => {
 
 exports.getSaldoLabsMobile = async (req, res) => {
     try {
-        const apiUser = process.env.LABSMOBILE_USER;  // Usuario de LabsMobile
-        const apiToken = process.env.LABSMOBILE_API_KEY; // Token de LabsMobile
+        const apiUser = process.env.LABSMOBILE_USER;
+        const apiToken = process.env.LABSMOBILE_API_KEY;
 
         console.log("📢 API Key:", apiToken ? 'Presente' : 'No definida');
 

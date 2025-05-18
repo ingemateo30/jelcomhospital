@@ -11,7 +11,6 @@ const programarLlamadasDelDiaSiguiente = async () => {
       `SELECT ID, TELEFONO_FIJO 
        FROM citas 
        WHERE DATE(FECHA_CITA) = ? 
-         AND estado_llamada IS NULL 
          AND intentos_llamada < 3`,
       [fechaFormateada]
     );
@@ -25,6 +24,7 @@ const programarLlamadasDelDiaSiguiente = async () => {
         console.log('✅ Todas las llamadas han sido programadas.');
         return;
       }
+      //mensaje para saber a que numero se le esta llamando
 
       const cita = citas[index];
       console.log(`⏱️ Llamando a: ${cita.TELEFONO_FIJO} (ID cita: ${cita.ID})`);
