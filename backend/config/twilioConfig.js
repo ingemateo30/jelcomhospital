@@ -19,35 +19,26 @@ const iniciarLlamada = async (telefono, citaId) => {
       statusCallback: `${process.env.BASE_URL}/api/voz/status-callback/${citaId}`,
       statusCallbackEvent: ['initiated', 'ringing', 'answered', 'completed'],
       statusCallbackMethod: 'POST',
-      machineDetection: 'Enable',
-      timeout: 15
+      timeout: 15,
+      answerOnBridge: true,
+      record: false
     });
 
     console.log('Llamada iniciada con Twilio:', call.sid);
-
-    // Devolver el objeto con el ID de la llamada
     return {
       id: call.sid,
       status: call.status
     };
-
   } catch (error) {
-    // Log detallado del error
     console.error('Error en la llamada con Twilio:', {
       message: error.message,
       code: error.code,
       details: error.details
     });
-    
-    // Registrar el error en la base de datos
     await registrarErrorLlamada(citaId, error.message);
-    
-    // Relanzar el error para manejarlo en el controlador
     throw error;
   }
 };
-
-// Función para registrar errores de llamada en la base de datos
 const registrarErrorLlamada = async (citaId, error) => {
   try {
     await pool.query(
@@ -56,7 +47,7 @@ const registrarErrorLlamada = async (citaId, error) => {
            fecha_llamada = NOW(),
            intentos_llamada = intentos_llamada + 1
        WHERE ID = ?`,
-      ['Error: ' + error.substring(0, 255), citaId] 
+      ['Error: ' + error.substring(0, 255), citaId]
     );
   } catch (dbError) {
     console.error('Error al registrar fallo en BD:', dbError);

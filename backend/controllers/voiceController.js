@@ -45,18 +45,18 @@ exports.manejarLlamada = async (req, res) => {
     const fecha = new Date(FECHA_CITA).toLocaleDateString('es-CO', {
       weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
     });
-    const mensaje = `Hola ${NOMBRE}, le recuerda el Hospital Regional de San Gil su cita de ${SERVICIO} programada para el ${fecha} a las ${HORA_CITA.slice(0,5)}. Gracias por elegir nuestros servicios,te esperamos.`;
+    const mensaje = `Hola ${NOMBRE}, le recuerda el Hospital Regional de San Gil su cita de ${SERVICIO} programada para el ${fecha} a las ${HORA_CITA.slice(0, 5)}. Gracias por elegir nuestros servicios te esperamos.`;
 
     twiml.say(
       {
-        voice: 'alice',
-        language: 'es-MX'
+        voice: 'Polly.Lupe-Neural',
+        language: 'es-US'
       },
-      `<speak>${mensaje}</speak>`
+      mensaje
     );
+    twiml.pause({ length: 1 });
     twiml.hangup();
-
-    res.type('text/xml').send(twiml.toString());
+    res.status(200).set('Content-Type', 'text/xml').send(twiml.toString());
   } catch (error) {
     console.error('Error al manejar llamada:', error);
     twiml.say({ voice: 'Mia', language: 'es-MX' }, 'Disculpe, ha ocurrido un error en la llamada.');
