@@ -1,0 +1,24 @@
+{
+  "fecha": "2025-07-23T18:58:38.161Z",
+  "tipo": "recordatorios_citas",
+  "total": 1,
+  "exitosos": 1,
+  "fallidos": 0,
+  "tasa_exito": "100.0%",
+  "imagen_utilizada": "C:\\documentos\\projectojelcom-SMS\\backend\\public\\images\\recordatorio_hospital.jpeg",
+  "errores": [],
+  "reminders_procesados": [
+    {
+      "id": 747,
+      "paciente": "MARIA FERNANDA SALAMANCA",
+      "telefono": "3007015239",
+      "fecha": "jueves 24 de julio de 2025",
+      "hora": "06:05 AM",
+      "servicio": "MEDICINA GENERAL",
+      "direccion_asignada": {
+        "direccion": "Avenida Santander 24A-48",
+        "sede": "consulta externa CES Hospital Regional de San Gil"
+      }
+    }
+  ]
+}

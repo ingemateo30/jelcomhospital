@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informe Ejecutivo - JELCOM</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
+            background-color: #f8f9fa;
+            color: #212529;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e9ecef;
+        }
+
+        .header {
+            background: #ffffff;
+            border-bottom: 3px solid #2c3e50;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.2rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .header .subtitle {
+            font-size: 1rem;
+            color: #6c757d;
+            font-weight: 400;
+        }
+
+        .header .date {
+            font-size: 0.9rem;
+            color: #868e96;
+            margin-top: 5px;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .executive-summary {
+            background: #f8f9fa;
+            border-left: 4px solid #2c3e50;
+            padding: 30px;
+            margin-bottom: 40px;
+        }
+
+        .executive-summary h2 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-bottom: 20px;
+        }
+
+        .kpi-card {
+            background: white;
+            border: 1px solid #dee2e6;
+            padding: 25px;
+            text-align: center;
+            border-radius: 4px;
+        }
+
+        .kpi-card h3 {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #6c757d;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .kpi-card .value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #212529;
+        }
+
+        .kpi-card.negative .value {
+            color: #dc3545;
+        }
+
+        .kpi-card.positive .value {
+            color: #28a745;
+        }
+
+        .section {
+            margin-bottom: 50px;
+        }
+
+        .section-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 25px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .table-container {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #f1f3f4;
+            color: #495057;
+            padding: 16px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        td {
+            padding: 14px 16px;
+            border-bottom: 1px solid #f8f9fa;
+            font-size: 0.9rem;
+        }
+
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .amount {
+            text-align: right;
+            font-weight: 600;
+            font-family: 'Courier New', monospace;
+        }
+
+        .total-row {
+            background: #f8f9fa;
+            font-weight: 600;
+            border-top: 2px solid #dee2e6;
+        }
+
+        .critical-row {
+            background: #fff5f5;
+            border-left: 4px solid #dc3545;
+        }
+
+        .warning-row {
+            background: #fffbf0;
+            border-left: 4px solid #ffc107;
+        }
+
+        .success-row {
+            background: #f0f9ff;
+            border-left: 4px solid #0ea5e9;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-critical {
+            background-color: #dc3545;
+        }
+
+        .status-warning {
+            background-color: #ffc107;
+        }
+
+        .status-success {
+            background-color: #28a745;
+        }
+
+        .alert-box {
+            background: #fff5f5;
+            border: 1px solid #f5c6cb;
+            border-left: 4px solid #dc3545;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .alert-box h3 {
+            color: #721c24;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+
+        .alert-box p {
+            color: #721c24;
+            margin-bottom: 8px;
+        }
+
+        .recommendation-box {
+            background: #f0f9ff;
+            border: 1px solid #bfdbfe;
+            border-left: 4px solid #0ea5e9;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .recommendation-box h4 {
+            color: #0c4a6e;
+            font-size: 1rem;
+            margin-bottom: 8px;
+        }
+
+        .priority-high {
+            border-left-color: #dc3545;
+            background: #fff5f5;
+        }
+
+        .priority-medium {
+            border-left-color: #ffc107;
+            background: #fffbf0;
+        }
+
+        .priority-low {
+            border-left-color: #28a745;
+            background: #f0fff4;
+        }
+
+        .footer-note {
+            background: #f8f9fa;
+            padding: 20px;
+            border-top: 1px solid #dee2e6;
+            font-size: 0.85rem;
+            color: #6c757d;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .header {
+                padding: 25px;
+            }
+
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            table {
+                font-size: 0.8rem;
+            }
+
+            th,
+            td {
+                padding: 10px 8px;
+            }
+        }
+
+        .page-break {
+            page-break-before: always;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .container {
+                box-shadow: none;
+                border: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>INFORME EJECUTIVO FINANCIERO</h1>
+            <div class="subtitle">JELCOM S.A.S.</div>
+            <div class="date">Período: Agosto 2024 | Fecha de Emisión: 8 de Agosto 2024</div>
+        </div>
+
+        <div class="content">
+            <!-- Resumen Ejecutivo -->
+            <div class="executive-summary">
+                <h2>RESUMEN EJECUTIVO</h2>
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <h3>Ingresos Mensuales</h3>
+                        <div class="value">$33,265,634</div>
+                    </div>
+                    <div class="kpi-card">
+                        <h3>Gastos Operativos</h3>
+                        <div class="value">$29,135,678</div>
+                    </div>
+                    <div class="kpi-card positive">
+                        <h3>Margen</h3>
+                        <div class="value">$4,129,956</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alerta Crítica -->
+            <div class="alert-box">
+                <h3>🚨 ALERTA CRÍTICA DE LIQUIDEZ</h3>
+                <p><strong>Obligaciones inmediatas por $10,909,140 requieren atención urgente:</strong></p>
+                <p>• Seguridad Social Julio: $3,856,900 (Vencimiento legal inmediato)</p>
+                <p>• Acuerdo IVA: $3,433,000 (Fecha programada)</p>
+                <p>• Nómina JELCOM Julio: $3,619,240 (Obligación laboral)</p>
+                <p><strong>Déficit a 8 de agosto: $23,917,976</strong></p>
+            </div>
+
+            <!-- Análisis de Ingresos -->
+            <div class="section">
+                <h2 class="section-title">1. INGRESOS MENSUALES - DETALLE POR FUENTE</h2>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Fuente de Ingresos</th>
+                                <th>Concepto</th>
+                                <th>Valor Mensual</th>
+                                <th>% del Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Hospital</strong></td>
+                                <td>Servicios de Salud</td>
+                                <td class="amount">$31,968,534</td>
+                                <td class="amount">96.1%</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Drogas del Fonce</strong></td>
+                                <td>Medicamentos</td>
+                                <td class="amount">$737,800</td>
+                                <td class="amount">2.2%</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Noriega Campiño</strong></td>
+                                <td>Otros Servicios</td>
+                                <td class="amount">$559,300</td>
+                                <td class="amount">1.7%</td>
+                            </tr>
+                            <tr class="total-row">
+                                <td colspan="2"><strong>TOTAL INGRESOS MENSUALES</strong></td>
+                                <td class="amount"><strong>$33,265,634</strong></td>
+                                <td class="amount"><strong>100%</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Análisis Financiero -->
+            <div class="section">
+                <h2 class="section-title">2. GASTOS FIJOS MENSUALES - DETALLE COMPLETO</h2>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Categoría</th>
+                                <th>Concepto Detallado</th>
+                                <th>Valor Mensual</th>
+                                <th>% del Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Recursos Humanos -->
+                            <tr>
+                                <td rowspan="3"><strong>Recursos Humanos</strong></td>
+                                <td>Planillas Colaboradores</td>
+                                <td class="amount">$3,900,000</td>
+                                <td class="amount">13.4%</td>
+                            </tr>
+                            <tr>
+                                <td>Nóminas JELCOM</td>
+                                <td class="amount">$5,251,638</td>
+                                <td class="amount">18.0%</td>
+                            </tr>
+                            <tr>
+                                <td>Nóminas Hospital</td>
+                                <td class="amount">$13,442,240</td>
+                                <td class="amount">46.1%</td>
+                            </tr>
+                            <tr class="total-row">
+                                <td><strong>Subtotal RR.HH.</strong></td>
+                                <td></td>
+                                <td class="amount"><strong>$22,593,878</strong></td>
+                                <td class="amount"><strong>77.5%</strong></td>
+                            </tr>
+
+                            <!-- Servicios Básicos -->
+                            <tr>
+                                <td rowspan="4"><strong>Servicios Básicos</strong></td>
+                                <td>Arriendo</td>
+                                <td class="amount">$932,000</td>
+                                <td class="amount">3.2%</td>
+                            </tr>
+                            <tr>
+                                <td>Luz</td>
+                                <td class="amount">$15,000</td>
+                                <td class="amount">0.1%</td>
+                            </tr>
+                            <tr>
+                                <td>Internet</td>
+                                <td class="amount">$211,000</td>
+                                <td class="amount">0.7%</td>
+                            </tr>
+                            <tr>
+                                <td>Diálogo</td>
+                                <td class="amount">$720,000</td>
+                                <td class="amount">2.5%</td>
+                            </tr>
+                            <tr class="total-row">
+                                <td><strong>Subtotal Servicios</strong></td>
+                                <td></td>
+                                <td class="amount"><strong>$1,878,000</strong></td>
+                                <td class="amount"><strong>6.4%</strong></td>
+                            </tr>
+
+                            <!-- Tecnología y Sistemas -->
+                            <tr>
+                                <td rowspan="4"><strong>Tecnología</strong></td>
+                                <td>Asistencia Técnica PSI (Tarjeta Crédito)</td>
+                                <td class="amount">$84,000</td>
+                                <td class="amount">0.3%</td>
+                            </tr>
+                            <tr>
+                                <td>Recarga Mensajería de Voz Hospital (American Express)</td>
+                                <td class="amount">$604,800</td>
+                                <td class="amount">2.1%</td>
+                            </tr>
+                            <tr>
+                                <td>Mensajería WhatsApp Hospital (Visa/Master)</td>
+                                <td class="amount">$500,000</td>
+                                <td class="amount">1.7%</td>
+                            </tr>
+                            <tr>
+                                <td>Ejecución Recordatorio de Citas Hospital (Tarjeta Crédito)</td>
+                                <td class="amount">$42,000</td>
+                                <td class="amount">0.1%</td>
+                            </tr>
+                            <tr class="total-row">
+                                <td><strong>Subtotal Tecnología</strong></td>
+                                <td></td>
+                                <td class="amount"><strong>$1,230,800</strong></td>
+                                <td class="amount"><strong>4.2%</strong></td>
+                            </tr>
+
+                            <!-- Obligaciones Fiscales -->
+                            <tr>
+                                <td><strong>Obligaciones Fiscales</strong></td>
+                                <td>Acuerdo de IVA</td>
+                                <td class="amount">$3,433,000</td>
+                                <td class="amount">11.8%</td>
+                            </tr>
+
+                            <tr class="total-row">
+                                <td colspan="2"><strong>TOTAL GASTOS FIJOS MENSUALES</strong></td>
+                                <td class="amount"><strong>$29,135,678</strong></td>
+                                <td class="amount"><strong>100%</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Cartera Vencida Detallada -->
+            <div class="section">
+                <h2 class="section-title">3. PENDIENTES POR PAGAR A 5 DE AGOSTO - DETALLE POR PERÍODO</h2>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Concepto</th>
+                                <th>Febrero</th>
+                                <th>Marzo</th>
+                                <th>Abril</th>
+                                <th>Mayo</th>
+                                <th>Junio</th>
+                                <th>Julio</th>
+                                <th>Agosto</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Arriendo</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">$931,999</td>
+                                <td class="amount">$931,999</td>
+                                <td class="amount">$931,999</td>
+                                <td class="amount">$2,795,997</td>
+                            </tr>
+                            <tr>
+                                <td>Diálogo</td>
+                                <td class="amount">$812,496</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">$390,906</td>
+                                <td class="amount">-</td>
+                                <td class="amount">$1,203,402</td>
+                            </tr>
+                            <tr>
+                                <td>Luz</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">$11,152</td>
+                                <td class="amount">-</td>
+                                <td class="amount">$11,152</td>
+                            </tr>
+                            <tr>
+                                <td>Internet</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">$211,394</td>
+                                <td class="amount">$211,394</td>
+                                <td class="amount">$422,788</td>
+                            </tr>
+                            <tr class="critical-row">
+                                <td>Planilla Seguridad Social Julio</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">$3,856,900</td>
+                                <td class="amount">-</td>
+                                <td class="amount">$3,856,900</td>
+                            </tr>
+                            <tr class="warning-row">
+                                <td>Préstamo del Ing. Edgar</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">$6,000,000</td>
+                                <td class="amount">-</td>
+                                <td class="amount">$6,000,000</td>
+                            </tr>
+                            <tr>
+                                <td>Pago Tarjeta del Ing. Edgar</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">$203,650</td>
+                                <td class="amount">-</td>
+                                <td class="amount">$203,650</td>
+                            </tr>
+                            <tr>
+                                <td>WhatsApp + IVA (Dr. Jimmy)</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">$158,847</td>
+                                <td class="amount">-</td>
+                                <td class="amount">$158,847</td>
+                            </tr>
+                            <tr class="critical-row">
+                                <td>Nómina JELCOM Julio (María y Paola)</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">$3,619,240</td>
+                                <td class="amount">-</td>
+                                <td class="amount">$3,619,240</td>
+                            </tr>
+                            <tr>
+                                <td>Pizza Empleados Hospital (María)</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">$78,000</td>
+                                <td class="amount">-</td>
+                                <td class="amount">$78,000</td>
+                            </tr>
+                            <tr>
+                                <td>Publicidad José Mario</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">$250,000</td>
+                                <td class="amount">-</td>
+                                <td class="amount">$250,000</td>
+                            </tr>
+                            <tr class="warning-row">
+                                <td>Acuerdo IVA</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">$3,433,000</td>
+                                <td class="amount">-</td>
+                                <td class="amount">$3,433,000</td>
+                            </tr>
+                            <tr>
+                                <td>Exámenes de Ingreso</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">$60,000</td>
+                                <td class="amount">-</td>
+                                <td class="amount">$60,000</td>
+                            </tr>
+                            <tr>
+                                <td>Cambio Cámara de Comercio</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">$325,000</td>
+                                <td class="amount">-</td>
+                                <td class="amount">$325,000</td>
+                            </tr>
+                            <tr>
+                                <td>Comisión María de PSI</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">$1,200,000</td>
+                                <td class="amount">-</td>
+                                <td class="amount">$1,200,000</td>
+                            </tr>
+                            <tr>
+                                <td>Batería Psicosocial</td>
+                                <td class="amount">-</td>
+                                <td class="amount">$300,000</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">-</td>
+                                <td class="amount">$300,000</td>
+                            </tr>
+
+                            <tr class="total-row">
+                                <td><strong>TOTAL PAGOS ATRASADOS</strong></td>
+                                <td class="amount"><strong>$0</strong></td>
+                                <td class="amount"><strong>$1,255,889</strong></td>
+                                <td class="amount"><strong>$1,143,393</strong></td>
+                                <td class="amount"><strong>$1,334,057</strong></td>
+                                <td class="amount"><strong>$0</strong></td>
+                                <td class="amount"><strong>$19,184,637</strong></td>
+                                <td class="amount"><strong>$0</strong></td>
+                                <td class="amount"><strong>$22,917,976</strong></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Análisis del Contrato CAJASAN -->
+    <div class="section page-break">
+        <h2 class="section-title">4. ANÁLISIS DEL CONTRATO CAJASAN - IMPACTO FINANCIERO</h2>
+
+        <div class="recommendation-box">
+            <h4>📈 NUEVO CONTRATO: CAJASAN</h4>
+            <p><strong>Ingresos Mensuales Proyectados: $11,000,000</strong></p>
+            <p><strong>Costos Operativos Mensuales: $8,152,499</strong></p>
+            <p><strong>Utilidad Neta Mensual: $2,847,501</strong></p>
+        </div>
+
+        <h3 style="margin: 30px 0 20px 0; color: #2c3e50; font-size: 1.2rem;">ESTRUCTURA DE COSTOS Y UTILIDADES</h3>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Servicio</th>
+                        <th>Cantidad</th>
+                        <th>Costo Unitario</th>
+                        <th>Costo Total JELCOM</th>
+                        <th>Precio CAJASAN</th>
+                        <th>Utilidad JELCOM</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Mensajes de Texto</td>
+                        <td class="amount">10,000</td>
+                        <td class="amount">$9.10</td>
+                        <td class="amount">$91,000</td>
+                        <td class="amount">$1,150,000</td>
+                        <td class="amount success-row">$1,059,000</td>
+                    </tr>
+                    <tr>
+                        <td>WhatsApp</td>
+                        <td class="amount">12,000</td>
+                        <td class="amount">$163.45</td>
+                        <td class="amount">$163,449</td>
+                        <td class="amount">$1,380,000</td>
+                        <td class="amount success-row">$1,216,551</td>
+                    </tr>
+                    <tr>
+                        <td>Correos</td>
+                        <td class="amount">30,000</td>
+                        <td class="amount">$345.20</td>
+                        <td class="amount">$345,200</td>
+                        <td class="amount">$2,700,000</td>
+                        <td class="amount success-row">$2,354,800</td>
+                    </tr>
+                    <tr>
+                        <td>Bot de Voz</td>
+                        <td class="amount">3,000</td>
+                        <td class="amount">$130.00</td>
+                        <td class="amount">$390,000</td>
+                        <td class="amount">$900,000</td>
+                        <td class="amount success-row">$510,000</td>
+                    </tr>
+                    <tr>
+                        <td>Plataforma de Reportes</td>
+                        <td class="amount">1</td>
+                        <td class="amount">$69,000.00</td>
+                        <td class="amount">$69,000</td>
+                        <td class="amount">$1,000,000</td>
+                        <td class="amount success-row">$931,000</td>
+                    </tr>
+                    <tr>
+                        <td>Llamadas</td>
+                        <td class="amount">3,000</td>
+                        <td class="amount">$47.00</td>
+                        <td class="amount">$141,000</td>
+                        <td class="amount">$3,870,000</td>
+                        <td class="amount success-row">$3,729,000</td>
+                    </tr>
+                    <tr class="total-row">
+                        <td colspan="3"><strong>SUBTOTAL SERVICIOS</strong></td>
+                        <td class="amount"><strong>$1,136,649</strong></td>
+                        <td class="amount"><strong>$9,800,351</strong></td>
+                        <td class="amount success-row"><strong>$8,663,702</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3 style="margin: 30px 0 20px 0; color: #2c3e50; font-size: 1.2rem;">COSTOS ADMINISTRATIVOS</h3>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Concepto</th>
+                        <th>Cantidad</th>
+                        <th>Costo Unitario</th>
+                        <th>Costo Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Licencia Diálogo</td>
+                        <td class="amount">2</td>
+                        <td class="amount">$134,605</td>
+                        <td class="amount">$269,210</td>
+                    </tr>
+                    <tr>
+                        <td>Agentes Call Center</td>
+                        <td class="amount">1</td>
+                        <td class="amount">$3,341,820</td>
+                        <td class="amount">$3,341,820</td>
+                    </tr>
+                    <tr>
+                        <td>Costo Administrativo Personal</td>
+                        <td class="amount">1</td>
+                        <td class="amount">$3,341,820</td>
+                        <td class="amount">$3,341,820</td>
+                    </tr>
+                    <tr class="total-row">
+                        <td colspan="3"><strong>TOTAL COSTOS ADMINISTRATIVOS</strong></td>
+                        <td class="amount"><strong>$6,952,850</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th colspan="2">RESUMEN FINANCIERO CAJASAN</th>
+                        <th>Valor Mensual</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="2">Ingresos CAJASAN netos</td>
+                        <td class="amount">$9,800,351</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">Costos de Servicios</td>
+                        <td class="amount">$1,199,649</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">Costos Administrativos</td>
+                        <td class="amount">$6,952,850</td>
+                    </tr>
+                    <tr class="total-row">
+                        <td colspan="2"><strong>Total Costos Operativos</strong></td>
+                        <td class="amount"><strong>$8,152,499</strong></td>
+                    </tr>
+                    <tr class="success-row">
+                        <td colspan="2"><strong>Utilidad Neta Mensual</strong></td>
+                        <td class="amount"><strong>$2,847,501</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="recommendation-box">
+            <h3>✅ ANÁLISIS POSITIVO DEL CONTRATO</h3>
+            <p><strong>El contrato CAJASAN es RENTABLE con los costos corregidos</strong></p>
+            <p>• Utilidad operativa: $2,847,501 mensual</p>
+            <p>• Todos los servicios generan utilidades positivas</p>
+        </div>
+    </div>
+
+    <!-- Proyección Financiera hasta Diciembre -->
+    <div class="section">
+        <h2 class="section-title">5. PROYECCIÓN FINANCIERA AGOSTO - DICIEMBRE 2024</h2>
+
+        <h3 style="margin: 30px 0 20px 0; color: #2c3e50; font-size: 1.2rem;">ESCENARIO 1: SIN CONTRATO CAJASAN</h3>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Concepto</th>
+                        <th>Agosto</th>
+                        <th>Septiembre</th>
+                        <th>Octubre</th>
+                        <th>Noviembre</th>
+                        <th>Diciembre</th>
+                        <th>Total Período</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Ingresos Mensuales</td>
+                        <td class="amount">$33,265,634</td>
+                        <td class="amount">$33,265,634</td>
+                        <td class="amount">$33,265,634</td>
+                        <td class="amount">$33,265,634</td>
+                        <td class="amount">$33,265,634</td>
+                        <td class="amount">$166,328,170</td>
+                    </tr>
+                    <tr>
+                        <td>Gastos Fijos</td>
+                        <td class="amount">$29,135,678</td>
+                        <td class="amount">$29,135,678</td>
+                        <td class="amount">$29,135,678</td>
+                        <td class="amount">$29,135,678</td>
+                        <td class="amount">$29,135,678</td>
+                        <td class="amount">$145,678,390</td>
+                    </tr>
+                    <tr class="success-row">
+                        <td><strong>Utilidad Neta</strong></td>
+                        <td class="amount"><strong>$4,129,956</strong></td>
+                        <td class="amount"><strong>$4,129,956</strong></td>
+                        <td class="amount"><strong>$4,129,956</strong></td>
+                        <td class="amount"><strong>$4,129,956</strong></td>
+                        <td class="amount"><strong>$4,129,956</strong></td>
+                        <td class="amount"><strong>$20,649,780</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <h3 style="margin: 30px 0 20px 0; color: #2c3e50; font-size: 1.2rem;">ESCENARIO 2: CON CONTRATO CAJASAN (COSTOS
+            REALES)</h3>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Concepto</th>
+                        <th>Agosto</th>
+                        <th>Septiembre</th>
+                        <th>Octubre</th>
+                        <th>Noviembre</th>
+                        <th>Diciembre</th>
+                        <th>Total Período</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Ingresos Actuales</td>
+                        <td class="amount">$33,265,634</td>
+                        <td class="amount">$33,265,634</td>
+                        <td class="amount">$33,265,634</td>
+                        <td class="amount">$33,265,634</td>
+                        <td class="amount">$33,265,634</td>
+                        <td class="amount">$166,328,170</td>
+                    </tr>
+                    <tr>
+                        <td>Ingresos CAJASAN</td>
+                        <td class="amount">$11,000,000</td>
+                        <td class="amount">$11,000,000</td>
+                        <td class="amount">$11,000,000</td>
+                        <td class="amount">$11,000,000</td>
+                        <td class="amount">$11,000,000</td>
+                        <td class="amount">$55,000,000</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Total Ingresos</strong></td>
+                        <td class="amount"><strong>$44,265,634</strong></td>
+                        <td class="amount"><strong>$44,265,634</strong></td>
+                        <td class="amount"><strong>$44,265,634</strong></td>
+                        <td class="amount"><strong>$44,265,634</strong></td>
+                        <td class="amount"><strong>$44,265,634</strong></td>
+                        <td class="amount"><strong>$221,328,170</strong></td>
+                    </tr>
+                    <tr>
+                        <td>Gastos Fijos Actuales</td>
+                        <td class="amount">$29,135,678</td>
+                        <td class="amount">$29,135,678</td>
+                        <td class="amount">$29,135,678</td>
+                        <td class="amount">$29,135,678</td>
+                        <td class="amount">$29,135,678</td>
+                        <td class="amount">$145,678,390</td>
+                    </tr>
+                    <tr>
+                        <td>Costos CAJASAN</td>
+                        <td class="amount">$8,152,499</td>
+                        <td class="amount">$8,152,499</td>
+                        <td class="amount">$8,152,499</td>
+                        <td class="amount">$8,152,499</td>
+                        <td class="amount">$8,152,499</td>
+                        <td class="amount">$8,152,499</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Total Gastos</strong></td>
+                        <td class="amount"><strong>$37,288,177</strong></td>
+                        <td class="amount"><strong>$37,288,177</strong></td>
+                        <td class="amount"><strong>$37,288,177</strong></td>
+                        <td class="amount"><strong>$37,288,177</strong></td>
+                        <td class="amount"><strong>$37,288,177</strong></td>
+                        <td class="amount"><strong>$186,440,885</strong></td>
+                    </tr>
+                    <tr class="critical-row">
+                        <td><strong>Utilidad/Pérdida Neta</strong></td>
+                        <td class="amount"><strong>$6,977,457</strong></td>
+                        <td class="amount"><strong>$6,977,457</strong></td>
+                        <td class="amount"><strong>$6,977,457</strong></td>
+                        <td class="amount"><strong>$6,977,457</strong></td>
+                        <td class="amount"><strong>$6,977,457</strong></td>
+                        <td class="amount"><strong>$34,887,285</strong></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="footer-note">
+        <p>Informe generado el 8 de Agosto de 2024 | JELCOM S.A.S. | Análisis Financiero Ejecutivo</p>
+        <p>Este documento contiene información confidencial y está destinado exclusivamente para uso interno</p>
+    </div>
+    </div>
+    </div>
+</body>
+
+</html>

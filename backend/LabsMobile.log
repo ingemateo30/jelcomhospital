@@ -4,3 +4,4 @@
 04-Mar-2025 16:02:02 error - ERROR: Unexpected error  body._msisdn.map is not a function
 04-Mar-2025 16:04:40 info - LabsMobile send SMS: [destination=573007015239, message=Hola ANGELICA MARIA DAZA SOLANO, recuerda tu cita de ADULTO MAYOR 45 el día 2025-03-05 a las 09:20:00, si necesitas reprogramarla contáctanos al número.]
 04-Mar-2025 16:12:16 info - LabsMobile send SMS: [destination=573011780208, message=hola,esto es una prueba]
+21-May-2025 10:16:25 info - LabsMobile send SMS: [destination=573011780208, message=Hola MATEO SALAZAR ORTIZ,recuerda tu cita ANESTESIOLOGIA el día 2025-05-22 hora 09:00:00,porfavor llega con 10 minutos de anticipación,te esperamos.]

@@ -39,8 +39,7 @@ router.get('/stats', async (req, res) => {
       GROUP BY fecha
     `);
 
-    const [porcentajeNoContactados] = await db.query(`
-      SELECT 
+    const [porcentajeNoContactados] = await db.query(` SELECT 
         (SUM(CASE WHEN estado = 'pendiente' THEN 1 ELSE 0 END) * 100.0 / COUNT(*)) AS porcentaje_no_contactados
       FROM citas_historico
       WHERE DATE(fecha_cita) = CURDATE()
@@ -57,9 +56,9 @@ router.get('/stats', async (req, res) => {
     `);
 
     res.json({
-      stats: stats[0], 
-      enviosPorHora, 
-      estadoMensajes, 
+      stats: stats[0],
+      enviosPorHora,
+      estadoMensajes,
       respuestasPacientes,
       smsPorDia,
       porcentajeNoContactados: porcentajeNoContactados[0],

@@ -5,7 +5,7 @@ class WhatsAppReminder {
     try {
         await db.execute("SET lc_time_names = 'es_ES';");
         const [rows] = await db.execute(`
-          SELECT ID AS id, TELEFONO_FIJO AS telefono, NOMBRE AS nombre_paciente, DATE_FORMAT(FECHA_CITA, '%W %d de %M de %Y') AS fecha, DATE_FORMAT(HORA_CITA, '%h:%i %p') AS hora, SERVICIO AS servicio FROM citas WHERE DATE(FECHA_CITA) = DATE_ADD(CURDATE(), INTERVAL 1 DAY) AND ESTADO = 'pendiente' LIMIT 90; 
+          SELECT ID AS id, TELEFONO_FIJO AS telefono, NOMBRE AS nombre_paciente, DATE_FORMAT(FECHA_CITA, '%W %d de %M de %Y') AS fecha, DATE_FORMAT(HORA_CITA, '%h:%i %p') AS hora, SERVICIO AS servicio,PROFESIONAL as profesional FROM citas WHERE DATE(FECHA_CITA) = DATE_ADD(CURDATE(), INTERVAL 1 DAY) AND ESTADO = 'pendiente'; 
           `);
       return rows;
     } catch (error) {

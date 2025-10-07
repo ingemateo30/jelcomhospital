@@ -36,7 +36,7 @@ const programarLlamadasDelDiaSiguiente = async () => {
       }
 
       index++;
-      setTimeout(ejecutarLlamadas, 3000);
+      setTimeout(ejecutarLlamadas, 20000);
     };
 
     ejecutarLlamadas();
