@@ -1,16 +1,9 @@
-// ======================================================
-// CONTROLADOR DE RECORDATORIOS WHATSAPP - API META OFICIAL
-// ======================================================
-
 require("dotenv").config();
 const axios = require("axios");
 const fs = require("fs");
 const path = require("path");
 const WhatsAppReminder = require("../models/WhatsAppReminder");
-const Cita = require("../models/Cancelacion");
 const db = require("../config/db");
-
-const usuariosEnEsperaDeMotivo = new Map();
 
 // ======================================================
 // CONFIGURACIÓN META API
@@ -19,103 +12,14 @@ const META_TOKEN = process.env.META_TOKEN;
 const META_PHONE_NUMBER_ID = process.env.META_PHONE_NUMBER_ID;
 const META_WA_BASE_URL = process.env.META_WA_BASE_URL || "https://graph.facebook.com/v21.0";
 
+// ✅ URL DE IMAGEN VÁLIDA (sube tu imagen a un servidor público)
+const IMAGE_URL = process.env.WHATSAPP_IMAGE_URL || "https://i.imgur.com/yourimage.jpg";
+
 // ======================================================
 // FUNCIONES AUXILIARES
 // ======================================================
 function esperar(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-function obtenerMimeType(rutaArchivo) {
-  const extension = path.extname(rutaArchivo).toLowerCase();
-  switch (extension) {
-    case ".jpg":
-    case ".jpeg":
-      return "image/jpeg";
-    case ".png":
-      return "image/png";
-    case ".gif":
-      return "image/gif";
-    case ".webp":
-      return "image/webp";
-    default:
-      return "image/jpeg";
-  }
-}
-
-function buscarImagen(nombreBase = "recordatorio_cita") {
-  const extensiones = [".jpg", ".jpeg", ".png", ".gif", ".webp"];
-  const carpetas = [__dirname, path.join(__dirname, ".."), path.join(__dirname, "../public/images")];
-
-  for (const carpeta of carpetas) {
-    for (const ext of extensiones) {
-      const rutaCompleta = path.join(carpeta, nombreBase + ext);
-      if (fs.existsSync(rutaCompleta)) {
-        return rutaCompleta;
-      }
-    }
-  }
-  return null;
-}
-
-// ======================================================
-// FUNCIÓN PARA ENVIAR PLANTILLA META
-// ======================================================
-async function enviarPlantillaMeta(numero, reminder, imageUrl = null) {
-  try {
-    console.log(`📤 Enviando plantilla Meta a ${numero}...`);
-
-    const payload = {
-      messaging_product: "whatsapp",
-      to: numero,
-      type: "template",
-      template: {
-        name: "recordatorio",
-        language: { code: "es" },
-        components: [
-          ...(imageUrl
-            ? [
-                {
-                  type: "header",
-                  parameters: [{ type: "image", image: { link: imageUrl } }],
-                },
-              ]
-            : []),
-          {
-            type: "body",
-            parameters: [
-              { type: "text", text: reminder.nombre_paciente }, // {{1}}
-              { type: "text", text: reminder.fecha }, // {{2}}
-              { type: "text", text: reminder.hora }, // {{3}}
-              { type: "text", text: reminder.servicio }, // {{4}}
-              { type: "text", text: reminder.profesional }, // {{5}}
-              { type: "text", text: reminder.direccion1 || "" }, // {{6}}
-              { type: "text", text: reminder.direccion2 || "" }, // {{7}}
-              { type: "text", text: reminder.extra || "" }, // {{8}}
-            ],
-          },
-        ],
-      },
-    };
-
-    const response = await axios.post(
-      `${META_WA_BASE_URL}/${META_PHONE_NUMBER_ID}/messages`,
-      payload,
-      {
-        headers: {
-          Authorization: `Bearer ${META_TOKEN}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    console.log(`✅ Mensaje enviado a ${numero}`);
-    return { success: true, response: response.data };
-  } catch (error) {
-    const errorMsg = error.response?.data?.error?.message || error.message;
-    console.error(`❌ Error enviando a ${numero}: ${errorMsg}`);
-    return { success: false, error: errorMsg };
-  }
 }
 
 // ======================================================
@@ -128,7 +32,7 @@ function obtenerDireccionPorEspecialidad(servicio) {
     return {
       direccion1: "Calle 16 No. 9-76",
       direccion2: "Procedimientos de Cardiología",
-      extra: "",
+      extra: "Por favor, llegar con 40 minutos de anticipación.",
     };
   }
 
@@ -142,7 +46,7 @@ function obtenerDireccionPorEspecialidad(servicio) {
     return {
       direccion1: "Carrera 5 # 9-102",
       direccion2: "Hospital Regional de San Gil - Sede Principal",
-      extra: "",
+      extra: "Por favor, llegar con 40 minutos de anticipación.",
     };
   }
 
@@ -157,7 +61,7 @@ function obtenerDireccionPorEspecialidad(servicio) {
     return {
       direccion1: "Avenida Santander 24A-48",
       direccion2: "Consulta externa CES Hospital Regional de San Gil",
-      extra: "",
+      extra: "Por favor, llegar con 40 minutos de anticipación.",
     };
   }
 
@@ -165,15 +69,130 @@ function obtenerDireccionPorEspecialidad(servicio) {
     return {
       direccion1: "Cra 14A # 29A-27 Edificio PSI Local 2 Exterior, Barrio Porvenir",
       direccion2: "Consulta Especializada de Endodoncia",
-      extra: "⚠️ *IMPORTANTE:* Diríjase primero al CES (Avenida Santander 24A-48) antes de ir a esta dirección.",
+      extra: "⚠️ IMPORTANTE: Diríjase primero al CES (Avenida Santander 24A-48) antes de ir a esta dirección.",
     };
   }
 
   return {
     direccion1: "Carrera 5 # 9-102",
     direccion2: "Hospital Regional de San Gil - Sede Principal",
-    extra: "",
+    extra: "Por favor, llegar con 40 minutos de anticipación.",
   };
+}
+
+// ======================================================
+// ✅ FUNCIÓN MEJORADA PARA ENVIAR PLANTILLA META
+// ======================================================
+async function enviarPlantillaMeta(numero, reminder) {
+  try {
+    console.log(`📤 Enviando plantilla Meta a ${numero}...`);
+
+    // ✅ Validar que todos los campos requeridos existan
+    const campos = {
+      nombre_paciente: reminder.nombre_paciente || "Paciente",
+      fecha: reminder.fecha || "Fecha no disponible",
+      hora: reminder.hora || "Hora no disponible",
+      servicio: reminder.servicio || "Servicio no especificado",
+      profesional: reminder.profesional || "Profesional no asignado",
+      direccion1: reminder.direccion1 || "Dirección no disponible",
+      direccion2: reminder.direccion2 || "",
+      extra: reminder.extra || "Por favor, llegar con 40 minutos de anticipación."
+    };
+
+    // ✅ Validar URL de imagen
+    if (!IMAGE_URL || IMAGE_URL.includes("EXAMPLE")) {
+      console.error("⚠️ ADVERTENCIA: URL de imagen no configurada correctamente");
+      // Usar una imagen por defecto de Meta (logo de WhatsApp Business)
+      // O lanzar un error si la imagen es obligatoria
+    }
+
+    const payload = {
+      messaging_product: "whatsapp",
+      to: numero,
+      type: "template",
+      template: {
+        name: "recordatorio",
+        language: { code: "es" },
+        components: [
+          // ✅ HEADER SIEMPRE INCLUIDO (es obligatorio en tu plantilla)
+          {
+            type: "header",
+            parameters: [
+              { 
+                type: "image", 
+                image: { 
+                link: "https://drive.google.com/uc?export=view&id=1okoJZf6Kc8RLaGJy8OvqCV5PZ-8iwAN5",   
+             } 
+              }
+            ],
+          },
+          // ✅ BODY con todos los parámetros
+          {
+            type: "body",
+            parameters: [
+              { type: "text", text: campos.nombre_paciente },    // {{1}}
+              { type: "text", text: campos.fecha },              // {{2}}
+              { type: "text", text: campos.hora },               // {{3}}
+              { type: "text", text: campos.servicio },           // {{4}}
+              { type: "text", text: campos.profesional },        // {{5}}
+              { type: "text", text: campos.direccion1 },         // {{6}}
+              { type: "text", text: campos.direccion2 },         // {{7}}
+              { type: "text", text: campos.extra },              // {{8}}
+            ],
+          },
+          // ✅ BUTTONS (si tu plantilla los tiene, descomenta esto)
+          // {
+          //   type: "button",
+          //   sub_type: "phone_number",
+          //   index: 0,
+          //   parameters: [
+          //     {
+          //       type: "text",
+          //       text: "6077249701"
+          //     }
+          //   ]
+          // }
+        ],
+      },
+    };
+
+    console.log("📋 Payload enviado:", JSON.stringify(payload, null, 2));
+
+    const response = await axios.post(
+      `${META_WA_BASE_URL}/${META_PHONE_NUMBER_ID}/messages`,
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${META_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+        timeout: 30000, // 30 segundos de timeout
+      }
+    );
+
+    console.log(`✅ Mensaje enviado a ${numero}`);
+    return { success: true, response: response.data };
+
+  } catch (error) {
+    // ✅ Mejor manejo de errores
+    const errorMsg = error.response?.data?.error?.message || error.message;
+    const errorCode = error.response?.data?.error?.code;
+    const errorDetails = error.response?.data?.error?.error_data;
+    
+    console.error(`❌ Error enviando a ${numero}:`);
+    console.error(`   Código: ${errorCode}`);
+    console.error(`   Mensaje: ${errorMsg}`);
+    if (errorDetails) {
+      console.error(`   Detalles:`, errorDetails);
+    }
+    
+    return { 
+      success: false, 
+      error: errorMsg,
+      errorCode,
+      errorDetails
+    };
+  }
 }
 
 // ======================================================
@@ -189,57 +208,82 @@ const sendWhatsAppReminder = async (req, res) => {
       return res.status(200).json({ message: "No hay citas para mañana." });
     }
 
-    const imageUrl = "https://drive.google.com/uc?export=view&id=EXAMPLE_IMAGE_ID"; // reemplaza luego
-
     const resultados = { exitosos: 0, fallidos: 0, errores: [] };
 
     for (let i = 0; i < reminders.length; i++) {
       const reminder = reminders[i];
+      
+      // ✅ Obtener dirección según especialidad
       const dir = obtenerDireccionPorEspecialidad(reminder.servicio);
       reminder.direccion1 = dir.direccion1;
       reminder.direccion2 = dir.direccion2;
       reminder.extra = dir.extra;
 
+      // ✅ Formatear número
       let numero = reminder.telefono;
-      if (!numero.startsWith("+57")) numero = "+57" + numero.replace(/^0+/, "");
+      if (!numero.startsWith("+57")) {
+        numero = "+57" + numero.replace(/^0+/, "");
+      }
 
-      console.log(`[${i + 1}/${reminders.length}] Enviando a ${numero} (${reminder.nombre_paciente})`);
+      console.log(`\n[${i + 1}/${reminders.length}] Procesando: ${reminder.nombre_paciente}`);
+      console.log(`   📞 Número: ${numero}`);
+      console.log(`   📅 Fecha: ${reminder.fecha}`);
+      console.log(`   🏥 Servicio: ${reminder.servicio}`);
 
-      const resultado = await enviarPlantillaMeta(numero, reminder, imageUrl);
+      const resultado = await enviarPlantillaMeta(numero, reminder);
 
       if (resultado.success) {
         resultados.exitosos++;
         await WhatsAppReminder.updateReminderStatus(reminder.id, "recordatorio enviado");
+        console.log(`   ✅ ÉXITO`);
       } else {
         resultados.fallidos++;
-        resultados.errores.push({ numero, paciente: reminder.nombre_paciente, error: resultado.error });
+        resultados.errores.push({ 
+          numero, 
+          paciente: reminder.nombre_paciente, 
+          error: resultado.error,
+          errorCode: resultado.errorCode
+        });
+        console.log(`   ❌ FALLÓ: ${resultado.error}`);
       }
 
-      // Pausas inteligentes
+      // ✅ Pausas inteligentes para evitar límites de rate
       if (i < reminders.length - 1) {
-        console.log("⏳ Pausa de 20 segundos...");
+        console.log("   ⏳ Esperando 20 segundos...");
         await esperar(20000);
+        
         if ((i + 1) % 10 === 0) {
-          console.log("⏸️ Pausa extendida de 60 segundos...");
+          console.log("   ⏸️ Pausa extendida de 60 segundos...");
           await esperar(60000);
         }
       }
     }
 
-    // Guardar reporte
+    // ✅ Guardar reporte detallado
     const nombreReporte = `reporte_recordatorios_${new Date().toISOString().split("T")[0]}.json`;
-    fs.writeFileSync(nombreReporte, JSON.stringify(resultados, null, 2));
-    console.log(`💾 Reporte guardado: ${nombreReporte}`);
+    const reporte = {
+      fecha: new Date().toISOString(),
+      total: reminders.length,
+      exitosos: resultados.exitosos,
+      fallidos: resultados.fallidos,
+      tasa_exito: ((resultados.exitosos / reminders.length) * 100).toFixed(1) + "%",
+      errores: resultados.errores
+    };
+    
+    fs.writeFileSync(nombreReporte, JSON.stringify(reporte, null, 2));
+    console.log(`\n💾 Reporte guardado: ${nombreReporte}`);
 
     res.status(200).json({
-      message: "Recordatorios enviados",
-      ...resultados,
-      total: reminders.length,
-      tasa_exito: ((resultados.exitosos / reminders.length) * 100).toFixed(1) + "%",
+      message: "Proceso de envío completado",
+      ...reporte
     });
+
   } catch (error) {
     console.error("❌ Error general:", error);
-    res.status(500).json({ error: "Error al enviar recordatorios." });
+    res.status(500).json({ 
+      error: "Error al enviar recordatorios.",
+      details: error.message 
+    });
   }
 };
 
@@ -285,31 +329,9 @@ const processWhatsAppReply = async (req, res) => {
 };
 
 // ======================================================
-// ENVÍO INDIVIDUAL / MASIVO PERSONALIZADO
-// ======================================================
-const sendMessage = async (to, reminder, imageUrl = null) => {
-  return enviarPlantillaMeta(to, reminder, imageUrl);
-};
-
-const sendMassiveMessage = async (numeros, reminderBase, imageUrl = null) => {
-  const resultados = { exitosos: 0, fallidos: 0, errores: [] };
-  for (let i = 0; i < numeros.length; i++) {
-    const num = numeros[i];
-    console.log(`[${i + 1}/${numeros.length}] Enviando a ${num}`);
-    const resultado = await enviarPlantillaMeta(num, reminderBase, imageUrl);
-    if (resultado.success) resultados.exitosos++;
-    else resultados.errores.push({ num, error: resultado.error });
-    if (i < numeros.length - 1) await esperar(3000);
-  }
-  return resultados;
-};
-
-// ======================================================
 // EXPORTAR
 // ======================================================
 module.exports = {
   sendWhatsAppReminder,
   processWhatsAppReply,
-  sendMessage,
-  sendMassiveMessage,
 };
