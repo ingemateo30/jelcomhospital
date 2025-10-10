@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:3000/api/sms"; 
+const API_URL = "http://localhost:3001/api/sms"; 
 
 export const sendReminderSMS = async () => {
     try {

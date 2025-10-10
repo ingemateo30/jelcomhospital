@@ -1,0 +1,15 @@
+{
+  "fecha": "2025-10-07T21:35:02.345Z",
+  "total": 1,
+  "exitosos": 0,
+  "fallidos": 1,
+  "tasa_exito": "0.0%",
+  "errores": [
+    {
+      "numero": "+573007015239",
+      "paciente": "MARIA FERNANDA",
+      "error": "Error validating access token: Session has expired on Tuesday, 07-Oct-25 14:00:00 PDT. The current time is Tuesday, 07-Oct-25 14:35:01 PDT.",
+      "errorCode": 190
+    }
+  ]
+}

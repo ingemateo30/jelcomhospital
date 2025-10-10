@@ -41,7 +41,7 @@ const UploadExcel = () => {
         try {
             setIsLoading(true);
             const response = await axios.post(
-                "http://localhost:3000/api/citas/subir-excel",
+                "http://localhost:3001/api/citas/subir-excel",
                 formData,
                 {
                     headers: {
