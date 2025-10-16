@@ -178,7 +178,7 @@ async function enviarPlantillaMeta(numero, reminder) {
       profesional: reminder.profesional || "Profesional no asignado",
       direccion1: reminder.direccion1 || "Dirección no disponible",
       direccion2: reminder.direccion2 || "",
-      extra: reminder.extra
+      extra: reminder.extra || ""
     };
 
     const payload = {

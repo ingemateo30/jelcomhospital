@@ -1,0 +1,51 @@
+{
+  "fecha": "2025-10-16T14:26:48.223Z",
+  "total": 7,
+  "exitosos": 0,
+  "fallidos": 7,
+  "tasa_exito": "0.0%",
+  "errores": [
+    {
+      "numero": "+573212812061",
+      "paciente": "MARIA FERNANDA SALAMANCA ",
+      "error": "(#131008) Required parameter is missing",
+      "errorCode": 131008
+    },
+    {
+      "numero": "+573212631673",
+      "paciente": "MARIA FERNANDA SALAMANCA ",
+      "error": "(#131008) Required parameter is missing",
+      "errorCode": 131008
+    },
+    {
+      "numero": "+573007015239",
+      "paciente": "MARIA FERNANDA SALAMANCA ",
+      "error": "(#131008) Required parameter is missing",
+      "errorCode": 131008
+    },
+    {
+      "numero": "+573245675766",
+      "paciente": "MARIA FERNANDA SALAMANCA ",
+      "error": "(#131008) Required parameter is missing",
+      "errorCode": 131008
+    },
+    {
+      "numero": "+573165395169",
+      "paciente": "MARIA FERNANDA SALAMANCA ",
+      "error": "(#131008) Required parameter is missing",
+      "errorCode": 131008
+    },
+    {
+      "numero": "+573156127158",
+      "paciente": "MARIA FERNANDA SALAMANCA ",
+      "error": "(#131008) Required parameter is missing",
+      "errorCode": 131008
+    },
+    {
+      "numero": "+573142050431",
+      "paciente": "MARIA FERNANDA SALAMANCA ",
+      "error": "(#131008) Required parameter is missing",
+      "errorCode": 131008
+    }
+  ]
+}
