@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ocultar Enlaces en Excel</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #f8f9ff;
+        }
+        
+        .upload-area:hover {
+            border-color: #764ba2;
+            background: #f0f2ff;
+        }
+        
+        .upload-area.dragover {
+            border-color: #764ba2;
+            background: #e8ebff;
+            transform: scale(1.02);
+        }
+        
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+        
+        .upload-text {
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .upload-hint {
+            color: #999;
+            font-size: 13px;
+        }
+        
+        input[type="file"] {
+            display: none;
+        }
+        
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            display: none;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .status.processing {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .download-btn {
+            display: none;
+            margin-top: 20px;
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .download-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .info-box {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            font-size: 13px;
+            color: #856404;
+        }
+        
+        .info-box strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+            display: none;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔒 Ocultar Enlaces de Excel</h1>
+        <p class="subtitle">Reemplaza las URLs largas por texto genérico manteniendo tu información segura</p>
+        
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-icon">📊</div>
+            <div class="upload-text">Haz clic o arrastra tu archivo Excel aquí</div>
+            <div class="upload-hint">Formatos soportados: .xlsx, .xls</div>
+            <input type="file" id="fileInput" accept=".xlsx,.xls">
+        </div>
+        
+        <div class="spinner" id="spinner"></div>
+        <div class="status" id="status"></div>
+        <button class="download-btn" id="downloadBtn">⬇️ Descargar Archivo Limpio</button>
+        
+        <div class="info-box">
+            <strong>¿Qué hace esta herramienta?</strong>
+            ✅ Reemplaza URLs largas por "[Grabación disponible]"<br>
+            ✅ Mantiene todos tus datos intactos<br>
+            ✅ Protege enlaces sensibles<br>
+            ✅ 100% procesamiento local (tu archivo no se sube a ningún servidor)
+        </div>
+    </div>
+
+    <script>
+        let processedWorkbook;
+        let originalFileName;
+        
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const status = document.getElementById('status');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const spinner = document.getElementById('spinner');
+        
+        // Click en área de carga
+        uploadArea.addEventListener('click', () => fileInput.click());
+        
+        // Drag and drop
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                processFile(files[0]);
+            }
+        });
+        
+        // Selección de archivo
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                processFile(e.target.files[0]);
+            }
+        });
+        
+        function showStatus(message, type) {
+            status.textContent = message;
+            status.className = 'status ' + type;
+            status.style.display = 'block';
+        }
+        
+        function processFile(file) {
+            originalFileName = file.name.replace('.xlsx', '').replace('.xls', '');
+            
+            showStatus('⏳ Procesando archivo...', 'processing');
+            spinner.style.display = 'block';
+            downloadBtn.style.display = 'none';
+            
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    
+                    // Procesar cada hoja
+                    workbook.SheetNames.forEach(sheetName => {
+                        const sheet = workbook.Sheets[sheetName];
+                        const range = XLSX.utils.decode_range(sheet['!ref']);
+                        
+                        let urlsOcultadas = 0;
+                        
+                        // Recorrer todas las celdas
+                        for (let R = range.s.r; R <= range.e.r; R++) {
+                            for (let C = range.s.c; C <= range.e.c; C++) {
+                                const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+                                const cell = sheet[cellAddress];
+                                
+                                if (cell && cell.v && typeof cell.v === 'string') {
+                                    // Detectar URLs
+                                    if (cell.v.includes('http://') || cell.v.includes('https://')) {
+                                        cell.v = '[Grabación disponible]';
+                                        urlsOcultadas++;
+                                    }
+                                }
+                            }
+                        }
+                        
+                        console.log(`Hoja "${sheetName}": ${urlsOcultadas} URLs ocultadas`);
+                    });
+                    
+                    processedWorkbook = workbook;
+                    
+                    spinner.style.display = 'none';
+                    showStatus('✅ ¡Archivo procesado exitosamente! Las URLs han sido ocultadas.', 'success');
+                    downloadBtn.style.display = 'block';
+                    
+                } catch (error) {
+                    spinner.style.display = 'none';
+                    showStatus('❌ Error al procesar el archivo: ' + error.message, 'error');
+                    console.error(error);
+                }
+            };
+            
+            reader.onerror = function() {
+                spinner.style.display = 'none';
+                showStatus('❌ Error al leer el archivo', 'error');
+            };
+            
+            reader.readAsArrayBuffer(file);
+        }
+        
+        downloadBtn.addEventListener('click', () => {
+            if (!processedWorkbook) {
+                showStatus('❌ No hay archivo procesado para descargar', 'error');
+                return;
+            }
+            
+            try {
+                const wbout = XLSX.write(processedWorkbook, { bookType: 'xlsx', type: 'array' });
+                const blob = new Blob([wbout], { type: 'application/octet-stream' });
+                const url = URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = originalFileName + '_ENLACES_OCULTOS.xlsx';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                showStatus('✅ Archivo descargado exitosamente', 'success');
+            } catch (error) {
+                showStatus('❌ Error al descargar: ' + error.message, 'error');
+            }
+        });
+    </script>
+</body>
+</html>

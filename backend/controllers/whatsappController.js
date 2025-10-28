@@ -64,89 +64,15 @@ function obtenerDireccionPorEspecialidad(servicio) {
   }
 
   // ============================================
-  // HOSPITAL - SEDE PRINCIPAL (Carrera 5 # 9-102)
-  // ============================================
-  const serviciosHospital = [
-    "anestesiologia",
-    "cardiologia pediatrica",
-    "cardiologia", // Solo cardiología consulta, NO procedimientos
-    "colonoscopia",
-    "ecografias",
-    "endoscopias",
-    "fonoaudiologia procedimientos",
-    "gastroenterologia",
-    "neumologia",
-    "neurologia procedimientos",
-    "otorrinolaringologia",
-    "trabajo social",
-    "qx otorrino",
-    "qx ginecologia",
-    "qx ortopedia",
-    "qx urologia",
-    "qx general",
-    "qx pediatrica",
-    "qx neurocirugia",
-    "qx oftalmologia",
-    "qx dermatologica"
-  ];
-
-  // Verificar si es del hospital (excluyendo los que ya se procesaron arriba)
-  if (serviciosHospital.some(esp => {
-    if (esp === "cardiologia" && servicioLower.includes("procedimientos")) {
-      return false; // Ya se procesó en Calle 16
-    }
-    return servicioLower.includes(esp);
-  })) {
-    return {
-      direccion1: "Carrera 5 # 9-102",
-      direccion2: "Hospital Regional de San Gil - Sede Principal",
-      extra: ""
-    };
-  }
-
-  // ============================================
-  // CES (Avenida Santander 24A-48)
-  // Todas las demás especialidades van aquí
+  // AVENIDA SANTANDER 24A-48 (CES - Consulta Externa)
   // ============================================
   const serviciosCES = [
     "adultez",
-    "adulto mayor",
-    "agudeza visual",
-    "cirugia general",
-    "cirugia pediatrica",
-    "cirugia maxilofacial",
-    "citologia",
-    "control prenatal",
-    "crecimiento",
-    "dermatologia procedimientos",
-    "dermatologia",
-    "educacion individual",
-    "examen de seno",
-    "ginecologia",
-    "medicina familiar",
-    "medicina general",
-    "medicina interna",
-    "neurocirugia",
-    "neurologia",
-    "neumologia procedimientos",
-    "nutricion",
-    "obstetricia",
-    "odontologia",
-    "oftalmologia",
-    "optometria",
-    "ortopedia y/o traumatologia",
-    "ortopedia",
-    "pediatria",
-    "planificacion familiar",
-    "pos parto",
-    "primera infancia",
-    "psicologia",
-    "psiquiatria",
     "riesgo cardiovascular",
-    "salud oral",
-    "terapia fisica y respiratoria",
-    "urologia",
-    "vejez"
+    "agudeza visual",
+    "joven",
+    "odontologia general",
+    "higiene oral"
   ];
 
   if (serviciosCES.some(esp => servicioLower.includes(esp))) {
@@ -158,16 +84,20 @@ function obtenerDireccionPorEspecialidad(servicio) {
   }
 
   // ============================================
-  // DEFAULT: Si no coincide con nada, enviar al Hospital
+  // CARRERA 5 # 9-102 (Hospital Regional - Sede Principal)
   // ============================================
-  console.warn(`⚠️ Servicio no mapeado: "${servicio}". Enviando al Hospital por defecto.`);
+  console.log(`⚠️ Servicio no mapeado: "${servicio}". Enviando al Hospital por defecto.`);
   return {
-    direccion1: "valida tu direccion de cita medica",
-    direccion2: "no sabes donde es? llamanos al 6077249701",
+    direccion1: "Valida tu direccion de cita",
+    direccion2: "llamanos al 607 724 9701",
     extra: ""
   };
 }
 
+/**
+ * Función para enviar plantilla de WhatsApp vía Meta API
+ * CON MANEJO DINÁMICO DEL PARÁMETRO "extra"
+ */
 async function enviarPlantillaMeta(numero, reminder) {
   try {
     const campos = {
@@ -180,6 +110,28 @@ async function enviarPlantillaMeta(numero, reminder) {
       direccion2: reminder.direccion2 || "",
       extra: reminder.extra || ""
     };
+
+    // 🔍 LOGGING DETALLADO
+    console.log('\n🔍 DEBUG - Datos que se enviarán:');
+    console.log('   Número:', numero);
+    console.log('   Campos:', JSON.stringify(campos, null, 2));
+
+    // 🔥 SIEMPRE ENVIAR TODOS LOS 8 PARÁMETROS
+    // Meta requiere que se envíen TODOS los parámetros definidos en la plantilla
+    // Si un parámetro está vacío, enviamos un espacio " "
+    const bodyParameters = [
+      { type: "text", text: campos.nombre_paciente },
+      { type: "text", text: campos.fecha },
+      { type: "text", text: campos.hora },
+      { type: "text", text: campos.servicio },
+      { type: "text", text: campos.profesional },
+      { type: "text", text: campos.direccion1 },
+      { type: "text", text: campos.direccion2 },
+      { type: "text", text: campos.extra || " " }, // Siempre incluir, aunque sea vacío
+    ];
+
+    console.log('   Total parámetros body:', bodyParameters.length);
+    console.log('   Campo "extra":', campos.extra ? `"${campos.extra}"` : '(espacio en blanco)');
 
     const payload = {
       messaging_product: "whatsapp",
@@ -202,21 +154,13 @@ async function enviarPlantillaMeta(numero, reminder) {
           },
           {
             type: "body",
-            parameters: [
-              { type: "text", text: campos.nombre_paciente },
-              { type: "text", text: campos.fecha },
-              { type: "text", text: campos.hora },
-              { type: "text", text: campos.servicio },
-              { type: "text", text: campos.profesional },
-              { type: "text", text: campos.direccion1 },
-              { type: "text", text: campos.direccion2 },
-              { type: "text", text: campos.extra },
-            ],
+            parameters: bodyParameters, // Usar array dinámico
           },
         ],
       },
     };
 
+    
     const response = await axios.post(
       `${META_WA_BASE_URL}/${META_PHONE_NUMBER_ID}/messages`,
       payload,
@@ -229,9 +173,17 @@ async function enviarPlantillaMeta(numero, reminder) {
       }
     );
 
+    console.log('   ✅ Respuesta exitosa de Meta:', response.data);
     return { success: true, response: response.data };
 
   } catch (error) {
+    // 🔍 LOGGING DEL ERROR COMPLETO
+    console.error('\n❌ ERROR DETALLADO META API:');
+    console.error('   Status:', error.response?.status);
+    console.error('   Error Data:', JSON.stringify(error.response?.data, null, 2));
+    console.error('   Headers:', error.response?.headers);
+    console.error('   URL:', error.config?.url);
+    
     const errorMsg = error.response?.data?.error?.message || error.message;
     const errorCode = error.response?.data?.error?.code;
     const errorDetails = error.response?.data?.error?.error_data;
@@ -240,11 +192,15 @@ async function enviarPlantillaMeta(numero, reminder) {
       success: false, 
       error: errorMsg,
       errorCode,
-      errorDetails
+      errorDetails,
+      fullError: error.response?.data
     };
   }
 }
 
+/**
+ * Función principal para enviar recordatorios
+ */
 const sendWhatsAppReminder = async (req, res) => {
   try {
     console.log("🚀 INICIANDO ENVÍO DE RECORDATORIOS VIA META\n");
@@ -287,6 +243,9 @@ const sendWhatsAppReminder = async (req, res) => {
         console.log(`   Servicio: ${reminder.servicio}`);
         console.log(`   Dirección: ${dir.direccion1}`);
         console.log(`   Sede: ${dir.direccion2}`);
+        if (dir.extra) {
+          console.log(`   Extra: ${dir.extra}`);
+        }
 
         let numero = reminder.telefono;
         if (!numero.startsWith("+57")) {
@@ -326,10 +285,14 @@ const sendWhatsAppReminder = async (req, res) => {
             numero, 
             paciente: reminder.nombre_paciente, 
             error: resultado.error,
-            errorCode: resultado.errorCode
+            errorCode: resultado.errorCode,
+            fullError: resultado.fullError
           });
           
           console.log(`   ❌ ERROR: ${resultado.error}`);
+          if (resultado.errorCode) {
+            console.log(`   📋 Código: ${resultado.errorCode}`);
+          }
           
           // Emitir error
           io.emit("whatsapp:error", {
@@ -344,18 +307,19 @@ const sendWhatsAppReminder = async (req, res) => {
           });
         }
 
-        // Pausas
+        // Pausas entre envíos
         if (i < reminders.length - 1) {
           io.emit("whatsapp:pausa", {
             segundos: 2,
-            mensaje: "Esperando 20 segundos..."
+            mensaje: "Esperando 2 segundos..."
           });
           await esperar(2000);
           
+          // Pausa extendida cada 10 envíos
           if ((i + 1) % 10 === 0) {
             io.emit("whatsapp:pausa", {
               segundos: 6,
-              mensaje: "Pausa extendida de 60 segundos..."
+              mensaje: "Pausa extendida de 6 segundos..."
             });
             await esperar(6000);
           }
@@ -401,6 +365,9 @@ const sendWhatsAppReminder = async (req, res) => {
   }
 };
 
+/**
+ * Clasificar respuesta de usuario
+ */
 function clasificarRespuesta(mensaje) {
   const m = mensaje.toLowerCase();
   if (m.includes("sí") || m.includes("si") || m.includes("confirmo")) return "confirmada";
@@ -409,6 +376,9 @@ function clasificarRespuesta(mensaje) {
   return "pendiente_clasificacion";
 }
 
+/**
+ * Procesar respuestas de WhatsApp
+ */
 const processWhatsAppReply = async (req, res) => {
   try {
     const [rows] = await db.query(`
