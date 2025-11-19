@@ -817,7 +817,16 @@ async function sendWhatsAppMessage(to, text) {
  */
 async function saveMessageToDb({ id, phone, body, fromMe, timestamp, status }) {
   try {
-    const fecha = new Date(timestamp).toISOString().slice(0, 19).replace("T", " ");
+    // Convertir timestamp a fecha/hora local de Colombia (GMT-5)
+    const date = new Date(timestamp);
+
+    // Ajustar a zona horaria de Colombia (UTC-5)
+    // Restar 5 horas a UTC para obtener hora de Colombia
+    const colombiaOffset = -5 * 60; // -5 horas en minutos
+    const localDate = new Date(date.getTime() + (colombiaOffset * 60 * 1000));
+
+    // Formatear como DATETIME para MySQL (YYYY-MM-DD HH:MM:SS)
+    const fecha = localDate.toISOString().slice(0, 19).replace("T", " ");
 
     // Verificar duplicados (última semana)
     const [existingMessages] = await db.execute(
@@ -833,13 +842,16 @@ async function saveMessageToDb({ id, phone, body, fromMe, timestamp, status }) {
       return;
     }
 
+    // Los mensajes salientes se marcan como leídos automáticamente
+    const leido = fromMe ? 1 : 0;
+
     await db.execute(
-      `INSERT INTO mensajes (id, numero, mensaje, fecha, tipo, estado)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [id, phone, body, fecha, fromMe ? 'saliente' : 'entrante', status]
+      `INSERT INTO mensajes (id, numero, mensaje, fecha, tipo, estado, leido)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [id, phone, body, fecha, fromMe ? 'saliente' : 'entrante', status, leido]
     );
 
-    console.log(`   📝 Mensaje guardado en BD`);
+    console.log(`   📝 Mensaje guardado en BD [${fecha}]`);
 
     // Emitir evento Socket.io solo para mensajes salientes (los entrantes ya se emiten en processMetaMessage)
     if (fromMe && global.io) {
@@ -962,7 +974,8 @@ async function getChats(req, res) {
         c.PROFESIONAL,
         c.ESTADO as estado_cita,
         (SELECT mensaje FROM mensajes WHERE numero = m.numero ORDER BY fecha DESC LIMIT 1) as ultimo_mensaje_texto,
-        (SELECT tipo FROM mensajes WHERE numero = m.numero ORDER BY fecha DESC LIMIT 1) as ultimo_mensaje_tipo
+        (SELECT tipo FROM mensajes WHERE numero = m.numero ORDER BY fecha DESC LIMIT 1) as ultimo_mensaje_tipo,
+        (SELECT COUNT(*) FROM mensajes WHERE numero = m.numero AND tipo = 'entrante' AND leido = 0) as mensajes_no_leidos
       FROM mensajes m
       LEFT JOIN citas c ON m.numero = c.TELEFONO_FIJO
       WHERE 1=1
@@ -1019,7 +1032,9 @@ async function getChatMessages(req, res) {
         mensaje,
         fecha,
         tipo,
-        estado
+        estado,
+        leido,
+        fecha_leido
       FROM mensajes
       WHERE numero = ?
       ORDER BY fecha ASC`,
@@ -1059,6 +1074,61 @@ async function getChatMessages(req, res) {
   }
 }
 
+/**
+ * Marcar mensajes como leídos
+ */
+async function markMessagesAsRead(req, res) {
+  try {
+    const { numero } = req.params;
+
+    if (!numero) {
+      return res.status(400).json({
+        success: false,
+        error: 'Número de teléfono requerido'
+      });
+    }
+
+    // Convertir timestamp a fecha/hora local de Colombia (GMT-5)
+    const now = new Date();
+    const colombiaOffset = -5 * 60; // -5 horas en minutos
+    const localDate = new Date(now.getTime() + (colombiaOffset * 60 * 1000));
+    const fechaLeido = localDate.toISOString().slice(0, 19).replace("T", " ");
+
+    // Marcar todos los mensajes entrantes no leídos como leídos
+    const [result] = await db.execute(
+      `UPDATE mensajes
+       SET leido = 1, fecha_leido = ?
+       WHERE numero = ?
+       AND tipo = 'entrante'
+       AND leido = 0`,
+      [fechaLeido, numero]
+    );
+
+    console.log(`   ✓ ${result.affectedRows} mensajes marcados como leídos para ${numero}`);
+
+    // Emitir evento Socket.io para actualizar otros clientes
+    if (global.io) {
+      global.io.emit("chat:mensajes_leidos", {
+        numero,
+        fecha_leido: fechaLeido,
+        cantidad: result.affectedRows
+      });
+    }
+
+    res.json({
+      success: true,
+      mensajes_marcados: result.affectedRows,
+      fecha_leido: fechaLeido
+    });
+  } catch (error) {
+    console.error('Error marcando mensajes como leídos:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error al marcar mensajes como leídos'
+    });
+  }
+}
+
 module.exports = {
   sendWhatsAppReminder,
   processWhatsAppReply,
@@ -1068,4 +1138,5 @@ module.exports = {
   handleMetaWebhook,
   getChats,
   getChatMessages,
+  markMessagesAsRead,
 };
