@@ -1,0 +1,14 @@
+<x:Envelope
+    xmlns:x="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:uni="Univer360_Produccion">
+    <x:Header/>
+    <x:Body>
+        <uni:WSCancelarCita.Execute>
+            <uni:Citempcod>36</uni:Citempcod>
+            <uni:Citnum>1120844</uni:Citnum>
+            <uni:Citobscan>OK</uni:Citobscan>
+            <uni:Usulog>CITAWEB</uni:Usulog>
+            <uni:Usupas>Abc123*</uni:Usupas>
+        </uni:WSCancelarCita.Execute>
+    </x:Body>
+</x:Envelope>

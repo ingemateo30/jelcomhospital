@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope
+  xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <SOAP-ENV:Body>
+    <WSProximasCitas.ExecuteResponse
+      xmlns="Univer360_Produccion">
+      <Sdtproxcitasjson
+        xmlns="Univer360_Produccion">[{&quot;CitEmpCod&quot;:36,&quot;CitNum&quot;:1120845,&quot;CitSedCod&quot;:1,&quot;CitSedNom&quot;:&quot;PRINCIPAL&quot;,&quot;CitSedDir&quot;:&quot;Carrera 5 No 9-102&quot;,&quot;CitFec&quot;:&quot;2025-07-01&quot;,&quot;CitHor&quot;:&quot;0001-01-01T07:00:00&quot;,&quot;CitTipAgeNro&quot;:1,&quot;CitTipAgeNom&quot;:&quot;MEDICINA GENERAL&quot;,&quot;CitMedCod&quot;:948,&quot;CitMedNomCom&quot;:&quot;ACEVEDO CALDERON DIANA PATRICIA&quot;,&quot;CitActCod&quot;:&quot;&quot;,&quot;CitIngNum&quot;:0}]
+      </Sdtproxcitasjson>
+      <Codigo
+        xmlns="Univer360_Produccion">S01
+      </Codigo>
+      <Resultado
+        xmlns="Univer360_Produccion">Próximas Citas Encontradas
+      </Resultado>
+    </WSProximasCitas.ExecuteResponse>
+  </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

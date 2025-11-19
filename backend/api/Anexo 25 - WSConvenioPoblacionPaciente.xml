@@ -1,0 +1,69 @@
+<definitions xmlns:wsdlns="Univer360_Produccion" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://schemas.xmlsoap.org/wsdl/" xmlns:tns="Univer360_Produccion" name="WSConvenioPoblacionPaciente" targetNamespace="Univer360_Produccion">
+<types>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" targetNamespace="Univer360_Produccion" elementFormDefault="qualified">
+<complexType name="SdtConPobPac">
+<sequence>
+<element minOccurs="0" maxOccurs="unbounded" name="SdtConPobPac.SdtConPobPacItem" type="tns:SdtConPobPac.SdtConPobPacItem"> </element>
+</sequence>
+</complexType>
+<complexType name="SdtConPobPac.SdtConPobPacItem">
+<all>
+<element name="ConNum" type="xsd:short"> </element>
+<element name="ConPacNum" type="xsd:long"> </element>
+<element name="ConPacNiv" type="xsd:byte"> </element>
+<element name="ConPacTip" type="xsd:string"> </element>
+<element name="ConPacEst" type="xsd:string"> </element>
+</all>
+</complexType>
+<element name="WSConvenioPoblacionPaciente.Execute">
+<complexType>
+<sequence>
+<element minOccurs="1" maxOccurs="1" name="Empcod" type="xsd:short"/>
+<element minOccurs="1" maxOccurs="1" name="Tipidecod" type="xsd:string"/>
+<element minOccurs="1" maxOccurs="1" name="Pacnumide" type="xsd:string"/>
+<element minOccurs="1" maxOccurs="1" name="Usulog" type="xsd:string"/>
+<element minOccurs="1" maxOccurs="1" name="Usupas" type="xsd:string"/>
+</sequence>
+</complexType>
+</element>
+<element name="WSConvenioPoblacionPaciente.ExecuteResponse">
+<complexType>
+<sequence>
+<element minOccurs="1" maxOccurs="1" name="Sdtconpobpac" type="tns:SdtConPobPac"/>
+<element minOccurs="1" maxOccurs="1" name="Codigo" type="xsd:string"/>
+<element minOccurs="1" maxOccurs="1" name="Resultado" type="xsd:string"/>
+</sequence>
+</complexType>
+</element>
+</schema>
+</types>
+<message name="WSConvenioPoblacionPaciente.ExecuteSoapIn">
+<part name="parameters" element="tns:WSConvenioPoblacionPaciente.Execute"/>
+</message>
+<message name="WSConvenioPoblacionPaciente.ExecuteSoapOut">
+<part name="parameters" element="tns:WSConvenioPoblacionPaciente.ExecuteResponse"/>
+</message>
+<portType name="WSConvenioPoblacionPacienteSoapPort">
+<operation name="Execute">
+<input message="wsdlns:WSConvenioPoblacionPaciente.ExecuteSoapIn"/>
+<output message="wsdlns:WSConvenioPoblacionPaciente.ExecuteSoapOut"/>
+</operation>
+</portType>
+<binding name="WSConvenioPoblacionPacienteSoapBinding" type="wsdlns:WSConvenioPoblacionPacienteSoapPort">
+<soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+<operation name="Execute">
+<soap:operation soapAction="Univer360_Produccionaction/AWSCONVENIOPOBLACIONPACIENTE.Execute"/>
+<input>
+<soap:body use="literal"/>
+</input>
+<output>
+<soap:body use="literal"/>
+</output>
+</operation>
+</binding>
+<service name="WSConvenioPoblacionPaciente">
+<port name="WSConvenioPoblacionPacienteSoapPort" binding="wsdlns:WSConvenioPoblacionPacienteSoapBinding">
+<soap:address location="http://hs.salud360.app/Salud360Hs/servlet/awsconveniopoblacionpaciente"/>
+</port>
+</service>
+</definitions>

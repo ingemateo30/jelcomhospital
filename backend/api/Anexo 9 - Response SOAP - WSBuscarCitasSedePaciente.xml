@@ -1,0 +1,531 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope
+  xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <SOAP-ENV:Body>
+    <WSBuscarCitasSedePaciente.ExecuteResponse
+      xmlns="Univer360_Produccion">
+      <Sdtcitas
+        xmlns="Univer360_Produccion">
+        <SDTCitasDisponibles.SDTCitasDisponiblesItem
+          xmlns="Univer360_Produccion">
+          <AgeGenEmpCod>36</AgeGenEmpCod>
+          <AgeGenCon>1000974364</AgeGenCon>
+          <AgeGenSedCod>1</AgeGenSedCod>
+          <AgeGenSedNom>PRINCIPAL</AgeGenSedNom>
+          <AgeGenSedDir>Carrera 5 No 9-102</AgeGenSedDir>
+          <AgeGenMedCod>948</AgeGenMedCod>
+          <AgeGenMedNomCom>ACEVEDO CALDERON DIANA PATRICIA</AgeGenMedNomCom>
+          <AgeGenFec>2025-07-01</AgeGenFec>
+          <AgeGenHorIni>0001-01-01T07:00:00</AgeGenHorIni>
+          <TipAgeNro>1</TipAgeNro>
+          <TipAgeNom>MEDICINA GENERAL</TipAgeNom>
+          <AgeGenSedMunCod/>
+          <AgeGenSedMunNom/>
+          <Orden>0</Orden>
+        </SDTCitasDisponibles.SDTCitasDisponiblesItem>
+        <SDTCitasDisponibles.SDTCitasDisponiblesItem
+          xmlns="Univer360_Produccion">
+          <AgeGenEmpCod>36</AgeGenEmpCod>
+          <AgeGenCon>1000974365</AgeGenCon>
+          <AgeGenSedCod>1</AgeGenSedCod>
+          <AgeGenSedNom>PRINCIPAL</AgeGenSedNom>
+          <AgeGenSedDir>Carrera 5 No 9-102</AgeGenSedDir>
+          <AgeGenMedCod>948</AgeGenMedCod>
+          <AgeGenMedNomCom>ACEVEDO CALDERON DIANA PATRICIA</AgeGenMedNomCom>
+          <AgeGenFec>2025-07-01</AgeGenFec>
+          <AgeGenHorIni>0001-01-01T07:30:00</AgeGenHorIni>
+          <TipAgeNro>1</TipAgeNro>
+          <TipAgeNom>MEDICINA GENERAL</TipAgeNom>
+          <AgeGenSedMunCod/>
+          <AgeGenSedMunNom/>
+          <Orden>0</Orden>
+        </SDTCitasDisponibles.SDTCitasDisponiblesItem>
+        <SDTCitasDisponibles.SDTCitasDisponiblesItem
+          xmlns="Univer360_Produccion">
+          <AgeGenEmpCod>36</AgeGenEmpCod>
+          <AgeGenCon>1000974366</AgeGenCon>
+          <AgeGenSedCod>1</AgeGenSedCod>
+          <AgeGenSedNom>PRINCIPAL</AgeGenSedNom>
+          <AgeGenSedDir>Carrera 5 No 9-102</AgeGenSedDir>
+          <AgeGenMedCod>948</AgeGenMedCod>
+          <AgeGenMedNomCom>ACEVEDO CALDERON DIANA PATRICIA</AgeGenMedNomCom>
+          <AgeGenFec>2025-07-01</AgeGenFec>
+          <AgeGenHorIni>0001-01-01T08:00:00</AgeGenHorIni>
+          <TipAgeNro>1</TipAgeNro>
+          <TipAgeNom>MEDICINA GENERAL</TipAgeNom>
+          <AgeGenSedMunCod/>
+          <AgeGenSedMunNom/>
+          <Orden>0</Orden>
+        </SDTCitasDisponibles.SDTCitasDisponiblesItem>
+        <SDTCitasDisponibles.SDTCitasDisponiblesItem
+          xmlns="Univer360_Produccion">
+          <AgeGenEmpCod>36</AgeGenEmpCod>
+          <AgeGenCon>1000974367</AgeGenCon>
+          <AgeGenSedCod>1</AgeGenSedCod>
+          <AgeGenSedNom>PRINCIPAL</AgeGenSedNom>
+          <AgeGenSedDir>Carrera 5 No 9-102</AgeGenSedDir>
+          <AgeGenMedCod>948</AgeGenMedCod>
+          <AgeGenMedNomCom>ACEVEDO CALDERON DIANA PATRICIA</AgeGenMedNomCom>
+          <AgeGenFec>2025-07-01</AgeGenFec>
+          <AgeGenHorIni>0001-01-01T08:30:00</AgeGenHorIni>
+          <TipAgeNro>1</TipAgeNro>
+          <TipAgeNom>MEDICINA GENERAL</TipAgeNom>
+          <AgeGenSedMunCod/>
+          <AgeGenSedMunNom/>
+          <Orden>0</Orden>
+        </SDTCitasDisponibles.SDTCitasDisponiblesItem>
+        <SDTCitasDisponibles.SDTCitasDisponiblesItem
+          xmlns="Univer360_Produccion">
+          <AgeGenEmpCod>36</AgeGenEmpCod>
+          <AgeGenCon>1000974368</AgeGenCon>
+          <AgeGenSedCod>1</AgeGenSedCod>
+          <AgeGenSedNom>PRINCIPAL</AgeGenSedNom>
+          <AgeGenSedDir>Carrera 5 No 9-102</AgeGenSedDir>
+          <AgeGenMedCod>948</AgeGenMedCod>
+          <AgeGenMedNomCom>ACEVEDO CALDERON DIANA PATRICIA</AgeGenMedNomCom>
+          <AgeGenFec>2025-07-01</AgeGenFec>
+          <AgeGenHorIni>0001-01-01T09:00:00</AgeGenHorIni>
+          <TipAgeNro>1</TipAgeNro>
+          <TipAgeNom>MEDICINA GENERAL</TipAgeNom>
+          <AgeGenSedMunCod/>
+          <AgeGenSedMunNom/>
+          <Orden>0</Orden>
+        </SDTCitasDisponibles.SDTCitasDisponiblesItem>
+        <SDTCitasDisponibles.SDTCitasDisponiblesItem
+          xmlns="Univer360_Produccion">
+          <AgeGenEmpCod>36</AgeGenEmpCod>
+          <AgeGenCon>1000974369</AgeGenCon>
+          <AgeGenSedCod>1</AgeGenSedCod>
+          <AgeGenSedNom>PRINCIPAL</AgeGenSedNom>
+          <AgeGenSedDir>Carrera 5 No 9-102</AgeGenSedDir>
+          <AgeGenMedCod>948</AgeGenMedCod>
+          <AgeGenMedNomCom>ACEVEDO CALDERON DIANA PATRICIA</AgeGenMedNomCom>
+          <AgeGenFec>2025-07-01</AgeGenFec>
+          <AgeGenHorIni>0001-01-01T09:30:00</AgeGenHorIni>
+          <TipAgeNro>1</TipAgeNro>
+          <TipAgeNom>MEDICINA GENERAL</TipAgeNom>
+          <AgeGenSedMunCod/>
+          <AgeGenSedMunNom/>
+          <Orden>0</Orden>
+        </SDTCitasDisponibles.SDTCitasDisponiblesItem>
+        <SDTCitasDisponibles.SDTCitasDisponiblesItem
+          xmlns="Univer360_Produccion">
+          <AgeGenEmpCod>36</AgeGenEmpCod>
+          <AgeGenCon>1000974370</AgeGenCon>
+          <AgeGenSedCod>1</AgeGenSedCod>
+          <AgeGenSedNom>PRINCIPAL</AgeGenSedNom>
+          <AgeGenSedDir>Carrera 5 No 9-102</AgeGenSedDir>
+          <AgeGenMedCod>948</AgeGenMedCod>
+          <AgeGenMedNomCom>ACEVEDO CALDERON DIANA PATRICIA</AgeGenMedNomCom>
+          <AgeGenFec>2025-07-01</AgeGenFec>
+          <AgeGenHorIni>0001-01-01T10:00:00</AgeGenHorIni>
+          <TipAgeNro>1</TipAgeNro>
+          <TipAgeNom>MEDICINA GENERAL</TipAgeNom>
+          <AgeGenSedMunCod/>
+          <AgeGenSedMunNom/>
+          <Orden>0</Orden>
+        </SDTCitasDisponibles.SDTCitasDisponiblesItem>
+        <SDTCitasDisponibles.SDTCitasDisponiblesItem
+          xmlns="Univer360_Produccion">
+          <AgeGenEmpCod>36</AgeGenEmpCod>
+          <AgeGenCon>1000974371</AgeGenCon>
+          <AgeGenSedCod>1</AgeGenSedCod>
+          <AgeGenSedNom>PRINCIPAL</AgeGenSedNom>
+          <AgeGenSedDir>Carrera 5 No 9-102</AgeGenSedDir>
+          <AgeGenMedCod>948</AgeGenMedCod>
+          <AgeGenMedNomCom>ACEVEDO CALDERON DIANA PATRICIA</AgeGenMedNomCom>
+          <AgeGenFec>2025-07-01</AgeGenFec>
+          <AgeGenHorIni>0001-01-01T10:30:00</AgeGenHorIni>
+          <TipAgeNro>1</TipAgeNro>
+          <TipAgeNom>MEDICINA GENERAL</TipAgeNom>
+          <AgeGenSedMunCod/>
+          <AgeGenSedMunNom/>
+          <Orden>0</Orden>
+        </SDTCitasDisponibles.SDTCitasDisponiblesItem>
+        <SDTCitasDisponibles.SDTCitasDisponiblesItem
+          xmlns="Univer360_Produccion">
+          <AgeGenEmpCod>36</AgeGenEmpCod>
+          <AgeGenCon>1000974372</AgeGenCon>
+          <AgeGenSedCod>1</AgeGenSedCod>
+          <AgeGenSedNom>PRINCIPAL</AgeGenSedNom>
+          <AgeGenSedDir>Carrera 5 No 9-102</AgeGenSedDir>
+          <AgeGenMedCod>948</AgeGenMedCod>
+          <AgeGenMedNomCom>ACEVEDO CALDERON DIANA PATRICIA</AgeGenMedNomCom>
+          <AgeGenFec>2025-07-01</AgeGenFec>
+          <AgeGenHorIni>0001-01-01T11:00:00</AgeGenHorIni>
+          <TipAgeNro>1</TipAgeNro>
+          <TipAgeNom>MEDICINA GENERAL</TipAgeNom>
+          <AgeGenSedMunCod/>
+          <AgeGenSedMunNom/>
+          <Orden>0</Orden>
+        </SDTCitasDisponibles.SDTCitasDisponiblesItem>
+        <SDTCitasDisponibles.SDTCitasDisponiblesItem
+          xmlns="Univer360_Produccion">
+          <AgeGenEmpCod>36</AgeGenEmpCod>
+          <AgeGenCon>1000974373</AgeGenCon>
+          <AgeGenSedCod>1</AgeGenSedCod>
+          <AgeGenSedNom>PRINCIPAL</AgeGenSedNom>
+          <AgeGenSedDir>Carrera 5 No 9-102</AgeGenSedDir>
+          <AgeGenMedCod>948</AgeGenMedCod>
+          <AgeGenMedNomCom>ACEVEDO CALDERON DIANA PATRICIA</AgeGenMedNomCom>
+          <AgeGenFec>2025-07-01</AgeGenFec>
+          <AgeGenHorIni>0001-01-01T11:30:00</AgeGenHorIni>
+          <TipAgeNro>1</TipAgeNro>
+          <TipAgeNom>MEDICINA GENERAL</TipAgeNom>
+          <AgeGenSedMunCod/>
+          <AgeGenSedMunNom/>
+          <Orden>0</Orden>
+        </SDTCitasDisponibles.SDTCitasDisponiblesItem>
+        <SDTCitasDisponibles.SDTCitasDisponiblesItem
+          xmlns="Univer360_Produccion">
+          <AgeGenEmpCod>36</AgeGenEmpCod>
+          <AgeGenCon>1000974374</AgeGenCon>
+          <AgeGenSedCod>1</AgeGenSedCod>
+          <AgeGenSedNom>PRINCIPAL</AgeGenSedNom>
+          <AgeGenSedDir>Carrera 5 No 9-102</AgeGenSedDir>
+          <AgeGenMedCod>948</AgeGenMedCod>
+          <AgeGenMedNomCom>ACEVEDO CALDERON DIANA PATRICIA</AgeGenMedNomCom>
+          <AgeGenFec>2025-07-01</AgeGenFec>
+          <AgeGenHorIni>0001-01-01T12:00:00</AgeGenHorIni>
+          <TipAgeNro>1</TipAgeNro>
+          <TipAgeNom>MEDICINA GENERAL</TipAgeNom>
+          <AgeGenSedMunCod/>
+          <AgeGenSedMunNom/>
+          <Orden>0</Orden>
+        </SDTCitasDisponibles.SDTCitasDisponiblesItem>
+        <SDTCitasDisponibles.SDTCitasDisponiblesItem
+          xmlns="Univer360_Produccion">
+          <AgeGenEmpCod>36</AgeGenEmpCod>
+          <AgeGenCon>1000974375</AgeGenCon>
+          <AgeGenSedCod>1</AgeGenSedCod>
+          <AgeGenSedNom>PRINCIPAL</AgeGenSedNom>
+          <AgeGenSedDir>Carrera 5 No 9-102</AgeGenSedDir>
+          <AgeGenMedCod>948</AgeGenMedCod>
+          <AgeGenMedNomCom>ACEVEDO CALDERON DIANA PATRICIA</AgeGenMedNomCom>
+          <AgeGenFec>2025-07-01</AgeGenFec>
+          <AgeGenHorIni>0001-01-01T12:30:00</AgeGenHorIni>
+          <TipAgeNro>1</TipAgeNro>
+          <TipAgeNom>MEDICINA GENERAL</TipAgeNom>
+          <AgeGenSedMunCod/>
+          <AgeGenSedMunNom/>
+          <Orden>0</Orden>
+        </SDTCitasDisponibles.SDTCitasDisponiblesItem>
+        <SDTCitasDisponibles.SDTCitasDisponiblesItem
+          xmlns="Univer360_Produccion">
+          <AgeGenEmpCod>36</AgeGenEmpCod>
+          <AgeGenCon>1000974376</AgeGenCon>
+          <AgeGenSedCod>1</AgeGenSedCod>
+          <AgeGenSedNom>PRINCIPAL</AgeGenSedNom>
+          <AgeGenSedDir>Carrera 5 No 9-102</AgeGenSedDir>
+          <AgeGenMedCod>948</AgeGenMedCod>
+          <AgeGenMedNomCom>ACEVEDO CALDERON DIANA PATRICIA</AgeGenMedNomCom>
+          <AgeGenFec>2025-07-01</AgeGenFec>
+          <AgeGenHorIni>0001-01-01T13:00:00</AgeGenHorIni>
+          <TipAgeNro>1</TipAgeNro>
+          <TipAgeNom>MEDICINA GENERAL</TipAgeNom>
+          <AgeGenSedMunCod/>
+          <AgeGenSedMunNom/>
+          <Orden>0</Orden>
+        </SDTCitasDisponibles.SDTCitasDisponiblesItem>
+        <SDTCitasDisponibles.SDTCitasDisponiblesItem
+          xmlns="Univer360_Produccion">
+          <AgeGenEmpCod>36</AgeGenEmpCod>
+          <AgeGenCon>1000974377</AgeGenCon>
+          <AgeGenSedCod>1</AgeGenSedCod>
+          <AgeGenSedNom>PRINCIPAL</AgeGenSedNom>
+          <AgeGenSedDir>Carrera 5 No 9-102</AgeGenSedDir>
+          <AgeGenMedCod>948</AgeGenMedCod>
+          <AgeGenMedNomCom>ACEVEDO CALDERON DIANA PATRICIA</AgeGenMedNomCom>
+          <AgeGenFec>2025-07-01</AgeGenFec>
+          <AgeGenHorIni>0001-01-01T13:30:00</AgeGenHorIni>
+          <TipAgeNro>1</TipAgeNro>
+          <TipAgeNom>MEDICINA GENERAL</TipAgeNom>
+          <AgeGenSedMunCod/>
+          <AgeGenSedMunNom/>
+          <Orden>0</Orden>
+        </SDTCitasDisponibles.SDTCitasDisponiblesItem>
+        <SDTCitasDisponibles.SDTCitasDisponiblesItem
+          xmlns="Univer360_Produccion">
+          <AgeGenEmpCod>36</AgeGenEmpCod>
+          <AgeGenCon>1000974378</AgeGenCon>
+          <AgeGenSedCod>1</AgeGenSedCod>
+          <AgeGenSedNom>PRINCIPAL</AgeGenSedNom>
+          <AgeGenSedDir>Carrera 5 No 9-102</AgeGenSedDir>
+          <AgeGenMedCod>948</AgeGenMedCod>
+          <AgeGenMedNomCom>ACEVEDO CALDERON DIANA PATRICIA</AgeGenMedNomCom>
+          <AgeGenFec>2025-07-01</AgeGenFec>
+          <AgeGenHorIni>0001-01-01T14:00:00</AgeGenHorIni>
+          <TipAgeNro>1</TipAgeNro>
+          <TipAgeNom>MEDICINA GENERAL</TipAgeNom>
+          <AgeGenSedMunCod/>
+          <AgeGenSedMunNom/>
+          <Orden>0</Orden>
+        </SDTCitasDisponibles.SDTCitasDisponiblesItem>
+        <SDTCitasDisponibles.SDTCitasDisponiblesItem
+          xmlns="Univer360_Produccion">
+          <AgeGenEmpCod>36</AgeGenEmpCod>
+          <AgeGenCon>1000974379</AgeGenCon>
+          <AgeGenSedCod>1</AgeGenSedCod>
+          <AgeGenSedNom>PRINCIPAL</AgeGenSedNom>
+          <AgeGenSedDir>Carrera 5 No 9-102</AgeGenSedDir>
+          <AgeGenMedCod>948</AgeGenMedCod>
+          <AgeGenMedNomCom>ACEVEDO CALDERON DIANA PATRICIA</AgeGenMedNomCom>
+          <AgeGenFec>2025-07-01</AgeGenFec>
+          <AgeGenHorIni>0001-01-01T14:30:00</AgeGenHorIni>
+          <TipAgeNro>1</TipAgeNro>
+          <TipAgeNom>MEDICINA GENERAL</TipAgeNom>
+          <AgeGenSedMunCod/>
+          <AgeGenSedMunNom/>
+          <Orden>0</Orden>
+        </SDTCitasDisponibles.SDTCitasDisponiblesItem>
+        <SDTCitasDisponibles.SDTCitasDisponiblesItem
+          xmlns="Univer360_Produccion">
+          <AgeGenEmpCod>36</AgeGenEmpCod>
+          <AgeGenCon>1000974380</AgeGenCon>
+          <AgeGenSedCod>1</AgeGenSedCod>
+          <AgeGenSedNom>PRINCIPAL</AgeGenSedNom>
+          <AgeGenSedDir>Carrera 5 No 9-102</AgeGenSedDir>
+          <AgeGenMedCod>948</AgeGenMedCod>
+          <AgeGenMedNomCom>ACEVEDO CALDERON DIANA PATRICIA</AgeGenMedNomCom>
+          <AgeGenFec>2025-07-01</AgeGenFec>
+          <AgeGenHorIni>0001-01-01T15:00:00</AgeGenHorIni>
+          <TipAgeNro>1</TipAgeNro>
+          <TipAgeNom>MEDICINA GENERAL</TipAgeNom>
+          <AgeGenSedMunCod/>
+          <AgeGenSedMunNom/>
+          <Orden>0</Orden>
+        </SDTCitasDisponibles.SDTCitasDisponiblesItem>
+        <SDTCitasDisponibles.SDTCitasDisponiblesItem
+          xmlns="Univer360_Produccion">
+          <AgeGenEmpCod>36</AgeGenEmpCod>
+          <AgeGenCon>1000974381</AgeGenCon>
+          <AgeGenSedCod>1</AgeGenSedCod>
+          <AgeGenSedNom>PRINCIPAL</AgeGenSedNom>
+          <AgeGenSedDir>Carrera 5 No 9-102</AgeGenSedDir>
+          <AgeGenMedCod>948</AgeGenMedCod>
+          <AgeGenMedNomCom>ACEVEDO CALDERON DIANA PATRICIA</AgeGenMedNomCom>
+          <AgeGenFec>2025-07-01</AgeGenFec>
+          <AgeGenHorIni>0001-01-01T15:30:00</AgeGenHorIni>
+          <TipAgeNro>1</TipAgeNro>
+          <TipAgeNom>MEDICINA GENERAL</TipAgeNom>
+          <AgeGenSedMunCod/>
+          <AgeGenSedMunNom/>
+          <Orden>0</Orden>
+        </SDTCitasDisponibles.SDTCitasDisponiblesItem>
+        <SDTCitasDisponibles.SDTCitasDisponiblesItem
+          xmlns="Univer360_Produccion">
+          <AgeGenEmpCod>36</AgeGenEmpCod>
+          <AgeGenCon>1000974486</AgeGenCon>
+          <AgeGenSedCod>1</AgeGenSedCod>
+          <AgeGenSedNom>PRINCIPAL</AgeGenSedNom>
+          <AgeGenSedDir>Carrera 5 No 9-102</AgeGenSedDir>
+          <AgeGenMedCod>948</AgeGenMedCod>
+          <AgeGenMedNomCom>ACEVEDO CALDERON DIANA PATRICIA</AgeGenMedNomCom>
+          <AgeGenFec>2025-07-10</AgeGenFec>
+          <AgeGenHorIni>0001-01-01T09:00:00</AgeGenHorIni>
+          <TipAgeNro>1</TipAgeNro>
+          <TipAgeNom>MEDICINA GENERAL</TipAgeNom>
+          <AgeGenSedMunCod/>
+          <AgeGenSedMunNom/>
+          <Orden>0</Orden>
+        </SDTCitasDisponibles.SDTCitasDisponiblesItem>
+        <SDTCitasDisponibles.SDTCitasDisponiblesItem
+          xmlns="Univer360_Produccion">
+          <AgeGenEmpCod>36</AgeGenEmpCod>
+          <AgeGenCon>1000974487</AgeGenCon>
+          <AgeGenSedCod>1</AgeGenSedCod>
+          <AgeGenSedNom>PRINCIPAL</AgeGenSedNom>
+          <AgeGenSedDir>Carrera 5 No 9-102</AgeGenSedDir>
+          <AgeGenMedCod>948</AgeGenMedCod>
+          <AgeGenMedNomCom>ACEVEDO CALDERON DIANA PATRICIA</AgeGenMedNomCom>
+          <AgeGenFec>2025-07-10</AgeGenFec>
+          <AgeGenHorIni>0001-01-01T09:30:00</AgeGenHorIni>
+          <TipAgeNro>1</TipAgeNro>
+          <TipAgeNom>MEDICINA GENERAL</TipAgeNom>
+          <AgeGenSedMunCod/>
+          <AgeGenSedMunNom/>
+          <Orden>0</Orden>
+        </SDTCitasDisponibles.SDTCitasDisponiblesItem>
+        <SDTCitasDisponibles.SDTCitasDisponiblesItem
+          xmlns="Univer360_Produccion">
+          <AgeGenEmpCod>36</AgeGenEmpCod>
+          <AgeGenCon>1000974488</AgeGenCon>
+          <AgeGenSedCod>1</AgeGenSedCod>
+          <AgeGenSedNom>PRINCIPAL</AgeGenSedNom>
+          <AgeGenSedDir>Carrera 5 No 9-102</AgeGenSedDir>
+          <AgeGenMedCod>948</AgeGenMedCod>
+          <AgeGenMedNomCom>ACEVEDO CALDERON DIANA PATRICIA</AgeGenMedNomCom>
+          <AgeGenFec>2025-07-10</AgeGenFec>
+          <AgeGenHorIni>0001-01-01T10:00:00</AgeGenHorIni>
+          <TipAgeNro>1</TipAgeNro>
+          <TipAgeNom>MEDICINA GENERAL</TipAgeNom>
+          <AgeGenSedMunCod/>
+          <AgeGenSedMunNom/>
+          <Orden>0</Orden>
+        </SDTCitasDisponibles.SDTCitasDisponiblesItem>
+        <SDTCitasDisponibles.SDTCitasDisponiblesItem
+          xmlns="Univer360_Produccion">
+          <AgeGenEmpCod>36</AgeGenEmpCod>
+          <AgeGenCon>1000974489</AgeGenCon>
+          <AgeGenSedCod>1</AgeGenSedCod>
+          <AgeGenSedNom>PRINCIPAL</AgeGenSedNom>
+          <AgeGenSedDir>Carrera 5 No 9-102</AgeGenSedDir>
+          <AgeGenMedCod>948</AgeGenMedCod>
+          <AgeGenMedNomCom>ACEVEDO CALDERON DIANA PATRICIA</AgeGenMedNomCom>
+          <AgeGenFec>2025-07-10</AgeGenFec>
+          <AgeGenHorIni>0001-01-01T10:30:00</AgeGenHorIni>
+          <TipAgeNro>1</TipAgeNro>
+          <TipAgeNom>MEDICINA GENERAL</TipAgeNom>
+          <AgeGenSedMunCod/>
+          <AgeGenSedMunNom/>
+          <Orden>0</Orden>
+        </SDTCitasDisponibles.SDTCitasDisponiblesItem>
+        <SDTCitasDisponibles.SDTCitasDisponiblesItem
+          xmlns="Univer360_Produccion">
+          <AgeGenEmpCod>36</AgeGenEmpCod>
+          <AgeGenCon>1000974490</AgeGenCon>
+          <AgeGenSedCod>1</AgeGenSedCod>
+          <AgeGenSedNom>PRINCIPAL</AgeGenSedNom>
+          <AgeGenSedDir>Carrera 5 No 9-102</AgeGenSedDir>
+          <AgeGenMedCod>948</AgeGenMedCod>
+          <AgeGenMedNomCom>ACEVEDO CALDERON DIANA PATRICIA</AgeGenMedNomCom>
+          <AgeGenFec>2025-07-10</AgeGenFec>
+          <AgeGenHorIni>0001-01-01T11:00:00</AgeGenHorIni>
+          <TipAgeNro>1</TipAgeNro>
+          <TipAgeNom>MEDICINA GENERAL</TipAgeNom>
+          <AgeGenSedMunCod/>
+          <AgeGenSedMunNom/>
+          <Orden>0</Orden>
+        </SDTCitasDisponibles.SDTCitasDisponiblesItem>
+        <SDTCitasDisponibles.SDTCitasDisponiblesItem
+          xmlns="Univer360_Produccion">
+          <AgeGenEmpCod>36</AgeGenEmpCod>
+          <AgeGenCon>1000974491</AgeGenCon>
+          <AgeGenSedCod>1</AgeGenSedCod>
+          <AgeGenSedNom>PRINCIPAL</AgeGenSedNom>
+          <AgeGenSedDir>Carrera 5 No 9-102</AgeGenSedDir>
+          <AgeGenMedCod>948</AgeGenMedCod>
+          <AgeGenMedNomCom>ACEVEDO CALDERON DIANA PATRICIA</AgeGenMedNomCom>
+          <AgeGenFec>2025-07-10</AgeGenFec>
+          <AgeGenHorIni>0001-01-01T11:30:00</AgeGenHorIni>
+          <TipAgeNro>1</TipAgeNro>
+          <TipAgeNom>MEDICINA GENERAL</TipAgeNom>
+          <AgeGenSedMunCod/>
+          <AgeGenSedMunNom/>
+          <Orden>0</Orden>
+        </SDTCitasDisponibles.SDTCitasDisponiblesItem>
+        <SDTCitasDisponibles.SDTCitasDisponiblesItem
+          xmlns="Univer360_Produccion">
+          <AgeGenEmpCod>36</AgeGenEmpCod>
+          <AgeGenCon>1000974492</AgeGenCon>
+          <AgeGenSedCod>1</AgeGenSedCod>
+          <AgeGenSedNom>PRINCIPAL</AgeGenSedNom>
+          <AgeGenSedDir>Carrera 5 No 9-102</AgeGenSedDir>
+          <AgeGenMedCod>948</AgeGenMedCod>
+          <AgeGenMedNomCom>ACEVEDO CALDERON DIANA PATRICIA</AgeGenMedNomCom>
+          <AgeGenFec>2025-07-10</AgeGenFec>
+          <AgeGenHorIni>0001-01-01T12:00:00</AgeGenHorIni>
+          <TipAgeNro>1</TipAgeNro>
+          <TipAgeNom>MEDICINA GENERAL</TipAgeNom>
+          <AgeGenSedMunCod/>
+          <AgeGenSedMunNom/>
+          <Orden>0</Orden>
+        </SDTCitasDisponibles.SDTCitasDisponiblesItem>
+        <SDTCitasDisponibles.SDTCitasDisponiblesItem
+          xmlns="Univer360_Produccion">
+          <AgeGenEmpCod>36</AgeGenEmpCod>
+          <AgeGenCon>1000974493</AgeGenCon>
+          <AgeGenSedCod>1</AgeGenSedCod>
+          <AgeGenSedNom>PRINCIPAL</AgeGenSedNom>
+          <AgeGenSedDir>Carrera 5 No 9-102</AgeGenSedDir>
+          <AgeGenMedCod>948</AgeGenMedCod>
+          <AgeGenMedNomCom>ACEVEDO CALDERON DIANA PATRICIA</AgeGenMedNomCom>
+          <AgeGenFec>2025-07-10</AgeGenFec>
+          <AgeGenHorIni>0001-01-01T12:30:00</AgeGenHorIni>
+          <TipAgeNro>1</TipAgeNro>
+          <TipAgeNom>MEDICINA GENERAL</TipAgeNom>
+          <AgeGenSedMunCod/>
+          <AgeGenSedMunNom/>
+          <Orden>0</Orden>
+        </SDTCitasDisponibles.SDTCitasDisponiblesItem>
+        <SDTCitasDisponibles.SDTCitasDisponiblesItem
+          xmlns="Univer360_Produccion">
+          <AgeGenEmpCod>36</AgeGenEmpCod>
+          <AgeGenCon>1000974494</AgeGenCon>
+          <AgeGenSedCod>1</AgeGenSedCod>
+          <AgeGenSedNom>PRINCIPAL</AgeGenSedNom>
+          <AgeGenSedDir>Carrera 5 No 9-102</AgeGenSedDir>
+          <AgeGenMedCod>948</AgeGenMedCod>
+          <AgeGenMedNomCom>ACEVEDO CALDERON DIANA PATRICIA</AgeGenMedNomCom>
+          <AgeGenFec>2025-07-10</AgeGenFec>
+          <AgeGenHorIni>0001-01-01T13:00:00</AgeGenHorIni>
+          <TipAgeNro>1</TipAgeNro>
+          <TipAgeNom>MEDICINA GENERAL</TipAgeNom>
+          <AgeGenSedMunCod/>
+          <AgeGenSedMunNom/>
+          <Orden>0</Orden>
+        </SDTCitasDisponibles.SDTCitasDisponiblesItem>
+        <SDTCitasDisponibles.SDTCitasDisponiblesItem
+          xmlns="Univer360_Produccion">
+          <AgeGenEmpCod>36</AgeGenEmpCod>
+          <AgeGenCon>1000974495</AgeGenCon>
+          <AgeGenSedCod>1</AgeGenSedCod>
+          <AgeGenSedNom>PRINCIPAL</AgeGenSedNom>
+          <AgeGenSedDir>Carrera 5 No 9-102</AgeGenSedDir>
+          <AgeGenMedCod>948</AgeGenMedCod>
+          <AgeGenMedNomCom>ACEVEDO CALDERON DIANA PATRICIA</AgeGenMedNomCom>
+          <AgeGenFec>2025-07-10</AgeGenFec>
+          <AgeGenHorIni>0001-01-01T13:30:00</AgeGenHorIni>
+          <TipAgeNro>1</TipAgeNro>
+          <TipAgeNom>MEDICINA GENERAL</TipAgeNom>
+          <AgeGenSedMunCod/>
+          <AgeGenSedMunNom/>
+          <Orden>0</Orden>
+        </SDTCitasDisponibles.SDTCitasDisponiblesItem>
+        <SDTCitasDisponibles.SDTCitasDisponiblesItem
+          xmlns="Univer360_Produccion">
+          <AgeGenEmpCod>36</AgeGenEmpCod>
+          <AgeGenCon>1000974496</AgeGenCon>
+          <AgeGenSedCod>1</AgeGenSedCod>
+          <AgeGenSedNom>PRINCIPAL</AgeGenSedNom>
+          <AgeGenSedDir>Carrera 5 No 9-102</AgeGenSedDir>
+          <AgeGenMedCod>948</AgeGenMedCod>
+          <AgeGenMedNomCom>ACEVEDO CALDERON DIANA PATRICIA</AgeGenMedNomCom>
+          <AgeGenFec>2025-07-10</AgeGenFec>
+          <AgeGenHorIni>0001-01-01T14:00:00</AgeGenHorIni>
+          <TipAgeNro>1</TipAgeNro>
+          <TipAgeNom>MEDICINA GENERAL</TipAgeNom>
+          <AgeGenSedMunCod/>
+          <AgeGenSedMunNom/>
+          <Orden>0</Orden>
+        </SDTCitasDisponibles.SDTCitasDisponiblesItem>
+        <SDTCitasDisponibles.SDTCitasDisponiblesItem
+          xmlns="Univer360_Produccion">
+          <AgeGenEmpCod>36</AgeGenEmpCod>
+          <AgeGenCon>1000974497</AgeGenCon>
+          <AgeGenSedCod>1</AgeGenSedCod>
+          <AgeGenSedNom>PRINCIPAL</AgeGenSedNom>
+          <AgeGenSedDir>Carrera 5 No 9-102</AgeGenSedDir>
+          <AgeGenMedCod>948</AgeGenMedCod>
+          <AgeGenMedNomCom>ACEVEDO CALDERON DIANA PATRICIA</AgeGenMedNomCom>
+          <AgeGenFec>2025-07-10</AgeGenFec>
+          <AgeGenHorIni>0001-01-01T14:30:00</AgeGenHorIni>
+          <TipAgeNro>1</TipAgeNro>
+          <TipAgeNom>MEDICINA GENERAL</TipAgeNom>
+          <AgeGenSedMunCod/>
+          <AgeGenSedMunNom/>
+          <Orden>0</Orden>
+        </SDTCitasDisponibles.SDTCitasDisponiblesItem>
+      </Sdtcitas>
+      <Codigo
+        xmlns="Univer360_Produccion">S01
+      </Codigo>
+      <Resultado
+        xmlns="Univer360_Produccion">Procesado correctamente
+      </Resultado>
+    </WSBuscarCitasSedePaciente.ExecuteResponse>
+  </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

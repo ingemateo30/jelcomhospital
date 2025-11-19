@@ -1,0 +1,19 @@
+<x:Envelope
+    xmlns:x="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:uni="Univer360_Produccion">
+    <x:Header/>
+    <x:Body>
+        <uni:WSBuscarCitasSedePaciente.Execute>
+            <uni:Empcod>36</uni:Empcod>
+            <uni:Sedcod>1</uni:Sedcod>
+            <uni:Connum>218</uni:Connum>
+            <uni:Tipagenro>1</uni:Tipagenro>
+            <uni:Conpacreg>2</uni:Conpacreg>
+            <uni:Jornada></uni:Jornada>
+            <uni:Tipidecod>CC</uni:Tipidecod>
+            <uni:Pacnumide>1112769409</uni:Pacnumide>
+            <uni:Usulog>CITAWEB</uni:Usulog>
+            <uni:Usupas>Abc123*</uni:Usupas>
+        </uni:WSBuscarCitasSedePaciente.Execute>
+    </x:Body>
+</x:Envelope>

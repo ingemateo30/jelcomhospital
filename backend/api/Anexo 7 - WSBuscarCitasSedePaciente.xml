@@ -1,0 +1,85 @@
+<definitions xmlns:wsdlns="Univer360_Produccion" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://schemas.xmlsoap.org/wsdl/" xmlns:tns="Univer360_Produccion" name="WSBuscarCitasSedePaciente" targetNamespace="Univer360_Produccion">
+<types>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" targetNamespace="Univer360_Produccion" elementFormDefault="qualified">
+<complexType name="SDTCitasDisponibles">
+<sequence>
+<element minOccurs="0" maxOccurs="unbounded" name="SDTCitasDisponibles.SDTCitasDisponiblesItem" type="tns:SDTCitasDisponibles.SDTCitasDisponiblesItem"> </element>
+</sequence>
+</complexType>
+<complexType name="SDTCitasDisponibles.SDTCitasDisponiblesItem">
+<all>
+<element name="AgeGenEmpCod" type="xsd:short"> </element>
+<element name="AgeGenCon" type="xsd:long"> </element>
+<element name="AgeGenSedCod" type="xsd:short"> </element>
+<element name="AgeGenSedNom" type="xsd:string"> </element>
+<element name="AgeGenSedDir" type="xsd:string"> </element>
+<element name="AgeGenMedCod" type="xsd:int"> </element>
+<element name="AgeGenMedNomCom" type="xsd:string"> </element>
+<element name="AgeGenFec" type="xsd:date" nillable="true"> </element>
+<element name="AgeGenHorIni" type="xsd:dateTime" nillable="true"> </element>
+<element name="TipAgeNro" type="xsd:short"> </element>
+<element name="TipAgeNom" type="xsd:string"> </element>
+<element name="AgeGenSedMunCod" type="xsd:string"> </element>
+<element name="AgeGenSedMunNom" type="xsd:string"> </element>
+<element name="Orden" type="xsd:byte"> </element>
+</all>
+</complexType>
+<element name="WSBuscarCitasSedePaciente.Execute">
+<complexType>
+<sequence>
+<element minOccurs="1" maxOccurs="1" name="Empcod" type="xsd:short"/>
+<element minOccurs="1" maxOccurs="1" name="Sedcod" type="xsd:short"/>
+<element minOccurs="1" maxOccurs="1" name="Connum" type="xsd:short"/>
+<element minOccurs="1" maxOccurs="1" name="Tipagenro" type="xsd:short"/>
+<element minOccurs="1" maxOccurs="1" name="Conpacreg" type="xsd:byte"/>
+<element minOccurs="1" maxOccurs="1" name="Jornada" type="xsd:string"/>
+<element minOccurs="1" maxOccurs="1" name="Tipidecod" type="xsd:string"/>
+<element minOccurs="1" maxOccurs="1" name="Pacnumide" type="xsd:string"/>
+<element minOccurs="1" maxOccurs="1" name="Pmaxcit" type="xsd:short"/>
+<element minOccurs="1" maxOccurs="1" name="Pcitmedcod" type="xsd:int"/>
+<element minOccurs="1" maxOccurs="1" name="Usulog" type="xsd:string"/>
+<element minOccurs="1" maxOccurs="1" name="Usupas" type="xsd:string"/>
+</sequence>
+</complexType>
+</element>
+<element name="WSBuscarCitasSedePaciente.ExecuteResponse">
+<complexType>
+<sequence>
+<element minOccurs="1" maxOccurs="1" name="Sdtcitas" type="tns:SDTCitasDisponibles"/>
+<element minOccurs="1" maxOccurs="1" name="Codigo" type="xsd:string"/>
+<element minOccurs="1" maxOccurs="1" name="Resultado" type="xsd:string"/>
+</sequence>
+</complexType>
+</element>
+</schema>
+</types>
+<message name="WSBuscarCitasSedePaciente.ExecuteSoapIn">
+<part name="parameters" element="tns:WSBuscarCitasSedePaciente.Execute"/>
+</message>
+<message name="WSBuscarCitasSedePaciente.ExecuteSoapOut">
+<part name="parameters" element="tns:WSBuscarCitasSedePaciente.ExecuteResponse"/>
+</message>
+<portType name="WSBuscarCitasSedePacienteSoapPort">
+<operation name="Execute">
+<input message="wsdlns:WSBuscarCitasSedePaciente.ExecuteSoapIn"/>
+<output message="wsdlns:WSBuscarCitasSedePaciente.ExecuteSoapOut"/>
+</operation>
+</portType>
+<binding name="WSBuscarCitasSedePacienteSoapBinding" type="wsdlns:WSBuscarCitasSedePacienteSoapPort">
+<soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+<operation name="Execute">
+<soap:operation soapAction="Univer360_Produccionaction/AWSBUSCARCITASSEDEPACIENTE.Execute"/>
+<input>
+<soap:body use="literal"/>
+</input>
+<output>
+<soap:body use="literal"/>
+</output>
+</operation>
+</binding>
+<service name="WSBuscarCitasSedePaciente">
+<port name="WSBuscarCitasSedePacienteSoapPort" binding="wsdlns:WSBuscarCitasSedePacienteSoapBinding">
+<soap:address location="http://hs.salud360.app/Salud360Hs/servlet/awsbuscarcitassedepaciente"/>
+</port>
+</service>
+</definitions>

@@ -1,0 +1,73 @@
+<definitions xmlns:wsdlns="Univer360_Produccion" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://schemas.xmlsoap.org/wsdl/" xmlns:tns="Univer360_Produccion" name="WSActualizarPaciente" targetNamespace="Univer360_Produccion">
+<types>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" targetNamespace="Univer360_Produccion" elementFormDefault="qualified">
+<complexType name="SDTObtPaciente">
+<all>
+<element name="PacTipIdeCod" type="xsd:string"> </element>
+<element name="PacNumIde" type="xsd:string"> </element>
+<element name="PacPriApe" type="xsd:string"> </element>
+<element name="PacSegApe" type="xsd:string"> </element>
+<element name="PacPriNom" type="xsd:string"> </element>
+<element name="PacSegNom" type="xsd:string"> </element>
+<element name="PacFecNac" type="xsd:date" nillable="true"> </element>
+<element name="PacGen" type="xsd:string"> </element>
+<element name="PacSex" type="xsd:string"> </element>
+<element name="PacDepCod" type="xsd:string"> </element>
+<element name="PacMunCod" type="xsd:string"> </element>
+<element name="PacDir" type="xsd:string"> </element>
+<element name="PacTel" type="xsd:string"> </element>
+<element name="PacTelMov" type="xsd:string"> </element>
+<element name="PacEma" type="xsd:string"> </element>
+<element name="PacBarNomTex" type="xsd:string"> </element>
+</all>
+</complexType>
+<element name="WSActualizarPaciente.Execute">
+<complexType>
+<sequence>
+<element minOccurs="1" maxOccurs="1" name="Homsedciucli" type="xsd:short"/>
+<element minOccurs="1" maxOccurs="1" name="Sdtobtpaciente" type="tns:SDTObtPaciente"/>
+<element minOccurs="1" maxOccurs="1" name="Usulog" type="xsd:string"/>
+<element minOccurs="1" maxOccurs="1" name="Usupas" type="xsd:string"/>
+</sequence>
+</complexType>
+</element>
+<element name="WSActualizarPaciente.ExecuteResponse">
+<complexType>
+<sequence>
+<element minOccurs="1" maxOccurs="1" name="Codigo" type="xsd:string"/>
+<element minOccurs="1" maxOccurs="1" name="Resultado" type="xsd:string"/>
+</sequence>
+</complexType>
+</element>
+</schema>
+</types>
+<message name="WSActualizarPaciente.ExecuteSoapIn">
+<part name="parameters" element="tns:WSActualizarPaciente.Execute"/>
+</message>
+<message name="WSActualizarPaciente.ExecuteSoapOut">
+<part name="parameters" element="tns:WSActualizarPaciente.ExecuteResponse"/>
+</message>
+<portType name="WSActualizarPacienteSoapPort">
+<operation name="Execute">
+<input message="wsdlns:WSActualizarPaciente.ExecuteSoapIn"/>
+<output message="wsdlns:WSActualizarPaciente.ExecuteSoapOut"/>
+</operation>
+</portType>
+<binding name="WSActualizarPacienteSoapBinding" type="wsdlns:WSActualizarPacienteSoapPort">
+<soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+<operation name="Execute">
+<soap:operation soapAction="Univer360_Produccionaction/AWSACTUALIZARPACIENTE.Execute"/>
+<input>
+<soap:body use="literal"/>
+</input>
+<output>
+<soap:body use="literal"/>
+</output>
+</operation>
+</binding>
+<service name="WSActualizarPaciente">
+<port name="WSActualizarPacienteSoapPort" binding="wsdlns:WSActualizarPacienteSoapBinding">
+<soap:address location="http://hs.salud360.app/Salud360Hs/servlet/awsactualizarpaciente"/>
+</port>
+</service>
+</definitions>

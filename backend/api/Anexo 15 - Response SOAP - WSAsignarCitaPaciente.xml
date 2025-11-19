@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope
+    xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <SOAP-ENV:Body>
+        <WSAsignarCitaPaciente2.ExecuteResponse
+            xmlns="Univer360_Produccion">
+            <Sdtcita
+                xmlns="Univer360_Produccion">
+                <CitEmpCod>36</CitEmpCod>
+                <CitNum>1120855</CitNum>
+                <CitSedCod>1</CitSedCod>
+                <CitSedNom>PRINCIPAL</CitSedNom>
+                <CitSedDir>Carrera 5 No 9-102</CitSedDir>
+                <CitFec>2025-07-02</CitFec>
+                <CitHor>0001-01-01T10:20:00</CitHor>
+                <CitTipAgeNro>1</CitTipAgeNro>
+                <CitTipAgeNom>MEDICINA GENERAL</CitTipAgeNom>
+                <CitMedCod>218</CitMedCod>
+                <CitMedNomCom>ARIZA REYES CARLOS ANDRES</CitMedNomCom>
+            </Sdtcita>
+            <Codigo
+                xmlns="Univer360_Produccion">S01
+            </Codigo>
+            <Resultado
+                xmlns="Univer360_Produccion">Cita asignada correctamente
+            </Resultado>
+        </WSAsignarCitaPaciente2.ExecuteResponse>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

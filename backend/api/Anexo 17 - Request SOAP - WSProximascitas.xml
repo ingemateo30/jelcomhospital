@@ -1,0 +1,14 @@
+<x:Envelope
+    xmlns:x="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:uni="Univer360_Produccion">
+    <x:Header/>
+    <x:Body>
+        <uni:WSProximasCitas.Execute>
+            <uni:Homsedciucli>1</uni:Homsedciucli>
+            <uni:Pactipidecod>CC</uni:Pactipidecod>
+            <uni:Pacnumide>1112769409</uni:Pacnumide>
+            <uni:Usulog>CITAWEB</uni:Usulog>
+            <uni:Usupas>Abc123*</uni:Usupas>
+        </uni:WSProximasCitas.Execute>
+    </x:Body>
+</x:Envelope>

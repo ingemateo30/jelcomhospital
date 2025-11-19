@@ -1,0 +1,74 @@
+<definitions xmlns:wsdlns="Univer360_Produccion" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://schemas.xmlsoap.org/wsdl/" xmlns:tns="Univer360_Produccion" name="WSAsignarCitaPaciente2" targetNamespace="Univer360_Produccion">
+<types>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" targetNamespace="Univer360_Produccion" elementFormDefault="qualified">
+<complexType name="SDTCita">
+<all>
+<element name="CitEmpCod" type="xsd:short"> </element>
+<element name="CitNum" type="xsd:long"> </element>
+<element name="CitSedCod" type="xsd:short"> </element>
+<element name="CitSedNom" type="xsd:string"> </element>
+<element name="CitSedDir" type="xsd:string"> </element>
+<element name="CitFec" type="xsd:date" nillable="true"> </element>
+<element name="CitHor" type="xsd:dateTime" nillable="true"> </element>
+<element name="CitTipAgeNro" type="xsd:short"> </element>
+<element name="CitTipAgeNom" type="xsd:string"> </element>
+<element name="CitMedCod" type="xsd:int"> </element>
+<element name="CitMedNomCom" type="xsd:string"> </element>
+</all>
+</complexType>
+<element name="WSAsignarCitaPaciente2.Execute">
+<complexType>
+<sequence>
+<element minOccurs="1" maxOccurs="1" name="Tipidecod" type="xsd:string"/>
+<element minOccurs="1" maxOccurs="1" name="Pacnumide" type="xsd:string"/>
+<element minOccurs="1" maxOccurs="1" name="Agegenempcod" type="xsd:short"/>
+<element minOccurs="1" maxOccurs="1" name="Connum" type="xsd:short"/>
+<element minOccurs="1" maxOccurs="1" name="Tipagenro" type="xsd:short"/>
+<element minOccurs="1" maxOccurs="1" name="Tipageactcod" type="xsd:string"/>
+<element minOccurs="1" maxOccurs="1" name="Agegencon" type="xsd:long"/>
+<element minOccurs="1" maxOccurs="1" name="Usulog" type="xsd:string"/>
+<element minOccurs="1" maxOccurs="1" name="Usupas" type="xsd:string"/>
+</sequence>
+</complexType>
+</element>
+<element name="WSAsignarCitaPaciente2.ExecuteResponse">
+<complexType>
+<sequence>
+<element minOccurs="1" maxOccurs="1" name="Sdtcita" type="tns:SDTCita"/>
+<element minOccurs="1" maxOccurs="1" name="Codigo" type="xsd:string"/>
+<element minOccurs="1" maxOccurs="1" name="Resultado" type="xsd:string"/>
+</sequence>
+</complexType>
+</element>
+</schema>
+</types>
+<message name="WSAsignarCitaPaciente2.ExecuteSoapIn">
+<part name="parameters" element="tns:WSAsignarCitaPaciente2.Execute"/>
+</message>
+<message name="WSAsignarCitaPaciente2.ExecuteSoapOut">
+<part name="parameters" element="tns:WSAsignarCitaPaciente2.ExecuteResponse"/>
+</message>
+<portType name="WSAsignarCitaPaciente2SoapPort">
+<operation name="Execute">
+<input message="wsdlns:WSAsignarCitaPaciente2.ExecuteSoapIn"/>
+<output message="wsdlns:WSAsignarCitaPaciente2.ExecuteSoapOut"/>
+</operation>
+</portType>
+<binding name="WSAsignarCitaPaciente2SoapBinding" type="wsdlns:WSAsignarCitaPaciente2SoapPort">
+<soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+<operation name="Execute">
+<soap:operation soapAction="Univer360_Produccionaction/AWSASIGNARCITAPACIENTE2.Execute"/>
+<input>
+<soap:body use="literal"/>
+</input>
+<output>
+<soap:body use="literal"/>
+</output>
+</operation>
+</binding>
+<service name="WSAsignarCitaPaciente2">
+<port name="WSAsignarCitaPaciente2SoapPort" binding="wsdlns:WSAsignarCitaPaciente2SoapBinding">
+<soap:address location="http://hs.salud360.app/Salud360Hs/servlet/awsasignarcitapaciente2"/>
+</port>
+</service>
+</definitions>

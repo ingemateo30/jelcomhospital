@@ -1,0 +1,13 @@
+<x:Envelope
+    xmlns:x="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:uni="Univer360_Produccion">
+    <x:Header/>
+    <x:Body>
+        <uni:WSRecomendacionesRecordatorio.Execute>
+            <uni:Ptipageempcod>36</uni:Ptipageempcod>
+            <uni:Ptipagenro>1</uni:Ptipagenro>
+            <uni:Usulog>CITAWEB</uni:Usulog>
+            <uni:Usupas>Abc123*</uni:Usupas>
+        </uni:WSRecomendacionesRecordatorio.Execute>
+    </x:Body>
+</x:Envelope>

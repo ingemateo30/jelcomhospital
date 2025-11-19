@@ -1,0 +1,55 @@
+<definitions xmlns:wsdlns="Univer360_Produccion" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://schemas.xmlsoap.org/wsdl/" xmlns:tns="Univer360_Produccion" name="WsHistoricoCitas" targetNamespace="Univer360_Produccion">
+<types>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" targetNamespace="Univer360_Produccion" elementFormDefault="qualified">
+<element name="WsHistoricoCitas.Execute">
+<complexType>
+<sequence>
+<element minOccurs="1" maxOccurs="1" name="Empcod" type="xsd:short"/>
+<element minOccurs="1" maxOccurs="1" name="Pactipidecod" type="xsd:string"/>
+<element minOccurs="1" maxOccurs="1" name="Pacnumide" type="xsd:string"/>
+<element minOccurs="1" maxOccurs="1" name="Usulog" type="xsd:string"/>
+<element minOccurs="1" maxOccurs="1" name="Usupas" type="xsd:string"/>
+</sequence>
+</complexType>
+</element>
+<element name="WsHistoricoCitas.ExecuteResponse">
+<complexType>
+<sequence>
+<element minOccurs="1" maxOccurs="1" name="Sdtproxcitasjson" type="xsd:string"/>
+<element minOccurs="1" maxOccurs="1" name="Codigo" type="xsd:string"/>
+<element minOccurs="1" maxOccurs="1" name="Resultado" type="xsd:string"/>
+</sequence>
+</complexType>
+</element>
+</schema>
+</types>
+<message name="WsHistoricoCitas.ExecuteSoapIn">
+<part name="parameters" element="tns:WsHistoricoCitas.Execute"/>
+</message>
+<message name="WsHistoricoCitas.ExecuteSoapOut">
+<part name="parameters" element="tns:WsHistoricoCitas.ExecuteResponse"/>
+</message>
+<portType name="WsHistoricoCitasSoapPort">
+<operation name="Execute">
+<input message="wsdlns:WsHistoricoCitas.ExecuteSoapIn"/>
+<output message="wsdlns:WsHistoricoCitas.ExecuteSoapOut"/>
+</operation>
+</portType>
+<binding name="WsHistoricoCitasSoapBinding" type="wsdlns:WsHistoricoCitasSoapPort">
+<soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+<operation name="Execute">
+<soap:operation soapAction="Univer360_Produccionaction/AWSHISTORICOCITAS.Execute"/>
+<input>
+<soap:body use="literal"/>
+</input>
+<output>
+<soap:body use="literal"/>
+</output>
+</operation>
+</binding>
+<service name="WsHistoricoCitas">
+<port name="WsHistoricoCitasSoapPort" binding="wsdlns:WsHistoricoCitasSoapBinding">
+<soap:address location="http://hs.salud360.app/Salud360Hs/servlet/awshistoricocitas"/>
+</port>
+</service>
+</definitions>

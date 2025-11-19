@@ -1,0 +1,14 @@
+<x:Envelope
+    xmlns:x="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:uni="Univer360_Produccion">
+    <x:Header/>
+    <x:Body>
+        <uni:WSConvenioPoblacionPaciente.Execute>
+            <uni:Empcod>36</uni:Empcod>
+            <uni:Tipidecod>CC</uni:Tipidecod>
+            <uni:Pacnumide>1112769409</uni:Pacnumide>
+            <uni:Usulog>CITAWEB</uni:Usulog>
+            <uni:Usupas>Abc123*</uni:Usupas>
+        </uni:WSConvenioPoblacionPaciente.Execute>
+    </x:Body>
+</x:Envelope>

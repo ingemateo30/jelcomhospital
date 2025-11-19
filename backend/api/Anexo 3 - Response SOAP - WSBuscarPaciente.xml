@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope
+  xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <SOAP-ENV:Body>
+    <WSBuscarPaciente.ExecuteResponse
+      xmlns="Univer360_Produccion">
+      <Sdtobtpaciente
+        xmlns="Univer360_Produccion">
+        <PacTipIdeCod>CC</PacTipIdeCod>
+        <PacNumIde>1112769409</PacNumIde>
+        <PacPriApe>CAMACHO</PacPriApe>
+        <PacSegApe>GUEVARA</PacSegApe>
+        <PacPriNom>MIA</PacPriNom>
+        <PacSegNom>VALENTINA</PacSegNom>
+        <PacFecNac>2000-07-21</PacFecNac>
+        <PacGen>F</PacGen>
+        <PacSex/>
+        <PacDepCod>68</PacDepCod>
+        <PacMunCod>001</PacMunCod>
+        <PacDir>CRA 16 N 9-52</PacDir>
+        <PacTel>NO TIENE</PacTel>
+        <PacTelMov>31023642879</PacTelMov>
+        <PacEma>miacamacho21@gmail.com</PacEma>
+        <PacBarNomTex/>
+        <PacSedCod>0</PacSedCod>
+        <PacSedNom/>
+      </Sdtobtpaciente>
+      <Codigo
+        xmlns="Univer360_Produccion">S01
+      </Codigo>
+      <Resultado
+        xmlns="Univer360_Produccion">Paciente encontrado
+      </Resultado>
+    </WSBuscarPaciente.ExecuteResponse>
+  </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

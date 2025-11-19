@@ -1,0 +1,32 @@
+<x:Envelope
+    xmlns:x="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:uni="Univer360_Produccion">
+    <x:Header/>
+    <x:Body>
+        <uni:WSActualizarPaciente.Execute>
+            <uni:Homsedciucli>1</uni:Homsedciucli>
+            <uni:Sdtobtpaciente>
+                <uni:PacTipIdeCod>CC</uni:PacTipIdeCod>
+                <uni:PacNumIde>1112769409</uni:PacNumIde>
+                <uni:PacPriApe>CAMACHO</uni:PacPriApe>
+                <uni:PacSegApe>GUEVARA </uni:PacSegApe>
+                <uni:PacPriNom>MIA</uni:PacPriNom>
+                <uni:PacSegNom>VALENTINA</uni:PacSegNom>
+                <uni:PacFecNac>2000-07-21</uni:PacFecNac>
+                <uni:PacGen>F</uni:PacGen>
+                <uni:PacSex>M</uni:PacSex>
+                <uni:PacDepCod>68</uni:PacDepCod>
+                <uni:PacMunCod>001</uni:PacMunCod>
+                <uni:PacDir>CRA 16 N 9-52</uni:PacDir>
+                <uni:PacTel>6076550203</uni:PacTel>
+                <uni:PacTelMov>31023642879</uni:PacTelMov>
+                <uni:PacEma>miacamacho21@gmail.com</uni:PacEma>
+                <uni:PacBarNomTex>?</uni:PacBarNomTex>
+                <uni:PacSedCod>0</uni:PacSedCod>
+                <uni:PacSedNom>?</uni:PacSedNom>
+            </uni:Sdtobtpaciente>
+            <uni:Usulog>CITAWEB</uni:Usulog>
+            <uni:Usupas>Abc123*</uni:Usupas>
+        </uni:WSActualizarPaciente.Execute>
+    </x:Body>
+</x:Envelope>

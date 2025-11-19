@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope
+    xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <SOAP-ENV:Body>
+        <WSRecomendacionesRecordatorio.ExecuteResponse
+            xmlns="Univer360_Produccion">
+            <Codigo
+                xmlns="Univer360_Produccion"/>
+                <Resultado
+                    xmlns="Univer360_Produccion"/>
+                    <Precomrecor
+                        xmlns="Univer360_Produccion">{&quot;TipAgeMsjRecCit&quot;:&quot;Sede Consulta Externa \nDirección: Avenida Santander 24A-48&quot;,&quot;TipAgeRecCit&quot;:&quot;&quot;}
+                    </Precomrecor>
+                </WSRecomendacionesRecordatorio.ExecuteResponse>
+            </SOAP-ENV:Body>
+        </SOAP-ENV:Envelope>
