@@ -4,8 +4,8 @@ import axios from "axios";
 import io from "socket.io-client";
 import { ArrowLeft, User, Phone, Calendar, Briefcase, Loader2, CheckCircle, XCircle, Clock, RefreshCw, Mail } from "lucide-react";
 
-const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000/api";
-const SOCKET_URL = process.env.REACT_APP_API_URL?.replace('/api', '') || "http://localhost:5000";
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:3001/api";
+const SOCKET_URL = process.env.REACT_APP_API_URL?.replace('/api', '') || "http://localhost:3001";
 
 const ChatView = () => {
   const { numero } = useParams();
