@@ -1,0 +1,566 @@
+================================================================================
+            ARCHIVOS CLAVE DEL PROYECTO - RUTAS ABSOLUTAS COMPLETAS
+================================================================================
+
+PROYECTO: smsjelcom
+UBICACIÓN BASE: /home/user/smsjelcom/
+
+================================================================================
+                          BACKEND - CONTROLLERS
+================================================================================
+
+WHATSAPP:
+  /home/user/smsjelcom/backend/controllers/whatsappController.js (442 líneas)
+    - Envío de recordatorios via Meta API
+    - Mapeo automático de especialidades a direcciones (50+)
+    - Plantilla personalizada recordatorio_citas
+
+CHATBOT (Procesamiento de Respuestas):
+  /home/user/smsjelcom/backend/controllers/chatbotController.js (176 líneas)
+    - Recepción de respuestas WhatsApp
+    - Clasificación de respuestas (Sí/No/Reagendar)
+    - Actualización de estados
+
+EXCEL:
+  /home/user/smsjelcom/backend/controllers/citasController.js (108 líneas)
+    - Procesamiento de archivos XLSX
+    - Validación de datos
+    - Conversión de fechas/horas
+
+SMS (LabsMobile):
+  /home/user/smsjelcom/backend/controllers/sms2controller.js (146 líneas)
+    - Envío de SMS recordatorios
+    - Consulta de saldo
+    - Envío manual
+
+EMAIL (Nodemailer):
+  /home/user/smsjelcom/backend/controllers/correoController.js (327 líneas)
+    - Envío de correos recordatorios
+    - Plantilla HTML personalizada
+    - Envío manual
+
+VOZ (Twilio):
+  /home/user/smsjelcom/backend/controllers/voiceController.js
+    - Llamadas automáticas
+    - Manejo de callbacks de estado
+
+AUTH:
+  /home/user/smsjelcom/backend/controllers/authController.js
+    - Login y registro de usuarios
+
+CONFIG:
+  /home/user/smsjelcom/backend/controllers/configController.js
+    - Configuración de sistema
+
+================================================================================
+                          BACKEND - ROUTES
+================================================================================
+
+WHATSAPP:
+  /home/user/smsjelcom/backend/routes/whatsappRoutes.js
+    GET  /api/whatsapp/enviar-recordatorios
+    POST /api/whatsapp/webhook-ultramsg
+
+CITAS/EXCEL:
+  /home/user/smsjelcom/backend/routes/citas.js
+    POST /api/citas/subir-excel
+
+SMS:
+  /home/user/smsjelcom/backend/routes/smsRoutes.js
+    POST /api/sms/enviar-recordatorios
+    GET  /api/sms/saldo
+    POST /api/sms/enviar-sms-manual
+
+EMAIL:
+  /home/user/smsjelcom/backend/routes/correo.js
+    POST /api/correo/enviar-recordatorios
+    POST /api/correo/enviar-manual
+
+VOZ:
+  /home/user/smsjelcom/backend/routes/voiceRoutes.js
+    GET  /api/voz/llamada/:citaId
+    POST /api/voz/status-callback/:citaId
+
+HISTORIAL:
+  /home/user/smsjelcom/backend/routes/historialRoutes.js
+    GET  /api/envios/historial
+    GET  /api/envios/estadisticas
+    GET  /api/envios/historial/:id
+    POST /api/envios/reintentar/:id
+
+AUTH:
+  /home/user/smsjelcom/backend/routes/auth.js
+    POST /api/auth/register
+    POST /api/auth/login
+
+DASHBOARD:
+  /home/user/smsjelcom/backend/routes/dashboard.js
+    GET  /api/dashboard/...
+
+CONFIG:
+  /home/user/smsjelcom/backend/routes/configRoutes.js
+    GET/POST /api/config/...
+
+================================================================================
+                        BACKEND - CONFIGURACIÓN
+================================================================================
+
+VARIABLES DE ENTORNO:
+  /home/user/smsjelcom/backend/.env
+    - Todas las credenciales de APIs externas
+    - Configuración de base de datos
+    - JWT secret
+
+CONEXIÓN BASE DE DATOS:
+  /home/user/smsjelcom/backend/config/db.js
+    - Pool MySQL configuration
+
+CONFIGURACIÓN TWILIO:
+  /home/user/smsjelcom/backend/config/twilioConfig.js
+    - Cliente Twilio inicializado
+
+CONFIGURACIÓN LABSMOBILE:
+  /home/user/smsjelcom/backend/config/labsmobileConfig.js
+    - Credenciales LabsMobile
+
+EMAIL CONFIG:
+  /home/user/smsjelcom/backend/config/emailConfig.js
+    - Configuración SMTP Gmail
+
+ENVÍO CORREO:
+  /home/user/smsjelcom/backend/config/enviocorreo.js
+    - Servicio de envío de correos
+
+CRON JOBS:
+  /home/user/smsjelcom/backend/config/cronJobs.js
+    - Tareas programadas automáticas
+
+================================================================================
+                          BACKEND - MODELS
+================================================================================
+
+MODELO CITA:
+  /home/user/smsjelcom/backend/models/cita.js
+    - CRUD operations para citas
+
+MODELO WHATSAPP REMINDER:
+  /home/user/smsjelcom/backend/models/WhatsAppReminder.js
+    - getRemindersForTomorrow()
+    - updateReminderStatus()
+
+MODELO USUARIO:
+  /home/user/smsjelcom/backend/models/user.js
+    - Autenticación usuario
+
+MODELO CONFIG:
+  /home/user/smsjelcom/backend/models/config.js
+    - Configuración del sistema
+
+MODELO CANCELACIÓN:
+  /home/user/smsjelcom/backend/models/Cancelacion.js
+    - Cancelaciones de citas
+
+================================================================================
+                        BACKEND - MIDDLEWARES
+================================================================================
+
+AUTENTICACIÓN:
+  /home/user/smsjelcom/backend/middlewares/auth.js
+    - verificarRol()
+    - JWT validation
+
+RATE LIMITING:
+  /home/user/smsjelcom/backend/middlewares/rateLimiter.js
+    - Limitar solicitudes
+
+CAPTCHA:
+  /home/user/smsjelcom/backend/middlewares/captcha.js
+    - Validación CAPTCHA
+
+================================================================================
+                          BACKEND - DOCUMENTACIÓN SALUD360
+================================================================================
+
+API/DOCUMENTACIÓN:
+  /home/user/smsjelcom/backend/api/
+
+  WSDL SOAP FILES:
+    Anexo 1 - WSBuscarPaciente.xml
+    Anexo 4 - WSActualizarPaciente.xml
+    Anexo 7 - WSBuscarCitasSedePaciente.xml
+    Anexo 10 - WSHistoricoCitas.xml
+    Anexo 13 - WSAsignarCitaPaciente2.xml
+    Anexo 16 - WSProximasCitas.xml
+    Anexo 19 - WSCancelarCitas.xml
+    Anexo 25 - WSConvenioPoblacionPaciente.xml
+    Anexo 28 - WSRecomendacionesRecordatorio.xml
+
+  SOLICITUDES Y RESPUESTAS SOAP:
+    Request/Response examples para cada WS
+
+  INFORMACIÓN ADICIONAL:
+    Anexo 22 - Codigos de Departamentos y Municipio.xlsx
+    Anexo 23 - Tipos de Agenda.xlsx
+    Anexo 24 - Contratos.xlsx
+
+  PDF DOCUMENTACIÓN:
+    Documentacion_WS_San_Gil_Produccion.pdf (434 KB)
+
+BASE URL SALUD360:
+    http://hs.salud360.app/Salud360Hs/servlet/
+
+================================================================================
+                      BACKEND - ARCHIVOS PRINCIPALES
+================================================================================
+
+SERVIDOR PRINCIPAL:
+  /home/user/smsjelcom/backend/index.js
+    - Inicialización de Express
+    - Configuración de Socket.io
+    - Registro de rutas
+    - Manejo de errores
+
+DEPENDENCIAS:
+  /home/user/smsjelcom/backend/package.json
+    - Todas las dependencias Node.js
+
+DATOS/LOGS:
+  /home/user/smsjelcom/backend/uploads/
+    - Archivos Excel cargados
+  /home/user/smsjelcom/backend/reporte_*.json
+    - Reportes de envíos
+  /home/user/smsjelcom/backend/LabsMobile.log
+    - Log de SMS
+  /home/user/smsjelcom/backend/WSRSanGil.zip
+    - Datos comprimidos
+
+ARCHIVOS ADICIONALES:
+  /home/user/smsjelcom/backend/contraseña.js
+  /home/user/smsjelcom/backend/correo.html
+  /home/user/smsjelcom/backend/pruebacomponentes.js
+  /home/user/smsjelcom/backend/testemail.js
+  /home/user/smsjelcom/backend/test-twilio.html
+
+================================================================================
+                            FRONTEND - PAGES
+================================================================================
+
+WHATSAPP:
+  /home/user/smsjelcom/frontend/src/pages/SendWhatsApp.js
+    - UI para envío de recordatorios WhatsApp
+    - Progreso en tiempo real
+
+UPLOAD EXCEL:
+  /home/user/smsjelcom/frontend/src/pages/UploadExcel.js
+    - Carga de archivos Excel
+
+HISTORIAL:
+  /home/user/smsjelcom/frontend/src/pages/HistorialEnvios.js
+    - Visualización de historial con filtros
+
+DASHBOARD:
+  /home/user/smsjelcom/frontend/src/pages/Dashboard.js
+    - Estadísticas y gráficos
+  /home/user/smsjelcom/frontend/src/pages/DashboardHome.js
+    - Home del dashboard
+
+PROGRAMACIÓN:
+  /home/user/smsjelcom/frontend/src/pages/ProgramarRecordatorio.js
+    - Configuración de cron jobs
+
+SMS:
+  /home/user/smsjelcom/frontend/src/pages/SendSms.js
+    - Envío manual de SMS
+
+CORREOS:
+  /home/user/smsjelcom/frontend/src/pages/SendEmails.js
+    - Envío manual de correos
+  /home/user/smsjelcom/frontend/src/pages/SendManualEmail.js
+    - Correo manual avanzado
+  /home/user/smsjelcom/frontend/src/pages/SendManualSms.js
+    - SMS manual avanzado
+
+RESPUESTAS:
+  /home/user/smsjelcom/frontend/src/pages/ResponsesList.js
+    - Lista de respuestas de pacientes
+
+AUTENTICACIÓN:
+  /home/user/smsjelcom/frontend/src/pages/Login.js
+    - Login
+  /home/user/smsjelcom/frontend/src/pages/RegisterUser.js
+    - Registro
+  /home/user/smsjelcom/frontend/src/pages/ForgotPassword.js
+    - Recuperar contraseña
+  /home/user/smsjelcom/frontend/src/pages/ResetPassword.js
+    - Resetear contraseña
+
+ADMIN:
+  /home/user/smsjelcom/frontend/src/pages/ConfigAdmin.js
+    - Configuración del administrador
+
+OTROS:
+  /home/user/smsjelcom/frontend/src/pages/LandingPage.jsx
+    - Página de bienvenida
+  /home/user/smsjelcom/frontend/src/pages/nav.js
+    - Navegación
+  /home/user/smsjelcom/frontend/src/pages/unauthorized.js
+    - Página de error no autorizado
+
+================================================================================
+                          FRONTEND - SERVICES
+================================================================================
+
+WHATSAPP SERVICE:
+  /home/user/smsjelcom/frontend/src/services/whatsappService.js
+    - Llamadas API WhatsApp
+
+SMS SERVICE:
+  /home/user/smsjelcom/frontend/src/services/smsService.js
+    - Llamadas API SMS
+
+EMAIL SERVICE:
+  /home/user/smsjelcom/frontend/src/services/emailService.js
+    - Llamadas API Email
+
+AUTH SERVICE:
+  /home/user/smsjelcom/frontend/src/services/authService.js
+    - Login, registro, JWT
+
+CONFIG SERVICE:
+  /home/user/smsjelcom/frontend/src/services/configService.js
+    - Configuración
+
+PQR SERVICE:
+  /home/user/smsjelcom/frontend/src/services/pqrService.js
+    - Peticiones, quejas y reclamos
+
+INCIDENCIAS SERVICE:
+  /home/user/smsjelcom/frontend/src/services/incidenciasService.js
+    - Gestión de incidencias
+
+================================================================================
+                        FRONTEND - ARCHIVOS PRINCIPALES
+================================================================================
+
+APP COMPONENT:
+  /home/user/smsjelcom/frontend/src/App.js
+    - Componente raíz
+
+INDEX:
+  /home/user/smsjelcom/frontend/src/index.js
+    - Punto de entrada
+
+ESTILOS:
+  /home/user/smsjelcom/frontend/src/App.css
+  /home/user/smsjelcom/frontend/src/index.css
+  /home/user/smsjelcom/frontend/src/styles/
+    - CSS personalizado
+
+ASSETS:
+  /home/user/smsjelcom/frontend/src/assets/
+    - Imágenes y recursos
+
+DEPENDENCIAS:
+  /home/user/smsjelcom/frontend/package.json
+    - Dependencias React
+
+================================================================================
+                          DOCUMENTACIÓN GENERADA
+================================================================================
+
+1. ARQUITECTURA COMPLETA (Principal):
+   /home/user/smsjelcom/ARQUITECTURA_COMPLETA.md
+   - 15 secciones detalladas
+   - Descripción completa del proyecto
+   - Integración Salud360
+   - Checklist de producción
+
+2. GUÍA RÁPIDA (Referencia):
+   /tmp/GUIA_RAPIDA.md
+   - 15 tablas de referencia
+   - Checklists de implementación
+   - Información en formato tabular
+
+3. RESUMEN DE ARQUITECTURA:
+   /tmp/architecture_summary.md
+   - 13 secciones técnicas
+   - Código y ejemplos
+   - Flujos detallados
+
+4. RUTAS ABSOLUTAS (Este archivo):
+   /home/user/smsjelcom/RUTAS_ABSOLUTAS.txt
+   - Todas las rutas de archivos
+   - Organización por función
+
+================================================================================
+                      ESTRUCTURA DE DIRECTORIOS
+================================================================================
+
+/home/user/smsjelcom/
+├── backend/
+│   ├── api/                    # Documentación Salud360 (30 archivos)
+│   ├── config/                 # 6 archivos de configuración
+│   ├── controllers/            # 10 controllers
+│   ├── middlewares/            # 3 middlewares
+│   ├── models/                 # 5 modelos
+│   ├── routes/                 # 9 rutas
+│   ├── uploads/                # Archivos cargados
+│   ├── public/                 # Archivos estáticos
+│   ├── index.js                # Servidor principal
+│   ├── package.json            # Dependencias
+│   ├── .env                    # Variables de entorno
+│   └── Otros archivos          # SQL, logs, etc.
+│
+├── frontend/
+│   ├── src/
+│   │   ├── pages/              # 18 componentes de página
+│   │   ├── services/           # 7 servicios HTTP
+│   │   ├── routes/             # Enrutamiento
+│   │   ├── styles/             # CSS
+│   │   ├── assets/             # Recursos
+│   │   ├── App.js              # Componente raíz
+│   │   └── index.js            # Punto de entrada
+│   ├── public/                 # HTML estático
+│   └── package.json            # Dependencias
+│
+├── .git/                       # Control de versiones
+├── .gitignore                  # Archivos ignorados
+├── ARQUITECTURA_COMPLETA.md    # Documentación principal
+└── RUTAS_ABSOLUTAS.txt         # Este archivo
+
+================================================================================
+                       TECNOLOGÍAS Y DEPENDENCIAS
+================================================================================
+
+BACKEND PRINCIPAL:
+  - Express.js 4.21.2
+  - MySQL2 3.12.0
+  - Node.js
+
+INTEGRACIONES API:
+  - axios 1.8.1                 # HTTP client
+  - twilio 5.4.5                # Twilio SDK
+  - labsmobile-sms 1.0.1        # LabsMobile SDK
+  - nodemailer 6.10.0           # SMTP Email
+
+PROCESAMIENTO:
+  - xlsx 0.18.5                 # Lectura de Excel
+  - multer 1.4.5-lts.1          # Upload de archivos
+
+COMUNICACIÓN EN TIEMPO REAL:
+  - socket.io 4.8.1             # WebSockets
+
+AUTENTICACIÓN:
+  - jsonwebtoken 9.0.2          # JWT
+  - bcrypt 5.1.1                # Encriptación
+
+AUTOMATIZACIÓN:
+  - node-cron 3.0.3             # Tareas programadas
+
+UTILIDADES:
+  - moment 2.30.1               # Fechas
+  - moment-timezone 0.5.47      # Timezones
+  - cors 2.8.5                  # CORS
+  - morgan 1.10.0               # Logging HTTP
+  - express-validator 7.2.1     # Validación
+  - express-rate-limit 7.5.0    # Rate limiting
+  - dotenv 16.4.7               # Variables de entorno
+
+FRONTEND:
+  - React.js
+  - Axios
+  - Socket.io-client
+
+================================================================================
+                          CONEXIONES CRÍTICAS
+================================================================================
+
+BASE DE DATOS:
+  Host: localhost
+  Puerto: 3306
+  Usuario: root
+  Base de Datos: recordatorios_db
+
+META WHATSAPP API:
+  Base URL: https://graph.facebook.com/v17.0/
+  Requiere: META_TOKEN, META_PHONE_NUMBER_ID
+
+LABSMOBILE API:
+  Requiere: LABSMOBILE_USER, LABSMOBILE_API_KEY
+
+TWILIO:
+  Requiere: TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER
+
+GMAIL SMTP:
+  Requiere: EMAIL_USER, EMAIL_PASS
+
+SALUD360 (PENDIENTE):
+  Base URL: http://hs.salud360.app/Salud360Hs/servlet/
+  Requiere: Username, Password
+
+JWT:
+  Secret: supersecreto123 (CAMBIAR EN PRODUCCIÓN)
+  Expiración: 7 días
+
+================================================================================
+                         ESTADOS DE CITA
+================================================================================
+
+pendiente                    - Cita creada, sin recordatorio
+recordatorio enviado         - Recordatorio fue enviado
+confirmada                   - Paciente confirmó
+cancelada                    - Paciente canceló
+reagendamiento solicitado    - Solicitud de cambio de fecha
+
+================================================================================
+                          INFORMACIÓN IMPORTANTE
+================================================================================
+
+ZONA HORARIA: America/Bogota
+PAÍS: Colombia
+HOSPITAL: Hospital Regional de San Gil, Santander
+SEDE PRINCIPAL: Carrera 5 # 9-102, San Gil, Santander
+
+ESPECIALIDADES MAPEADAS: 50+
+  - Cardiología (Calle 16 No. 9-76)
+  - Medicina General (Avenida Santander 24A-48 - CES)
+  - Endodoncia (Cra 14A # 29A-27 - Edificio PSI)
+  - Periodoncia (Calle 9 No. 9-41)
+  - Cirugías varias (Carrera 5 # 9-102 - Hospital)
+
+CONTACTO:
+  Teléfono: 6077249701
+  Email: msalazar5@udi.edu.co
+
+================================================================================
+                        ESTADO DEL PROYECTO
+================================================================================
+
+FUNCIONALIDADES ACTIVAS:
+  ✓ Carga de Excel
+  ✓ Envío WhatsApp (Meta API)
+  ✓ Envío SMS (LabsMobile)
+  ✓ Envío Email (Gmail SMTP)
+  ✓ Llamadas automáticas (Twilio)
+  ✓ Chatbot procesamiento respuestas
+  ✓ Dashboard con estadísticas
+  ✓ Historial con filtros
+  ✓ Autenticación JWT
+
+FUNCIONALIDADES DOCUMENTADAS (NO IMPLEMENTADAS):
+  - Integración SOAP Salud360 (9 webservices)
+  - Sincronización bidireccional
+
+PRÓXIMAS MEJORAS:
+  - Implementar Salud360
+  - Mejorar seguridad
+  - Agregar logging persistente
+  - Implementar reintentos automáticos
+
+================================================================================
+                         FIN DEL DOCUMENTO
+================================================================================
+
+Fecha: 2025-11-19
+Rama: claude/whatsapp-cancel-appointments-01CcEWeJGSrmHyQ5cSPYLnzY
+Estado: Documentación Completa
