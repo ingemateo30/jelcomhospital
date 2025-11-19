@@ -648,6 +648,20 @@ async function processMetaMessage(message, value) {
       status: 'pendiente'
     });
 
+    // Emitir evento Socket.io para actualizar frontend en tiempo real
+    if (global.io) {
+      global.io.emit("chat:nuevo_mensaje", {
+        numero: phone,
+        mensaje: {
+          id,
+          numero: phone,
+          mensaje: messageBody,
+          fecha: new Date(parseInt(timestamp) * 1000).toISOString(),
+          tipo: 'entrante'
+        }
+      });
+    }
+
     // Buscar cita asociada al número
     const reminder = await getCitaByPhone(phone);
 
@@ -826,6 +840,20 @@ async function saveMessageToDb({ id, phone, body, fromMe, timestamp, status }) {
     );
 
     console.log(`   📝 Mensaje guardado en BD`);
+
+    // Emitir evento Socket.io solo para mensajes salientes (los entrantes ya se emiten en processMetaMessage)
+    if (fromMe && global.io) {
+      global.io.emit("chat:nuevo_mensaje", {
+        numero: phone,
+        mensaje: {
+          id,
+          numero: phone,
+          mensaje: body,
+          fecha: fecha,
+          tipo: 'saliente'
+        }
+      });
+    }
   } catch (error) {
     console.error('   ❌ Error guardando mensaje:', error);
   }
@@ -913,6 +941,124 @@ async function limpiarHistorialMensajes(phone) {
   }
 }
 
+/**
+ * Obtener lista de chats agrupados por número de teléfono
+ * Incluye información de la última cita y si hay cancelaciones
+ */
+async function getChats(req, res) {
+  try {
+    const { filter } = req.query; // 'cancelled', 'active', o 'all'
+
+    let query = `
+      SELECT
+        m.numero,
+        MAX(m.fecha) as ultimo_mensaje,
+        COUNT(m.id) as total_mensajes,
+        c.NOMBRE,
+        c.EMAIL,
+        c.FECHA_CITA,
+        c.HORA_CITA,
+        c.SERVICIO,
+        c.PROFESIONAL,
+        c.ESTADO as estado_cita,
+        (SELECT mensaje FROM mensajes WHERE numero = m.numero ORDER BY fecha DESC LIMIT 1) as ultimo_mensaje_texto,
+        (SELECT tipo FROM mensajes WHERE numero = m.numero ORDER BY fecha DESC LIMIT 1) as ultimo_mensaje_tipo
+      FROM mensajes m
+      LEFT JOIN citas c ON m.numero = c.TELEFONO_FIJO
+      WHERE 1=1
+    `;
+
+    const params = [];
+
+    // Filtrar por tipo de chat
+    if (filter === 'cancelled') {
+      query += ` AND c.ESTADO = 'cancelada'`;
+    } else if (filter === 'active') {
+      query += ` AND (c.ESTADO IS NULL OR c.ESTADO != 'cancelada')`;
+    }
+
+    query += `
+      GROUP BY m.numero, c.NOMBRE, c.EMAIL, c.FECHA_CITA, c.HORA_CITA, c.SERVICIO, c.PROFESIONAL, c.ESTADO
+      ORDER BY ultimo_mensaje DESC
+    `;
+
+    const [chats] = await db.execute(query, params);
+
+    res.json({
+      success: true,
+      chats
+    });
+  } catch (error) {
+    console.error('Error obteniendo lista de chats:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error al obtener lista de chats'
+    });
+  }
+}
+
+/**
+ * Obtener todos los mensajes de un chat específico
+ */
+async function getChatMessages(req, res) {
+  try {
+    const { numero } = req.params;
+
+    if (!numero) {
+      return res.status(400).json({
+        success: false,
+        error: 'Número de teléfono requerido'
+      });
+    }
+
+    // Obtener mensajes del chat
+    const [mensajes] = await db.execute(
+      `SELECT
+        id,
+        numero,
+        mensaje,
+        fecha,
+        tipo,
+        estado
+      FROM mensajes
+      WHERE numero = ?
+      ORDER BY fecha ASC`,
+      [numero]
+    );
+
+    // Obtener información del paciente/cita
+    const [citas] = await db.execute(
+      `SELECT
+        NOMBRE,
+        EMAIL,
+        FECHA_CITA,
+        HORA_CITA,
+        SERVICIO,
+        PROFESIONAL,
+        ESTADO,
+        TIPO_IDE_PACIENTE,
+        NUMERO_IDE
+      FROM citas
+      WHERE TELEFONO_FIJO = ?
+      ORDER BY FECHA_CITA DESC
+      LIMIT 1`,
+      [numero]
+    );
+
+    res.json({
+      success: true,
+      mensajes,
+      paciente: citas.length > 0 ? citas[0] : null
+    });
+  } catch (error) {
+    console.error('Error obteniendo mensajes del chat:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error al obtener mensajes del chat'
+    });
+  }
+}
+
 module.exports = {
   sendWhatsAppReminder,
   processWhatsAppReply,
@@ -920,4 +1066,6 @@ module.exports = {
   getCitasCanceladas,
   verifyWebhook,
   handleMetaWebhook,
+  getChats,
+  getChatMessages,
 };

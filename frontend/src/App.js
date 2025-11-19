@@ -18,6 +18,8 @@ import ConfigAdmin from "./pages/ConfigAdmin";
 import ResponsesList from "./pages/ResponsesList";
 import Recordatoriovoz from "./pages/ProgramarRecordatorio";
 import HistorialEnvios from "./pages/HistorialEnvios"; // ✅ NUEVO
+import ChatList from "./pages/ChatList"; // ✅ NUEVO - Lista de chats
+import ChatView from "./pages/ChatView"; // ✅ NUEVO - Vista individual del chat
 
 const App = () => {
   return (
@@ -50,9 +52,13 @@ const App = () => {
             {/* Rutas de WhatsApp y Voz */}
             <Route path="enviar-whatsapp" element={<SendWhatsApp />} />
             <Route path="enviar-voz" element={<Recordatoriovoz />} />
-            
+
             {/* Ruta de respuestas (si la usas) */}
             <Route path="respuestas" element={<ResponsesList />} />
+
+            {/* ✅ NUEVAS RUTAS DE CHATS */}
+            <Route path="chats" element={<ChatList />} />
+            <Route path="chats/:numero" element={<ChatView />} />
             
             {/* Rutas solo para admin */}
             <Route element={<PrivateRoute requiredRole="admin" />}>

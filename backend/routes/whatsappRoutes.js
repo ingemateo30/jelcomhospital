@@ -5,7 +5,9 @@ const {
   getResponses,
   getCitasCanceladas,
   verifyWebhook,
-  handleMetaWebhook
+  handleMetaWebhook,
+  getChats,
+  getChatMessages
 } = require("../controllers/whatsappController");
 const { handleWhatsAppResponse } = require("../controllers/chatbotController");
 
@@ -24,5 +26,9 @@ router.post("/webhook-meta", handleMetaWebhook);  // Para recibir mensajes
 // Respuestas y citas canceladas
 router.get("/respuestas", getResponses);
 router.get("/citas-canceladas", getCitasCanceladas);
+
+// Chats - Lista y mensajes individuales
+router.get("/chats", getChats);  // Lista de chats con filtro opcional ?filter=cancelled|active|all
+router.get("/chats/:numero", getChatMessages);  // Mensajes de un chat específico
 
 module.exports = router;

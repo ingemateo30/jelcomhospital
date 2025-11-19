@@ -19,6 +19,7 @@ import {
   FaSearch,
   FaHistory, // ✅ NUEVO ICONO PARA HISTORIAL
   FaComments, // ✅ NUEVO ICONO PARA RESPUESTAS
+  FaCommentDots, // ✅ NUEVO ICONO PARA CHATS
 } from "react-icons/fa";
 import logo from "../assets/logos-jelcom.png";
 
@@ -239,6 +240,12 @@ const Dashboard = () => {
                   onClick={() => navigate("/dashboard/enviar-whatsapp")}
                 />
                 <SidebarButton
+                  icon={<FaCommentDots />}
+                  text="Chats"
+                  collapsed={isCollapsed}
+                  onClick={() => navigate("/dashboard/chats")}
+                />
+                <SidebarButton
                   icon={<FaComments />}
                   text="Respuestas y Citas"
                   collapsed={isCollapsed}
@@ -258,6 +265,12 @@ const Dashboard = () => {
                   text="Enviar WhatsApp"
                   collapsed={false}
                   onClick={() => navigate("/dashboard/enviar-whatsapp")}
+                />
+                <SidebarButton
+                  icon={<FaCommentDots />}
+                  text="Chats"
+                  collapsed={false}
+                  onClick={() => navigate("/dashboard/chats")}
                 />
                 <SidebarButton
                   icon={<FaComments />}
