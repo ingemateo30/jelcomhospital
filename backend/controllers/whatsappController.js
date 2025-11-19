@@ -197,7 +197,7 @@ async function enviarPlantillaMeta(numero, reminder) {
       to: numero,
       type: "template",
       template: {
-        name: "recordatorio_citas",
+        name: "recordatorio",
         language: { code: "es" },
         components: [
           {
@@ -234,17 +234,6 @@ async function enviarPlantillaMeta(numero, reminder) {
               {
                 type: "payload",
                 payload: "CANCELAR_CITA"
-              }
-            ]
-          },
-          {
-            type: "button",
-            sub_type: "phone_number",
-            index: "2",
-            parameters: [
-              {
-                type: "text",
-                text: "6077249701"
               }
             ]
           }
