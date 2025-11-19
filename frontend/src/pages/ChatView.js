@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import io from "socket.io-client";
-import { ArrowLeft, User, Phone, Calendar, Briefcase, Loader2, CheckCircle, XCircle, Clock, RefreshCw, Mail } from "lucide-react";
+import { ArrowLeft, User, Phone, Calendar, Briefcase, Loader2, CheckCircle, XCircle, Clock, RefreshCw, Mail, Check, CheckCheck } from "lucide-react";
 
 const API_URL = process.env.REACT_APP_API_URL || "http://localhost:3001/api";
 const SOCKET_URL = process.env.REACT_APP_API_URL?.replace('/api', '') || "http://localhost:3001";
@@ -67,6 +67,9 @@ const ChatView = () => {
 
       setMensajes(response.data.mensajes || []);
       setPaciente(response.data.paciente);
+
+      // Marcar mensajes como leídos automáticamente al abrir el chat
+      markAsRead();
     } catch (error) {
       console.error("Error obteniendo mensajes:", error);
       if (error.response?.status === 401) {
@@ -78,6 +81,28 @@ const ChatView = () => {
       }
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const markAsRead = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      await axios.put(
+        `${API_URL}/whatsapp/chats/${numero}/marcar-leido`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      console.log("Mensajes marcados como leídos");
+    } catch (error) {
+      console.error("Error marcando mensajes como leídos:", error);
+      // No mostrar error al usuario, es una operación en segundo plano
     }
   };
 
@@ -259,9 +284,20 @@ const ChatView = () => {
                       }`}
                     >
                       <p className="whitespace-pre-wrap break-words">{mensaje.mensaje}</p>
-                      <p className={`text-xs mt-2 ${mensaje.tipo === 'saliente' ? 'text-orange-100' : 'text-gray-500'}`}>
-                        {formatDate(mensaje.fecha)}
-                      </p>
+                      <div className="flex items-center justify-between gap-2 mt-2">
+                        <p className={`text-xs ${mensaje.tipo === 'saliente' ? 'text-orange-100' : 'text-gray-500'}`}>
+                          {formatDate(mensaje.fecha)}
+                        </p>
+                        {mensaje.tipo === 'entrante' && (
+                          <div className="flex items-center gap-1">
+                            {mensaje.leido ? (
+                              <CheckCheck className="w-3.5 h-3.5 text-blue-400" title={`Leído: ${mensaje.fecha_leido ? formatDate(mensaje.fecha_leido) : 'Sí'}`} />
+                            ) : (
+                              <Check className="w-3.5 h-3.5 text-gray-500" title="No leído" />
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}

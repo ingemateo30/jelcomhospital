@@ -236,12 +236,19 @@ const ChatList = () => {
                               {formatPhone(chat.numero)}
                             </div>
                           </div>
-                          {chat.estado_cita && (
-                            <span className={`px-3 py-1 rounded-full text-xs font-medium border flex items-center gap-1 ${getStatusColor(chat.estado_cita)}`}>
-                              {getStatusIcon(chat.estado_cita)}
-                              {chat.estado_cita}
-                            </span>
-                          )}
+                          <div className="flex items-center gap-2">
+                            {chat.mensajes_no_leidos > 0 && (
+                              <span className="px-2.5 py-1 bg-red-500 text-white text-xs font-bold rounded-full min-w-[24px] text-center">
+                                {chat.mensajes_no_leidos}
+                              </span>
+                            )}
+                            {chat.estado_cita && (
+                              <span className={`px-3 py-1 rounded-full text-xs font-medium border flex items-center gap-1 ${getStatusColor(chat.estado_cita)}`}>
+                                {getStatusIcon(chat.estado_cita)}
+                                {chat.estado_cita}
+                              </span>
+                            )}
+                          </div>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-3 text-sm">

@@ -7,7 +7,8 @@ const {
   verifyWebhook,
   handleMetaWebhook,
   getChats,
-  getChatMessages
+  getChatMessages,
+  markMessagesAsRead
 } = require("../controllers/whatsappController");
 const { handleWhatsAppResponse } = require("../controllers/chatbotController");
 
@@ -30,5 +31,6 @@ router.get("/citas-canceladas", getCitasCanceladas);
 // Chats - Lista y mensajes individuales
 router.get("/chats", getChats);  // Lista de chats con filtro opcional ?filter=cancelled|active|all
 router.get("/chats/:numero", getChatMessages);  // Mensajes de un chat específico
+router.put("/chats/:numero/marcar-leido", markMessagesAsRead);  // Marcar mensajes como leídos
 
 module.exports = router;
