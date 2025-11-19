@@ -6,17 +6,30 @@ const salud360CitasService = require("../services/salud360CitasService");
 exports.handleWhatsAppResponse = async (req, res) => {
     try {
         const { data } = req.body;
-        const { body, from, to, fromMe, timestamp, id } = data;
+        const { body, from, to, fromMe, timestamp, id, button_payload } = data;
 
-        if (!data || !data.from || !data.body) {
+        if (!data || !data.from) {
             console.error("⚠️ Error: Datos faltantes en la respuesta de UltraMsg", req.body);
             return res.status(400).json({ error: "Datos incompletos en la solicitud" });
         }
 
+        const phone = from.replace("57", "").replace("@c.us", "");
+
+        // Determinar el mensaje según si es botón o texto
+        let messageBody = body;
+        let isButtonResponse = false;
+
+        if (button_payload) {
+            // Es una respuesta de botón interactivo
+            isButtonResponse = true;
+            messageBody = button_payload;
+            console.log(`🔘 Respuesta de botón recibida: ${button_payload} de ${phone}`);
+        }
+
         await saveMessage({
             id,
-            phone: from.replace("57", "").replace("@c.us", ""),
-            body,
+            phone: phone,
+            body: messageBody || body || 'Sin mensaje',
             fromMe,
             timestamp: timestamp || new Date().toISOString(),
             status: 'pendiente'
@@ -26,7 +39,6 @@ exports.handleWhatsAppResponse = async (req, res) => {
             return res.status(200).json({ message: "Mensaje almacenado (saliente)." });
         }
 
-        const phone = from.replace("57", "").replace("@c.us", "");
         const reminder = await getMessagesByPhone(phone);
 
         if (!reminder) {
@@ -39,7 +51,7 @@ exports.handleWhatsAppResponse = async (req, res) => {
         if (prueba && ["confirmada", "cancelada", "reagendamiento solicitado"].includes(prueba.estado)) {
             const instanceId = process.env.ULTRAMSG_INSTANCE_ID;
             const token = process.env.ULTRAMSG_TOKEN;
-            let replyMessage = `🔒 La cita del número ${phone} ya está ${prueba.estado}. No se permite modificar el estado,si se trata de una equivocacion contactanos al #`;
+            let replyMessage = `🔒 La cita del número ${phone} ya está ${prueba.estado}. No se permite modificar el estado. Si se trata de una equivocación, contáctanos al 6077249701`;
             try {
                 await axios.post(
                     `https://api.ultramsg.com/${instanceId}/messages/chat`,
@@ -53,7 +65,14 @@ exports.handleWhatsAppResponse = async (req, res) => {
             return res.status(200).json({ message: `La cita ya ha sido ${prueba.estado} y no se puede cambiar el estado.` });
         }
 
-        const response = body.trim().toLowerCase();
+        // Determinar la acción según el payload del botón o el texto
+        let response = '';
+        if (isButtonResponse) {
+            response = button_payload.toLowerCase();
+        } else {
+            response = (body || '').trim().toLowerCase();
+        }
+
         const instanceId = process.env.ULTRAMSG_INSTANCE_ID;
         const token = process.env.ULTRAMSG_TOKEN;
         let replyMessage = '';
@@ -66,10 +85,10 @@ exports.handleWhatsAppResponse = async (req, res) => {
             day: "numeric"
         });
 
-        if (response === 'sí' || response === 'si') {
-            replyMessage = `Gracias por confirmar tu cita médica para el ${fechaFormateada} a las ${reminder.HORA_CITA}. Te esperamos puntualmente,si quieres cambiar es estado contactanos al #`;
+        if (response === 'confirmar_cita' || response === 'sí' || response === 'si' || response === 'confirmo') {
+            replyMessage = `✅ Gracias por confirmar tu cita médica para el ${fechaFormateada} a las ${reminder.HORA_CITA}. Te esperamos puntualmente. Si deseas cambiar el estado, contáctanos al 6077249701`;
             newStatus = "confirmada";
-        } else if (response === 'no' || response === 'cancelar') {
+        } else if (response === 'cancelar_cita' || response === 'no' || response === 'cancelar') {
             // Cancelar la cita en Salud360
             console.log(`🔄 Iniciando cancelación en Salud360 para ${phone}`);
 
@@ -92,26 +111,26 @@ exports.handleWhatsAppResponse = async (req, res) => {
 
                 if (resultadoCancelacion.success) {
                     console.log(`✅ Cita cancelada en Salud360: CitNum ${resultadoCancelacion.citNum}`);
-                    replyMessage = `✅ Tu cita médica para el ${fechaFormateada} a las ${reminder.HORA_CITA} ha sido cancelada exitosamente en el sistema.\n\nSi deseas reagendarla, por favor comunícate con nosotros al #.`;
+                    replyMessage = `❌ Tu cita médica para el ${fechaFormateada} a las ${reminder.HORA_CITA} ha sido cancelada exitosamente en el sistema.\n\nSi deseas reagendarla, por favor comunícate con nosotros al 6077249701.`;
                     newStatus = "cancelada";
 
                     // Actualizar también el estado en la tabla citas
                     await updateCitaStatus(reminder.NUMERO_IDE, reminder.FECHA_CITA, reminder.HORA_CITA, 'cancelada');
                 } else {
                     console.error(`❌ Error cancelando en Salud360:`, resultadoCancelacion.error);
-                    replyMessage = `⚠️ Hemos registrado tu solicitud de cancelación para el ${fechaFormateada} a las ${reminder.HORA_CITA}.\n\nPor favor, confirma la cancelación comunicándote al # para completar el proceso en el sistema.`;
+                    replyMessage = `⚠️ Hemos registrado tu solicitud de cancelación para el ${fechaFormateada} a las ${reminder.HORA_CITA}.\n\nPor favor, confirma la cancelación comunicándote al 6077249701 para completar el proceso en el sistema.`;
                     newStatus = "cancelada"; // Se marca como cancelada localmente aunque falle en Salud360
                 }
             } catch (error) {
                 console.error(`❌ Error en proceso de cancelación:`, error.message);
-                replyMessage = `⚠️ Hemos registrado tu solicitud de cancelación para el ${fechaFormateada} a las ${reminder.HORA_CITA}.\n\nPor favor, confirma la cancelación comunicándote al # para completar el proceso.`;
+                replyMessage = `⚠️ Hemos registrado tu solicitud de cancelación para el ${fechaFormateada} a las ${reminder.HORA_CITA}.\n\nPor favor, confirma la cancelación comunicándote al 6077249701 para completar el proceso.`;
                 newStatus = "cancelada";
             }
-        } else if (response === 'reagendar') {
-            replyMessage = `Hemos recibido tu solicitud para reagendar la cita del ${fechaFormateada} a las ${reminder.HORA_CITA}. En breve un asesor se comunicará contigo para coordinar una nueva fecha.`;
+        } else if (response === 'reagendar' || response === 'reprogramar' || response === 'cambiar') {
+            replyMessage = `🔄 Hemos recibido tu solicitud para reagendar la cita del ${fechaFormateada} a las ${reminder.HORA_CITA}.\n\nPor favor, llámanos al 6077249701 para coordinar una nueva fecha que se ajuste a tu disponibilidad.`;
             newStatus = "reagendamiento solicitado";
         } else {
-            replyMessage = `No hemos podido procesar tu respuesta. Por favor, responde con una de las siguientes opciones:\n✅ "Sí" - Confirmar cita\n❌ "No" - Cancelar cita\n🔄 "Reagendar" - Solicitar cambio de fecha`;
+            replyMessage = `❓ No hemos podido procesar tu respuesta. Por favor, responde con una de las siguientes opciones:\n\n✅ "Sí" o "Confirmo" - Confirmar cita\n❌ "No" o "Cancelar" - Cancelar cita\n🔄 "Reagendar" - Solicitar cambio de fecha\n\nO llámanos al 6077249701 para atención personalizada.`;
         }
 
         if (newStatus) {
