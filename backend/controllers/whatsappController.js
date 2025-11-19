@@ -197,7 +197,7 @@ async function enviarPlantillaMeta(numero, reminder) {
       to: numero,
       type: "template",
       template: {
-        name: "recordatorio",
+        name: "recordatorio_prueba",
         language: { code: "es" },
         components: [
           {
@@ -219,17 +219,6 @@ async function enviarPlantillaMeta(numero, reminder) {
             type: "button",
             sub_type: "quick_reply",
             index: "0",
-            parameters: [
-              {
-                type: "payload",
-                payload: "CONFIRMAR_CITA"
-              }
-            ]
-          },
-          {
-            type: "button",
-            sub_type: "quick_reply",
-            index: "1",
             parameters: [
               {
                 type: "payload",
