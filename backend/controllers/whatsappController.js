@@ -203,11 +203,11 @@ async function enviarPlantillaMeta(numero, reminder) {
           {
             type: "header",
             parameters: [
-              { 
-                type: "image", 
-                image: { 
-                  link: "https://drive.google.com/uc?export=view&id=1wHMGC9zodGNy6C49k2fIj8zDcHQlu5LT",  
-                } 
+              {
+                type: "image",
+                image: {
+                  link: "https://drive.google.com/uc?export=view&id=1wHMGC9zodGNy6C49k2fIj8zDcHQlu5LT",
+                }
               }
             ],
           },
@@ -215,6 +215,39 @@ async function enviarPlantillaMeta(numero, reminder) {
             type: "body",
             parameters: bodyParameters,
           },
+          {
+            type: "button",
+            sub_type: "quick_reply",
+            index: "0",
+            parameters: [
+              {
+                type: "payload",
+                payload: "CONFIRMAR_CITA"
+              }
+            ]
+          },
+          {
+            type: "button",
+            sub_type: "quick_reply",
+            index: "1",
+            parameters: [
+              {
+                type: "payload",
+                payload: "CANCELAR_CITA"
+              }
+            ]
+          },
+          {
+            type: "button",
+            sub_type: "phone_number",
+            index: "2",
+            parameters: [
+              {
+                type: "text",
+                text: "6077249701"
+              }
+            ]
+          }
         ],
       },
     };
@@ -436,7 +469,67 @@ const processWhatsAppReply = async (req, res) => {
   }
 };
 
+/**
+ * Obtener todas las respuestas de los pacientes con información de la cita
+ */
+const getResponses = async (req, res) => {
+  try {
+    const [rows] = await db.query(`
+      SELECT
+        m.id,
+        m.numero,
+        m.mensaje,
+        m.fecha,
+        m.tipo,
+        m.estado,
+        c.NOMBRE as nombre,
+        c.FECHA_CITA as fecha_cita,
+        c.HORA_CITA as hora_cita,
+        c.SERVICIO as servicio
+      FROM mensajes m
+      LEFT JOIN citas c ON m.numero = c.TELEFONO_FIJO
+      WHERE m.tipo = 'entrante'
+      ORDER BY m.fecha DESC
+    `);
+
+    res.json(rows);
+  } catch (error) {
+    console.error("❌ Error al obtener respuestas:", error);
+    res.status(500).json({ error: "Error al obtener respuestas." });
+  }
+};
+
+/**
+ * Obtener todas las citas canceladas
+ */
+const getCitasCanceladas = async (req, res) => {
+  try {
+    const [rows] = await db.query(`
+      SELECT
+        ID,
+        NOMBRE,
+        TELEFONO_FIJO,
+        FECHA_CITA,
+        HORA_CITA,
+        SERVICIO,
+        PROFESIONAL,
+        ESTADO,
+        CREATED_AT
+      FROM citas
+      WHERE ESTADO = 'cancelada'
+      ORDER BY FECHA_CITA DESC, HORA_CITA DESC
+    `);
+
+    res.json(rows);
+  } catch (error) {
+    console.error("❌ Error al obtener citas canceladas:", error);
+    res.status(500).json({ error: "Error al obtener citas canceladas." });
+  }
+};
+
 module.exports = {
   sendWhatsAppReminder,
   processWhatsAppReply,
+  getResponses,
+  getCitasCanceladas,
 };

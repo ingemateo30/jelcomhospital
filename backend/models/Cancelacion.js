@@ -3,7 +3,7 @@ const db = require('../config/db.js');
 class cancelacion {
     static async obtenerCitaPendiente(telefono) {
         const [citas] = await db.execute(
-            "SELECT * FROM citas WHERE TELEFONO_FIJO = ? AND ESTADO = 'pendiente' OR ESTADO = 'recordatorio enviado",
+            "SELECT * FROM citas WHERE TELEFONO_FIJO = ? AND (ESTADO = 'pendiente' OR ESTADO = 'recordatorio enviado') ORDER BY FECHA_CITA DESC LIMIT 1",
             [telefono]
         );
         return citas[0];
@@ -11,16 +11,30 @@ class cancelacion {
 
     static async confirmarCita(telefono) {
         await db.execute(
-            "UPDATE citas SET ESTADO = 'confirmada' WHERE TELEFONO_FIJO = ? AND ESTADO = 'pendiente' OR ESTADO = 'recordatorio enviado'",
+            "UPDATE citas SET ESTADO = 'confirmada' WHERE TELEFONO_FIJO = ? AND (ESTADO = 'pendiente' OR ESTADO = 'recordatorio enviado')",
             [telefono]
         );
     }
 
-    static async cancelarCita(telefono, motivo) {
+    static async cancelarCita(telefono) {
         await db.execute(
-            "UPDATE citas SET ESTADO = 'cancelada', motivo_cancelacion = ? WHERE TELEFONO_FIJO = ? AND ESTADO = 'pendiente' OR ESTADO = 'recordatorio enviado'",
-            [motivo, telefono]
+            "UPDATE citas SET ESTADO = 'cancelada' WHERE TELEFONO_FIJO = ? AND (ESTADO = 'pendiente' OR ESTADO = 'recordatorio enviado')",
+            [telefono]
         );
+    }
+
+    static async reagendarCita(telefono) {
+        await db.execute(
+            "UPDATE citas SET ESTADO = 'reagendamiento solicitado' WHERE TELEFONO_FIJO = ? AND (ESTADO = 'pendiente' OR ESTADO = 'recordatorio enviado')",
+            [telefono]
+        );
+    }
+
+    static async obtenerCitasCanceladas() {
+        const [citas] = await db.execute(
+            "SELECT * FROM citas WHERE ESTADO = 'cancelada' ORDER BY FECHA_CITA DESC"
+        );
+        return citas;
     }
 }
 
