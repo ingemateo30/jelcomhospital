@@ -7,7 +7,6 @@ const db = require("../config/db");
 const META_TOKEN = process.env.META_TOKEN;
 const META_PHONE_NUMBER_ID = process.env.META_PHONE_NUMBER_ID;
 const META_WA_BASE_URL = process.env.META_WA_BASE_URL || "https://graph.facebook.com/v21.0";
-const IMAGE_URL = process.env.WHATSAPP_IMAGE_URL || "https://i.imgur.com/yourimage.jpg";
 
 function esperar(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -15,20 +14,20 @@ function esperar(ms) {
 
 /**
  * Mapeo completo de direcciones por especialidad
- * Basado ÚNICAMENTE en el campo SERVICIO de la base de datos
+ * Basado en el campo SERVICIO de la base de datos
  */
 function obtenerDireccionPorEspecialidad(servicio) {
-  const servicioLower = servicio.toLowerCase().trim();
+  const servicioUpper = servicio.toUpperCase().trim();
 
   // ============================================
-  // CALLE 16 NO. 9-76 (Procedimientos de Cardiología)
+  // CALLE 16 NO 9-76 (Procedimientos de Cardiología)
   // ============================================
   const serviciosCalle16 = [
-    "cardiologia procedimientos",
-    "cardiologia pediatrica procedimientos"
+    "CARDIOLOGIA PROCEDIMIENTOS",
+    "CARDIOLOGIA PEDIATRICA PROCEDIMIENTOS"
   ];
 
-  if (serviciosCalle16.some(esp => servicioLower.includes(esp))) {
+  if (serviciosCalle16.some(esp => servicioUpper.includes(esp))) {
     return {
       direccion1: "Calle 16 No. 9-76",
       direccion2: "Procedimientos de Cardiología",
@@ -37,45 +36,79 @@ function obtenerDireccionPorEspecialidad(servicio) {
   }
 
   // ============================================
-  // EDIFICIO PSI (Endodoncia)
+  // EDIFICIO PSI LOCAL 2 CRA 14A NO 29-27 (Endodoncia)
   // ============================================
   const serviciosEdificioPSI = [
-    "endodoncia procedimientos",
-    "endodoncia"
+    "ENDODONCIA PROCEDIMIENTOS",
+    "ENDODONCIA"
   ];
 
-  if (serviciosEdificioPSI.some(esp => servicioLower.includes(esp))) {
+  if (serviciosEdificioPSI.some(esp => servicioUpper.includes(esp))) {
     return {
-      direccion1: "Cra 14A # 29A-27 Edificio PSI Local 2 Exterior, Barrio Porvenir",
+      direccion1: "Cra 14A # 29A-27 Edificio PSI Local 2",
       direccion2: "Consulta Especializada de Endodoncia",
-      extra: "⚠️ IMPORTANTE: Diríjase primero al CES (Avenida Santander 24A-48) antes de ir a esta dirección."
+    extra: "⚠️ IMPORTANTE: Diríjase primero al CES (Avenida Santander 24A-48) antes de ir a esta dirección."
+
     };
   }
 
   // ============================================
-  // CALLE 9 NO. 9-41 (Periodoncia)
+  // CALLE 9 NO 9-41 (Periodoncia)
   // ============================================
-  if (servicioLower.includes("periodoncia")) {
+  if (servicioUpper.includes("PERIODONCIA")) {
     return {
       direccion1: "Calle 9 No. 9-41",
       direccion2: "Consulta Especializada de Periodoncia",
-      extra: "⚠️ IMPORTANTE: Diríjase primero al CES (Avenida Santander 24A-48) antes de ir a esta dirección."
+    extra: "⚠️ IMPORTANTE: Diríjase primero al CES (Avenida Santander 24A-48) antes de ir a esta dirección."
+
     };
   }
 
   // ============================================
-  // AVENIDA SANTANDER 24A-48 (CES - Consulta Externa)
+  // CES - Avenida Santander 24A-48 (Consulta Externa)
   // ============================================
   const serviciosCES = [
-    "adultez",
-    "riesgo cardiovascular",
-    "agudeza visual",
-    "joven",
-    "odontologia general",
-    "higiene oral"
+    "ADULTEZ",
+    "RIESGO CARDIOVASCULAR",
+    "AGUDEZA VISUAL",
+    "CIRUGIA GENERAL",
+    "CIRUGIA PEDIATRICA",
+    "CIRUGIA MAXILOFACIAL",
+    "CITOLOGIA",
+    "CONTROL PRENATAL",
+    "DERMATOLOGIA PROCEDIMIENTOS",
+    "DERMATOLOGIA",
+    "EDUCACION INDIVIDUAL",
+    "EXAMEN DE SENO",
+    "GINECOLOGIA",
+    "MEDICINA FAMILIAR",
+    "MEDICINA GENERAL",
+    "MEDICINA INTERNA",
+    "NEUROLOGIA",
+    "NEUROCIRUGIA",
+    "NUTRICION",
+    "OBSTETRICIA",
+    "ODONTOLOGIA",
+    "OPTOMETRIA",
+    "OFTALMOLOGIA",
+    "NEUROLOGIA PROCEDIMIENTOS",
+    "PEDIATRIA",
+    "PLANIFICACION FAMILIAR",
+    "POS PARTO",
+    "ORTOPEDIA Y/O TRAUMATOLOGIA",
+    "PRIMERA INFANCIA",
+    "PSICOLOGIA",
+    "PSIQUIATRIA",
+    "SALUD ORAL",
+    "VEJEZ",
+    "UROLOGIA",
+    "TERAPIA FISICA Y RESPIRATORIA",
+    "JOVEN",
+    "HIGIENE ORAL",
+    "ORTOPEDIA"
   ];
 
-  if (serviciosCES.some(esp => servicioLower.includes(esp))) {
+  if (serviciosCES.some(esp => servicioUpper.includes(esp))) {
     return {
       direccion1: "Avenida Santander 24A-48",
       direccion2: "Consulta Externa CES Hospital Regional de San Gil",
@@ -84,19 +117,54 @@ function obtenerDireccionPorEspecialidad(servicio) {
   }
 
   // ============================================
-  // CARRERA 5 # 9-102 (Hospital Regional - Sede Principal)
+  // HOSPITAL - Carrera 5 # 9-102 (Sede Principal)
   // ============================================
-  console.log(`⚠️ Servicio no mapeado: "${servicio}". Enviando al Hospital por defecto.`);
+  const serviciosHospital = [
+    "ANESTESIOLOGIA",
+    "CARDIOLOGIA",
+    "ECOGRAFIAS",
+    "COLONOSCOPIA",
+    "CARDIOLOGIA PEDIATRICA",
+    "NEUMOLOGIA PROCEDIMIENTOS",
+    "FONOAUDIOLOGIA PROCEDIMIENTOS",
+    "GASTROENTEROLOGIA",
+    "ENDOSCOPIAS",
+    "NEUMOLOGIA",
+    "TRAUMATOLOGIA",
+    "TRABAJO SOCIAL",
+        "OTORRINOLARINGOLOGIA",
+    "QX OTORRINO",
+    "QX GINECOLOGIA",
+    "QX ORTOPEDIA",
+    "QX UROLOGIA",
+    "QX GENERAL",
+    "QX PEDIATRICA",
+    "QX NEUROCIRUGIA",
+    "QX OFTALMOLOGIA",
+    "QX DERMATOLOGICA"
+  ];
+
+  if (serviciosHospital.some(esp => servicioUpper.includes(esp))) {
+    return {
+      direccion1: "Carrera 5 # 9-102",
+      direccion2: "Hospital Regional de San Gil - Sede Principal",
+      extra: ""
+    };
+  }
+
+  // ============================================
+  // DEFAULT - Servicio no mapeado
+  // ============================================
+  console.log('⚠️  Servicio no mapeado: "' + servicio + '"');
   return {
-    direccion1: "Valida tu direccion de cita",
-    direccion2: "llamanos al 607 724 9701",
+    direccion1: "Consulta tu lugar de cita",
+    direccion2: "llamanos al 6077249701",
     extra: ""
   };
 }
 
 /**
  * Función para enviar plantilla de WhatsApp vía Meta API
- * CON MANEJO DINÁMICO DEL PARÁMETRO "extra"
  */
 async function enviarPlantillaMeta(numero, reminder) {
   try {
@@ -111,14 +179,8 @@ async function enviarPlantillaMeta(numero, reminder) {
       extra: reminder.extra || ""
     };
 
-    // 🔍 LOGGING DETALLADO
-    console.log('\n🔍 DEBUG - Datos que se enviarán:');
-    console.log('   Número:', numero);
-    console.log('   Campos:', JSON.stringify(campos, null, 2));
-
     // 🔥 SIEMPRE ENVIAR TODOS LOS 8 PARÁMETROS
     // Meta requiere que se envíen TODOS los parámetros definidos en la plantilla
-    // Si un parámetro está vacío, enviamos un espacio " "
     const bodyParameters = [
       { type: "text", text: campos.nombre_paciente },
       { type: "text", text: campos.fecha },
@@ -127,11 +189,8 @@ async function enviarPlantillaMeta(numero, reminder) {
       { type: "text", text: campos.profesional },
       { type: "text", text: campos.direccion1 },
       { type: "text", text: campos.direccion2 },
-      { type: "text", text: campos.extra || " " }, // Siempre incluir, aunque sea vacío
+      { type: "text", text: campos.extra || " " }, // Siempre incluir
     ];
-
-    console.log('   Total parámetros body:', bodyParameters.length);
-    console.log('   Campo "extra":', campos.extra ? `"${campos.extra}"` : '(espacio en blanco)');
 
     const payload = {
       messaging_product: "whatsapp",
@@ -147,53 +206,48 @@ async function enviarPlantillaMeta(numero, reminder) {
               { 
                 type: "image", 
                 image: { 
-                  link: "https://drive.google.com/uc?export=view&id=1E6_3ZDuBUIy99OvahrhbxpPN21XPY3R2",  
+                  link: "https://drive.google.com/uc?export=view&id=1wHMGC9zodGNy6C49k2fIj8zDcHQlu5LT",  
                 } 
               }
             ],
           },
           {
             type: "body",
-            parameters: bodyParameters, // Usar array dinámico
+            parameters: bodyParameters,
           },
         ],
       },
     };
 
-    
     const response = await axios.post(
-      `${META_WA_BASE_URL}/${META_PHONE_NUMBER_ID}/messages`,
+      META_WA_BASE_URL + '/' + META_PHONE_NUMBER_ID + '/messages',
       payload,
       {
         headers: {
-          Authorization: `Bearer ${META_TOKEN}`,
+          Authorization: 'Bearer ' + META_TOKEN,
           "Content-Type": "application/json",
         },
         timeout: 30000,
       }
     );
 
-    console.log('   ✅ Respuesta exitosa de Meta:', response.data);
     return { success: true, response: response.data };
 
   } catch (error) {
-    // 🔍 LOGGING DEL ERROR COMPLETO
-    console.error('\n❌ ERROR DETALLADO META API:');
-    console.error('   Status:', error.response?.status);
-    console.error('   Error Data:', JSON.stringify(error.response?.data, null, 2));
-    console.error('   Headers:', error.response?.headers);
-    console.error('   URL:', error.config?.url);
+    console.error('❌ ERROR META API:');
+    console.error('   Status:', error.response ? error.response.status : 'N/A');
+    console.error('   Error:', JSON.stringify(error.response ? error.response.data : {}, null, 2));
     
-    const errorMsg = error.response?.data?.error?.message || error.message;
-    const errorCode = error.response?.data?.error?.code;
-    const errorDetails = error.response?.data?.error?.error_data;
+    const errorMsg = (error.response && error.response.data && error.response.data.error && error.response.data.error.message) || error.message;
+    const errorCode = error.response && error.response.data && error.response.data.error ? error.response.data.error.code : null;
+    const errorDetails = error.response && error.response.data && error.response.data.error ? error.response.data.error.error_data : null;
     
     return { 
       success: false, 
       error: errorMsg,
-      errorCode,
-      errorDetails,
-      fullError: error.response?.data
+      errorCode: errorCode,
+      errorDetails: errorDetails,
+      fullError: error.response ? error.response.data : null
     };
   }
 }
@@ -212,7 +266,6 @@ const sendWhatsAppReminder = async (req, res) => {
       return res.status(200).json({ message: "No hay citas para mañana." });
     }
 
-    // Emitir inicio del proceso
     io.emit("whatsapp:inicio", {
       total: reminders.length,
       timestamp: new Date().toISOString()
@@ -220,39 +273,32 @@ const sendWhatsAppReminder = async (req, res) => {
 
     const resultados = { exitosos: 0, fallidos: 0, errores: [] };
 
-    // Responder inmediatamente al cliente
     res.status(200).json({
       message: "Proceso de envío iniciado",
       total: reminders.length,
       sessionId: Date.now()
     });
 
-    // Continuar el proceso en background
+    // Continuar en background
     (async () => {
       for (let i = 0; i < reminders.length; i++) {
         const reminder = reminders[i];
         
-        // Obtener dirección según el servicio
         const dir = obtenerDireccionPorEspecialidad(reminder.servicio);
         reminder.direccion1 = dir.direccion1;
         reminder.direccion2 = dir.direccion2;
         reminder.extra = dir.extra;
 
-        // Log para debugging
-        console.log(`\n[${i + 1}/${reminders.length}] ${reminder.nombre_paciente}`);
-        console.log(`   Servicio: ${reminder.servicio}`);
-        console.log(`   Dirección: ${dir.direccion1}`);
-        console.log(`   Sede: ${dir.direccion2}`);
-        if (dir.extra) {
-          console.log(`   Extra: ${dir.extra}`);
-        }
+        console.log('\n[' + (i + 1) + '/' + reminders.length + '] ' + reminder.nombre_paciente);
+        console.log('   Servicio: ' + reminder.servicio);
+        console.log('   Dirección: ' + dir.direccion1);
+        console.log('   Sede: ' + dir.direccion2);
 
         let numero = reminder.telefono;
         if (!numero.startsWith("+57")) {
           numero = "+57" + numero.replace(/^0+/, "");
         }
 
-        // Emitir estado "procesando"
         io.emit("whatsapp:procesando", {
           current: i + 1,
           total: reminders.length,
@@ -268,9 +314,8 @@ const sendWhatsAppReminder = async (req, res) => {
           resultados.exitosos++;
           await WhatsAppReminder.updateReminderStatus(reminder.id, "recordatorio enviado");
           
-          console.log(`   ✅ ENVIADO`);
+          console.log('   ✅ ENVIADO');
           
-          // Emitir éxito
           io.emit("whatsapp:exito", {
             current: i + 1,
             total: reminders.length,
@@ -282,19 +327,15 @@ const sendWhatsAppReminder = async (req, res) => {
         } else {
           resultados.fallidos++;
           resultados.errores.push({ 
-            numero, 
+            numero: numero, 
             paciente: reminder.nombre_paciente, 
             error: resultado.error,
             errorCode: resultado.errorCode,
             fullError: resultado.fullError
           });
           
-          console.log(`   ❌ ERROR: ${resultado.error}`);
-          if (resultado.errorCode) {
-            console.log(`   📋 Código: ${resultado.errorCode}`);
-          }
+          console.log('   ❌ ERROR: ' + resultado.error);
           
-          // Emitir error
           io.emit("whatsapp:error", {
             current: i + 1,
             total: reminders.length,
@@ -307,7 +348,6 @@ const sendWhatsAppReminder = async (req, res) => {
           });
         }
 
-        // Pausas entre envíos
         if (i < reminders.length - 1) {
           io.emit("whatsapp:pausa", {
             segundos: 2,
@@ -315,7 +355,6 @@ const sendWhatsAppReminder = async (req, res) => {
           });
           await esperar(2000);
           
-          // Pausa extendida cada 10 envíos
           if ((i + 1) % 10 === 0) {
             io.emit("whatsapp:pausa", {
               segundos: 6,
@@ -326,7 +365,6 @@ const sendWhatsAppReminder = async (req, res) => {
         }
       }
 
-      // Emitir completado
       const reporte = {
         fecha: new Date().toISOString(),
         total: reminders.length,
@@ -338,15 +376,15 @@ const sendWhatsAppReminder = async (req, res) => {
 
       io.emit("whatsapp:completado", reporte);
 
-      const nombreReporte = `reporte_whatsapp_${new Date().toISOString().split("T")[0]}.json`;
+      const nombreReporte = 'reporte_whatsapp_' + new Date().toISOString().split("T")[0] + '.json';
       fs.writeFileSync(nombreReporte, JSON.stringify(reporte, null, 2));
       
-      console.log(`\n📊 RESUMEN:`);
-      console.log(`   Total: ${reporte.total}`);
-      console.log(`   Exitosos: ${reporte.exitosos}`);
-      console.log(`   Fallidos: ${reporte.fallidos}`);
-      console.log(`   Tasa de éxito: ${reporte.tasa_exito}`);
-      console.log(`\n💾 Reporte guardado: ${nombreReporte}`);
+      console.log('\n📊 RESUMEN:');
+      console.log('   Total: ' + reporte.total);
+      console.log('   Exitosos: ' + reporte.exitosos);
+      console.log('   Fallidos: ' + reporte.fallidos);
+      console.log('   Tasa de éxito: ' + reporte.tasa_exito);
+      console.log('\n💾 Reporte guardado: ' + nombreReporte);
     })();
 
   } catch (error) {
@@ -365,9 +403,6 @@ const sendWhatsAppReminder = async (req, res) => {
   }
 };
 
-/**
- * Clasificar respuesta de usuario
- */
 function clasificarRespuesta(mensaje) {
   const m = mensaje.toLowerCase();
   if (m.includes("sí") || m.includes("si") || m.includes("confirmo")) return "confirmada";
@@ -376,16 +411,11 @@ function clasificarRespuesta(mensaje) {
   return "pendiente_clasificacion";
 }
 
-/**
- * Procesar respuestas de WhatsApp
- */
 const processWhatsAppReply = async (req, res) => {
   try {
-    const [rows] = await db.query(`
-      SELECT id, numero, mensaje, fecha, tipo,
-             DATE_FORMAT(fecha, '%Y-%m-%d %H:%i:%s') AS fecha_formateada
-      FROM mensajes ORDER BY fecha DESC
-    `);
+    const [rows] = await db.query(
+      "SELECT id, numero, mensaje, fecha, tipo, DATE_FORMAT(fecha, '%Y-%m-%d %H:%i:%s') AS fecha_formateada FROM mensajes ORDER BY fecha DESC"
+    );
 
     if (rows.length === 0) {
       return res.status(404).json({ message: "No hay mensajes en la base de datos." });

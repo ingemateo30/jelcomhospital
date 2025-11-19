@@ -47,7 +47,7 @@ const registrarErrorLlamada = async (citaId, error) => {
            fecha_llamada = NOW(),
            intentos_llamada = intentos_llamada + 1
        WHERE ID = ?`,
-      ['Error: ' + error.substring(0, 255), citaId]
+      [citaId]
     );
   } catch (dbError) {
     console.error('Error al registrar fallo en BD:', dbError);
