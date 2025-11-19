@@ -516,9 +516,374 @@ const getCitasCanceladas = async (req, res) => {
   }
 };
 
+/**
+ * Webhook para verificación de Meta (requerido por Facebook)
+ */
+const verifyWebhook = (req, res) => {
+  try {
+    const mode = req.query['hub.mode'];
+    const token = req.query['hub.verify_token'];
+    const challenge = req.query['hub.challenge'];
+
+    const VERIFY_TOKEN = process.env.META_VERIFY_TOKEN || 'mi_token_secreto_12345';
+
+    if (mode && token) {
+      if (mode === 'subscribe' && token === VERIFY_TOKEN) {
+        console.log('✅ Webhook verificado correctamente');
+        res.status(200).send(challenge);
+      } else {
+        console.log('❌ Token de verificación incorrecto');
+        res.sendStatus(403);
+      }
+    } else {
+      res.sendStatus(400);
+    }
+  } catch (error) {
+    console.error('❌ Error en verificación de webhook:', error);
+    res.sendStatus(500);
+  }
+};
+
+/**
+ * Webhook para recibir mensajes y respuestas de botones de Meta API
+ */
+const handleMetaWebhook = async (req, res) => {
+  try {
+    console.log('📨 Webhook Meta recibido:', JSON.stringify(req.body, null, 2));
+
+    // Responder inmediatamente a Meta (requerido)
+    res.status(200).send('EVENT_RECEIVED');
+
+    const { entry } = req.body;
+
+    if (!entry || entry.length === 0) {
+      console.log('⚠️ No hay entradas en el webhook');
+      return;
+    }
+
+    // Procesar cada entrada
+    for (const item of entry) {
+      const changes = item.changes || [];
+
+      for (const change of changes) {
+        if (change.field !== 'messages') continue;
+
+        const value = change.value;
+        const messages = value.messages || [];
+
+        for (const message of messages) {
+          await processMetaMessage(message, value);
+        }
+      }
+    }
+
+  } catch (error) {
+    console.error('❌ Error procesando webhook de Meta:', error);
+  }
+};
+
+/**
+ * Procesar mensaje individual de Meta API
+ */
+async function processMetaMessage(message, value) {
+  try {
+    const { from, id, timestamp, type } = message;
+
+    // Limpiar número de teléfono (quitar prefijo de país)
+    const phone = from.replace('57', '');
+
+    console.log(`\n📱 Procesando mensaje de ${phone}`);
+    console.log(`   Tipo: ${type}`);
+    console.log(`   ID: ${id}`);
+
+    let messageBody = '';
+    let isButtonResponse = false;
+
+    // Detectar tipo de mensaje
+    if (type === 'interactive' && message.interactive) {
+      // Es una respuesta de botón interactivo
+      isButtonResponse = true;
+      const interactiveType = message.interactive.type;
+
+      if (interactiveType === 'button_reply') {
+        messageBody = message.interactive.button_reply.id; // CONFIRMAR_CITA o CANCELAR_CITA
+        console.log(`   🔘 Botón presionado: ${messageBody}`);
+      }
+    } else if (type === 'button' && message.button) {
+      // Respuesta de botón legacy
+      isButtonResponse = true;
+      messageBody = message.button.payload;
+      console.log(`   🔘 Botón legacy presionado: ${messageBody}`);
+    } else if (type === 'text' && message.text) {
+      // Mensaje de texto normal
+      messageBody = message.text.body;
+      console.log(`   💬 Texto recibido: ${messageBody}`);
+    } else {
+      console.log(`   ⚠️ Tipo de mensaje no soportado: ${type}`);
+      return;
+    }
+
+    // Guardar mensaje en BD
+    await saveMessageToDb({
+      id,
+      phone,
+      body: messageBody,
+      fromMe: false,
+      timestamp: new Date(parseInt(timestamp) * 1000).toISOString(),
+      status: 'pendiente'
+    });
+
+    // Buscar cita asociada al número
+    const reminder = await getCitaByPhone(phone);
+
+    if (!reminder) {
+      console.log(`   ❌ No se encontró cita activa para ${phone}`);
+      return;
+    }
+
+    // Verificar si la cita ya fue procesada
+    const estadoActual = await getEstadoByPhone(phone);
+    if (estadoActual && ["confirmada", "cancelada", "reagendamiento solicitado"].includes(estadoActual.estado)) {
+      console.log(`   🔒 Cita ya procesada: ${estadoActual.estado}`);
+
+      const replyMessage = `🔒 Tu cita ya está ${estadoActual.estado}. No se permite modificar el estado. Si necesitas ayuda, contáctanos al 6077249701`;
+      await sendWhatsAppMessage(from, replyMessage);
+      return;
+    }
+
+    // Procesar respuesta según el contenido
+    await processUserResponse(from, phone, messageBody, reminder, isButtonResponse);
+
+  } catch (error) {
+    console.error('❌ Error procesando mensaje de Meta:', error);
+  }
+}
+
+/**
+ * Procesar respuesta del usuario
+ */
+async function processUserResponse(whatsappId, phone, response, reminder, isButtonResponse) {
+  try {
+    const responseLower = response.toLowerCase();
+
+    const fechaCita = new Date(reminder.FECHA_CITA);
+    const fechaFormateada = fechaCita.toLocaleDateString("es-CO", {
+      year: "numeric",
+      month: "long",
+      day: "numeric"
+    });
+
+    let replyMessage = '';
+    let newStatus = '';
+
+    // Determinar acción según la respuesta
+    if (responseLower === 'confirmar_cita' || responseLower === 'sí' || responseLower === 'si' || responseLower === 'confirmo') {
+      replyMessage = `✅ Gracias por confirmar tu cita médica para el ${fechaFormateada} a las ${reminder.HORA_CITA}. Te esperamos puntualmente.\n\nSi necesitas cambiar el estado, contáctanos al 6077249701`;
+      newStatus = "confirmada";
+      console.log(`   ✅ Cita confirmada`);
+
+    } else if (responseLower === 'cancelar_cita' || responseLower === 'no' || responseLower === 'cancelar') {
+      console.log(`   🔄 Iniciando cancelación para ${phone}`);
+
+      try {
+        const salud360CitasService = require("../services/salud360CitasService");
+
+        const datosPaciente = {
+          tipoId: reminder.TIPO_IDE_PACIENTE || 'CC',
+          numeroId: reminder.NUMERO_IDE,
+          fecha: new Date(reminder.FECHA_CITA).toISOString().split('T')[0],
+          hora: reminder.HORA_CITA
+        };
+
+        console.log(`   📋 Datos para cancelación:`, datosPaciente);
+
+        const resultadoCancelacion = await salud360CitasService.buscarYCancelarCita(
+          datosPaciente,
+          'Cancelado por paciente vía WhatsApp'
+        );
+
+        if (resultadoCancelacion.success) {
+          console.log(`   ✅ Cita cancelada en Salud360: CitNum ${resultadoCancelacion.citNum}`);
+          replyMessage = `❌ Tu cita médica para el ${fechaFormateada} a las ${reminder.HORA_CITA} ha sido cancelada exitosamente.\n\nSi deseas reagendarla, comunícate al 6077249701.`;
+          newStatus = "cancelada";
+
+          await updateCitaStatusInDb(reminder.NUMERO_IDE, reminder.FECHA_CITA, reminder.HORA_CITA, 'cancelada');
+        } else {
+          console.error(`   ❌ Error cancelando en Salud360:`, resultadoCancelacion.error);
+          replyMessage = `⚠️ Hemos registrado tu solicitud de cancelación para el ${fechaFormateada} a las ${reminder.HORA_CITA}.\n\nConfirma la cancelación llamando al 6077249701.`;
+          newStatus = "cancelada";
+        }
+      } catch (error) {
+        console.error(`   ❌ Error en cancelación:`, error.message);
+        replyMessage = `⚠️ Hemos registrado tu solicitud de cancelación.\n\nPor favor confirma llamando al 6077249701.`;
+        newStatus = "cancelada";
+      }
+
+    } else if (responseLower.includes('reagendar') || responseLower.includes('reprogramar') || responseLower.includes('cambiar')) {
+      replyMessage = `🔄 Hemos recibido tu solicitud para reagendar la cita del ${fechaFormateada} a las ${reminder.HORA_CITA}.\n\nLlámanos al 6077249701 para coordinar una nueva fecha.`;
+      newStatus = "reagendamiento solicitado";
+      console.log(`   🔄 Reagendamiento solicitado`);
+
+    } else {
+      replyMessage = `❓ No pudimos procesar tu respuesta. Por favor responde:\n\n✅ "Sí" o "Confirmo" - Confirmar cita\n❌ "No" o "Cancelar" - Cancelar cita\n🔄 "Reagendar" - Cambiar fecha\n\nO llámanos al 6077249701`;
+      console.log(`   ❓ Respuesta no reconocida`);
+    }
+
+    // Enviar respuesta al usuario
+    if (replyMessage) {
+      await sendWhatsAppMessage(whatsappId, replyMessage);
+    }
+
+    // Actualizar estado en BD
+    if (newStatus) {
+      await updateReminderStatusInDb(phone, newStatus);
+      console.log(`   💾 Estado actualizado: ${newStatus}`);
+    }
+
+  } catch (error) {
+    console.error('❌ Error procesando respuesta de usuario:', error);
+  }
+}
+
+/**
+ * Enviar mensaje de WhatsApp vía Meta API
+ */
+async function sendWhatsAppMessage(to, text) {
+  try {
+    const payload = {
+      messaging_product: "whatsapp",
+      to: to,
+      type: "text",
+      text: {
+        body: text
+      }
+    };
+
+    const response = await axios.post(
+      `${META_WA_BASE_URL}/${META_PHONE_NUMBER_ID}/messages`,
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${META_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+        timeout: 30000,
+      }
+    );
+
+    console.log(`   ✅ Mensaje enviado a ${to}`);
+    return { success: true, response: response.data };
+
+  } catch (error) {
+    console.error(`   ❌ Error enviando mensaje:`, error.response ? error.response.data : error.message);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Guardar mensaje en base de datos
+ */
+async function saveMessageToDb({ id, phone, body, fromMe, timestamp, status }) {
+  try {
+    const fecha = new Date(timestamp).toISOString().slice(0, 19).replace("T", " ");
+
+    // Verificar duplicados (última semana)
+    const [existingMessages] = await db.execute(
+      `SELECT id FROM mensajes
+       WHERE numero = ?
+       AND fecha >= DATE_SUB(?, INTERVAL 1 WEEK)
+       LIMIT 1`,
+      [phone, fecha]
+    );
+
+    if (existingMessages.length > 0) {
+      console.log(`   🛑 Mensaje duplicado detectado, no se inserta`);
+      return;
+    }
+
+    await db.execute(
+      `INSERT INTO mensajes (id, numero, mensaje, fecha, tipo, estado)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [id, phone, body, fecha, fromMe ? 'saliente' : 'entrante', status]
+    );
+
+    console.log(`   📝 Mensaje guardado en BD`);
+  } catch (error) {
+    console.error('   ❌ Error guardando mensaje:', error);
+  }
+}
+
+/**
+ * Obtener cita por teléfono
+ */
+async function getCitaByPhone(phone) {
+  try {
+    const [rows] = await db.execute(
+      `SELECT * FROM citas WHERE TELEFONO_FIJO = ? ORDER BY FECHA_CITA DESC LIMIT 1`,
+      [phone]
+    );
+    return rows.length > 0 ? rows[0] : null;
+  } catch (error) {
+    console.error('Error obteniendo cita:', error);
+    return null;
+  }
+}
+
+/**
+ * Obtener estado actual de mensaje por teléfono
+ */
+async function getEstadoByPhone(phone) {
+  try {
+    const [rows] = await db.execute(
+      `SELECT SQL_NO_CACHE * FROM mensajes WHERE numero = ? ORDER BY fecha DESC LIMIT 1`,
+      [phone]
+    );
+    return rows.length > 0 ? rows[0] : null;
+  } catch (error) {
+    console.error('Error obteniendo estado:', error);
+    return null;
+  }
+}
+
+/**
+ * Actualizar estado de reminder en BD
+ */
+async function updateReminderStatusInDb(phone, newStatus) {
+  try {
+    const [result] = await db.execute(
+      `UPDATE mensajes SET estado = ? WHERE numero = ? ORDER BY fecha DESC LIMIT 1`,
+      [newStatus, phone]
+    );
+    console.log(`   💾 Filas actualizadas: ${result.affectedRows}`);
+  } catch (error) {
+    console.error('Error actualizando estado:', error);
+  }
+}
+
+/**
+ * Actualizar estado de cita en BD
+ */
+async function updateCitaStatusInDb(numeroIde, fechaCita, horaCita, newStatus) {
+  try {
+    const [result] = await db.execute(
+      `UPDATE citas
+       SET ESTADO = ?
+       WHERE NUMERO_IDE = ?
+       AND FECHA_CITA = ?
+       AND HORA_CITA = ?`,
+      [newStatus, numeroIde, fechaCita, horaCita]
+    );
+    console.log(`   ✅ Estado de cita actualizado: ${result.affectedRows} filas`);
+  } catch (error) {
+    console.error('Error actualizando estado de cita:', error);
+  }
+}
+
 module.exports = {
   sendWhatsAppReminder,
   processWhatsAppReply,
   getResponses,
   getCitasCanceladas,
+  verifyWebhook,
+  handleMetaWebhook,
 };
