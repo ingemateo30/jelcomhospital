@@ -1,6 +1,7 @@
 const db = require("../config/db");
 require('dotenv').config();
 const axios = require("axios");
+const salud360CitasService = require("../services/salud360CitasService");
 
 exports.handleWhatsAppResponse = async (req, res) => {
     try {
@@ -68,9 +69,44 @@ exports.handleWhatsAppResponse = async (req, res) => {
         if (response === 'sí' || response === 'si') {
             replyMessage = `Gracias por confirmar tu cita médica para el ${fechaFormateada} a las ${reminder.HORA_CITA}. Te esperamos puntualmente,si quieres cambiar es estado contactanos al #`;
             newStatus = "confirmada";
-        } else if (response === 'no') {
-            replyMessage = `Hemos registrado la cancelación de tu cita médica para el ${fechaFormateada} a las ${reminder.HORA_CITA}. Si deseas reagendarla, por favor comunícate con nosotros al #.`;
-            newStatus = "cancelada";
+        } else if (response === 'no' || response === 'cancelar') {
+            // Cancelar la cita en Salud360
+            console.log(`🔄 Iniciando cancelación en Salud360 para ${phone}`);
+
+            try {
+                // Obtener datos del paciente y la cita
+                const datosPaciente = {
+                    tipoId: reminder.TIPO_IDE_PACIENTE || 'CC',
+                    numeroId: reminder.NUMERO_IDE,
+                    fecha: new Date(reminder.FECHA_CITA).toISOString().split('T')[0], // YYYY-MM-DD
+                    hora: reminder.HORA_CITA // HH:MM:SS
+                };
+
+                console.log(`📋 Datos para cancelación:`, datosPaciente);
+
+                // Llamar al servicio de Salud360 para cancelar
+                const resultadoCancelacion = await salud360CitasService.buscarYCancelarCita(
+                    datosPaciente,
+                    'Cancelado por paciente vía WhatsApp'
+                );
+
+                if (resultadoCancelacion.success) {
+                    console.log(`✅ Cita cancelada en Salud360: CitNum ${resultadoCancelacion.citNum}`);
+                    replyMessage = `✅ Tu cita médica para el ${fechaFormateada} a las ${reminder.HORA_CITA} ha sido cancelada exitosamente en el sistema.\n\nSi deseas reagendarla, por favor comunícate con nosotros al #.`;
+                    newStatus = "cancelada";
+
+                    // Actualizar también el estado en la tabla citas
+                    await updateCitaStatus(reminder.NUMERO_IDE, reminder.FECHA_CITA, reminder.HORA_CITA, 'cancelada');
+                } else {
+                    console.error(`❌ Error cancelando en Salud360:`, resultadoCancelacion.error);
+                    replyMessage = `⚠️ Hemos registrado tu solicitud de cancelación para el ${fechaFormateada} a las ${reminder.HORA_CITA}.\n\nPor favor, confirma la cancelación comunicándote al # para completar el proceso en el sistema.`;
+                    newStatus = "cancelada"; // Se marca como cancelada localmente aunque falle en Salud360
+                }
+            } catch (error) {
+                console.error(`❌ Error en proceso de cancelación:`, error.message);
+                replyMessage = `⚠️ Hemos registrado tu solicitud de cancelación para el ${fechaFormateada} a las ${reminder.HORA_CITA}.\n\nPor favor, confirma la cancelación comunicándote al # para completar el proceso.`;
+                newStatus = "cancelada";
+            }
         } else if (response === 'reagendar') {
             replyMessage = `Hemos recibido tu solicitud para reagendar la cita del ${fechaFormateada} a las ${reminder.HORA_CITA}. En breve un asesor se comunicará contigo para coordinar una nueva fecha.`;
             newStatus = "reagendamiento solicitado";
@@ -170,6 +206,24 @@ async function updateReminderStatus(phone, newStatus) {
         console.log(`✅ Estado actualizado para el número ${phone}: ${newStatus}`);
     } catch (error) {
         console.error("Error actualizando estado del mensaje:", error);
+        throw error;
+    }
+}
+
+async function updateCitaStatus(numeroIde, fechaCita, horaCita, newStatus) {
+    try {
+        const [result] = await db.execute(
+            `UPDATE citas
+             SET ESTADO = ?
+             WHERE NUMERO_IDE = ?
+             AND FECHA_CITA = ?
+             AND HORA_CITA = ?`,
+            [newStatus, numeroIde, fechaCita, horaCita]
+        );
+        console.log(`✅ Estado de cita actualizado en BD: ${numeroIde} - ${fechaCita} ${horaCita} -> ${newStatus}`);
+        console.log("Filas afectadas:", result.affectedRows);
+    } catch (error) {
+        console.error("Error actualizando estado de la cita:", error);
         throw error;
     }
 }
