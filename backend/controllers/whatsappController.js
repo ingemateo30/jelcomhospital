@@ -294,7 +294,7 @@ const sendWhatsAppReminder = async (req, res) => {
     (async () => {
       for (let i = 0; i < reminders.length; i++) {
         const reminder = reminders[i];
-        
+
         const dir = obtenerDireccionPorEspecialidad(reminder.servicio);
         reminder.direccion1 = dir.direccion1;
         reminder.direccion2 = dir.direccion2;
@@ -309,6 +309,11 @@ const sendWhatsAppReminder = async (req, res) => {
         if (!numero.startsWith("+57")) {
           numero = "+57" + numero.replace(/^0+/, "");
         }
+
+        // Limpiar historial de mensajes antiguos para permitir nueva interacción
+        const phone = numero.replace("+57", "");
+        await limpiarHistorialMensajes(phone);
+        console.log('   🧹 Historial de mensajes limpiado para ' + phone);
 
         io.emit("whatsapp:procesando", {
           current: i + 1,
@@ -572,6 +577,21 @@ const handleMetaWebhook = async (req, res) => {
 };
 
 /**
+ * Detectar si un mensaje es casual (saludos, conversación general)
+ */
+function esMensajeCasual(mensaje) {
+  const mensajeLower = mensaje.toLowerCase().trim();
+  const palabrasCasuales = [
+    'hola', 'hello', 'hi', 'hey', 'buenas', 'buenos dias', 'buenas tardes', 'buenas noches',
+    'como estas', 'cómo estás', 'como esta', 'cómo está', 'que tal', 'qué tal',
+    'gracias', 'muchas gracias', 'ok', 'vale', 'bien', 'perfecto', 'excelente',
+    'saludos', 'hola?', 'alo', 'aló', 'bueno', 'si?', 'sí?', '?', 'que?', 'qué?'
+  ];
+
+  return palabrasCasuales.some(palabra => mensajeLower === palabra || mensajeLower.startsWith(palabra));
+}
+
+/**
  * Procesar mensaje individual de Meta API
  */
 async function processMetaMessage(message, value) {
@@ -607,6 +627,12 @@ async function processMetaMessage(message, value) {
       // Mensaje de texto normal
       messageBody = message.text.body;
       console.log(`   💬 Texto recibido: ${messageBody}`);
+
+      // Si es un mensaje casual, ignorar completamente
+      if (esMensajeCasual(messageBody)) {
+        console.log(`   💭 Mensaje casual detectado, se ignora sin responder`);
+        return;
+      }
     } else {
       console.log(`   ⚠️ Tipo de mensaje no soportado: ${type}`);
       return;
@@ -635,8 +661,11 @@ async function processMetaMessage(message, value) {
     if (estadoActual && ["confirmada", "cancelada", "reagendamiento solicitado"].includes(estadoActual.estado)) {
       console.log(`   🔒 Cita ya procesada: ${estadoActual.estado}`);
 
-      const replyMessage = `🔒 Tu cita ya está ${estadoActual.estado}. No se permite modificar el estado. Si necesitas ayuda, contáctanos al 6077249701`;
-      await sendWhatsAppMessage(from, replyMessage);
+      // Solo responder si es un botón (no responder a mensajes de texto)
+      if (isButtonResponse) {
+        const replyMessage = `🔒 Tu cita ya está ${estadoActual.estado}. No se permite modificar el estado. Si necesitas ayuda, contáctanos al 6077249701`;
+        await sendWhatsAppMessage(from, replyMessage);
+      }
       return;
     }
 
@@ -865,6 +894,22 @@ async function updateCitaStatusInDb(numeroIde, fechaCita, horaCita, newStatus) {
     console.log(`   ✅ Estado de cita actualizado: ${result.affectedRows} filas`);
   } catch (error) {
     console.error('Error actualizando estado de cita:', error);
+  }
+}
+
+/**
+ * Limpiar historial de mensajes antiguos para permitir nueva interacción
+ * Se ejecuta al enviar un nuevo recordatorio
+ */
+async function limpiarHistorialMensajes(phone) {
+  try {
+    const [result] = await db.execute(
+      `DELETE FROM mensajes WHERE numero = ?`,
+      [phone]
+    );
+    console.log(`   🧹 ${result.affectedRows} mensajes eliminados para ${phone}`);
+  } catch (error) {
+    console.error('Error limpiando historial de mensajes:', error);
   }
 }
 

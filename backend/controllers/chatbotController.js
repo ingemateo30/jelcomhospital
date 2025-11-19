@@ -3,6 +3,21 @@ require('dotenv').config();
 const axios = require("axios");
 const salud360CitasService = require("../services/salud360CitasService");
 
+/**
+ * Detectar si un mensaje es casual (saludos, conversación general)
+ */
+function esMensajeCasual(mensaje) {
+  const mensajeLower = mensaje.toLowerCase().trim();
+  const palabrasCasuales = [
+    'hola', 'hello', 'hi', 'hey', 'buenas', 'buenos dias', 'buenas tardes', 'buenas noches',
+    'como estas', 'cómo estás', 'como esta', 'cómo está', 'que tal', 'qué tal',
+    'gracias', 'muchas gracias', 'ok', 'vale', 'bien', 'perfecto', 'excelente',
+    'saludos', 'hola?', 'alo', 'aló', 'bueno', 'si?', 'sí?', '?', 'que?', 'qué?'
+  ];
+
+  return palabrasCasuales.some(palabra => mensajeLower === palabra || mensajeLower.startsWith(palabra));
+}
+
 exports.handleWhatsAppResponse = async (req, res) => {
     try {
         const { data } = req.body;
@@ -24,6 +39,12 @@ exports.handleWhatsAppResponse = async (req, res) => {
             isButtonResponse = true;
             messageBody = button_payload;
             console.log(`🔘 Respuesta de botón recibida: ${button_payload} de ${phone}`);
+        } else if (body) {
+            // Si es un mensaje de texto casual, ignorar completamente
+            if (esMensajeCasual(body)) {
+                console.log(`💭 Mensaje casual detectado de ${phone}, se ignora sin responder`);
+                return res.status(200).json({ message: "Mensaje casual ignorado." });
+            }
         }
 
         await saveMessage({
@@ -49,17 +70,20 @@ exports.handleWhatsAppResponse = async (req, res) => {
         const prueba = await getstatusphone(phone);
         console.log(prueba);
         if (prueba && ["confirmada", "cancelada", "reagendamiento solicitado"].includes(prueba.estado)) {
-            const instanceId = process.env.ULTRAMSG_INSTANCE_ID;
-            const token = process.env.ULTRAMSG_TOKEN;
-            let replyMessage = `🔒 La cita del número ${phone} ya está ${prueba.estado}. No se permite modificar el estado. Si se trata de una equivocación, contáctanos al 6077249701`;
-            try {
-                await axios.post(
-                    `https://api.ultramsg.com/${instanceId}/messages/chat`,
-                    { token: token, to: from, body: replyMessage }
-                );
-                console.log(`🔒 La cita del número ${phone} ya está ${prueba.estado}. No se permite modificar el estado.`);
-            } catch (error) {
-                console.error(`❌ Error enviando respuesta a ${phone}:`, error);
+            // Solo responder si es un botón (no responder a mensajes de texto)
+            if (isButtonResponse) {
+                const instanceId = process.env.ULTRAMSG_INSTANCE_ID;
+                const token = process.env.ULTRAMSG_TOKEN;
+                let replyMessage = `🔒 Tu cita ya está ${prueba.estado}. No se permite modificar el estado. Si necesitas ayuda, contáctanos al 6077249701`;
+                try {
+                    await axios.post(
+                        `https://api.ultramsg.com/${instanceId}/messages/chat`,
+                        { token: token, to: from, body: replyMessage }
+                    );
+                    console.log(`🔒 La cita del número ${phone} ya está ${prueba.estado}. No se permite modificar el estado.`);
+                } catch (error) {
+                    console.error(`❌ Error enviando respuesta a ${phone}:`, error);
+                }
             }
 
             return res.status(200).json({ message: `La cita ya ha sido ${prueba.estado} y no se puede cambiar el estado.` });
