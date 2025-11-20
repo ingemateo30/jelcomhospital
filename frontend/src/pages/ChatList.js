@@ -5,7 +5,7 @@ import io from "socket.io-client";
 import {
   MessageSquare, Calendar, User, Phone, Loader2, CheckCircle,
   XCircle, Clock, RefreshCw, Search, Filter, Pin, X, ChevronDown, ChevronRight,
-  LayoutList, LayoutGrid
+  LayoutList, LayoutGrid, Briefcase, CheckCheck
 } from "lucide-react";
 import { useChatOrganization, useInfiniteScroll } from "../hooks/useChatOrganization";
 
@@ -29,6 +29,7 @@ const ChatList = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [selectedServicio, setSelectedServicio] = useState("todos");
   const [selectedProfesional, setSelectedProfesional] = useState("todos");
+  const [readFilter, setReadFilter] = useState("todos"); // "todos", "leidos", "no_leidos"
   const [servicios, setServicios] = useState([]);
   const [profesionales, setProfesionales] = useState([]);
 
@@ -40,12 +41,23 @@ const ChatList = () => {
   const socketRef = useRef(null);
   const scrollContainerRef = useRef(null);
 
-  // Filtrar chats por búsqueda local
-  const filteredChats = chats.filter(chat =>
-    chat.NOMBRE?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    chat.numero?.includes(searchTerm) ||
-    chat.SERVICIO?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filtrar chats por búsqueda local y filtro de leídos
+  const filteredChats = chats.filter(chat => {
+    // Filtro de búsqueda
+    const matchesSearch = chat.NOMBRE?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      chat.numero?.includes(searchTerm) ||
+      chat.SERVICIO?.toLowerCase().includes(searchTerm.toLowerCase());
+
+    // Filtro de leídos/no leídos
+    let matchesReadFilter = true;
+    if (readFilter === "leidos") {
+      matchesReadFilter = !chat.mensajes_no_leidos || chat.mensajes_no_leidos === 0;
+    } else if (readFilter === "no_leidos") {
+      matchesReadFilter = chat.mensajes_no_leidos > 0;
+    }
+
+    return matchesSearch && matchesReadFilter;
+  });
 
   // Usar hook de organización
   const { sections } = useChatOrganization(filteredChats);
@@ -241,101 +253,106 @@ const ChatList = () => {
   const resetFilters = () => {
     setSelectedServicio("todos");
     setSelectedProfesional("todos");
+    setReadFilter("todos");
   };
 
   const ChatCard = ({ chat, compact }) => (
     <div
       onClick={() => handleChatClick(chat.numero)}
-      className={`bg-slate-700/30 hover:bg-slate-700/50 border border-slate-600/30 rounded-lg cursor-pointer transition-all hover:scale-[1.01] hover:shadow-lg ${
+      className={`group bg-slate-700/40 hover:bg-slate-700/60 border border-slate-600/30 rounded-xl cursor-pointer transition-all hover:shadow-xl ${
         compact ? 'p-3' : 'p-4'
-      }`}
+      } ${chat.mensajes_no_leidos > 0 ? 'ring-2 ring-orange-500/20' : ''}`}
     >
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <div className={`flex items-center gap-3 ${compact ? 'mb-1' : 'mb-2'}`}>
-            <div className={`${compact ? 'w-10 h-10' : 'w-12 h-12'} bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center flex-shrink-0`}>
-              <User className={`${compact ? 'w-5 h-5' : 'w-6 h-6'} text-white`} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <h3 className={`text-white font-semibold ${compact ? 'text-base' : 'text-lg'} truncate`}>
-                {chat.NOMBRE || "Sin nombre"}
-              </h3>
-              {!compact && (
-                <div className="flex items-center gap-2 text-gray-400 text-sm">
-                  <Phone className="w-4 h-4" />
-                  {formatPhone(chat.numero)}
-                </div>
+      <div className="flex items-start gap-3">
+        {/* Avatar */}
+        <div className={`${compact ? 'w-11 h-11' : 'w-14 h-14'} bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg`}>
+          <User className={`${compact ? 'w-5 h-5' : 'w-7 h-7'} text-white`} />
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 min-w-0">
+          {/* Header: Nombre y Fecha */}
+          <div className="flex items-start justify-between gap-2 mb-1">
+            <h3 className={`text-white font-bold ${compact ? 'text-base' : 'text-lg'} truncate flex-1`}>
+              {chat.NOMBRE || "Sin nombre"}
+            </h3>
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <span className="text-xs text-gray-400">
+                {formatDate(chat.ultimo_mensaje).split(',')[1]?.trim() || formatDate(chat.ultimo_mensaje)}
+              </span>
+              {chat.anclado && (
+                <Pin className="w-4 h-4 text-orange-400" fill="currentColor" />
               )}
+            </div>
+          </div>
+
+          {/* Phone (only if not compact) */}
+          {!compact && (
+            <div className="flex items-center gap-2 text-gray-400 text-sm mb-2">
+              <Phone className="w-3.5 h-3.5" />
+              {formatPhone(chat.numero)}
+            </div>
+          )}
+
+          {/* Último mensaje */}
+          <div className="flex items-start justify-between gap-3 mb-2">
+            <div className="flex-1 min-w-0">
+              <p className="text-gray-300 text-sm line-clamp-2">
+                {chat.ultimo_mensaje_tipo === 'saliente' && (
+                  <CheckCheck className="w-3.5 h-3.5 inline mr-1 text-blue-400" />
+                )}
+                <span className={`${chat.mensajes_no_leidos > 0 ? 'font-semibold text-white' : 'text-gray-400'}`}>
+                  {chat.ultimo_mensaje_texto || "Sin mensajes"}
+                </span>
+              </p>
             </div>
             <div className="flex items-center gap-2 flex-shrink-0">
-              {chat.anclado && (
-                <Pin className="w-4 h-4 text-orange-400" />
-              )}
               {chat.mensajes_no_leidos > 0 && (
-                <span className="px-2.5 py-1 bg-red-500 text-white text-xs font-bold rounded-full min-w-[24px] text-center">
+                <span className="px-2 py-0.5 bg-orange-500 text-white text-xs font-bold rounded-full min-w-[20px] text-center shadow-lg">
                   {chat.mensajes_no_leidos}
                 </span>
               )}
-              {chat.estado_cita && (
-                <span className={`px-3 py-1 rounded-full text-xs font-medium border flex items-center gap-1 ${getStatusColor(chat.estado_cita)}`}>
-                  {getStatusIcon(chat.estado_cita)}
-                  {!compact && chat.estado_cita}
-                </span>
-              )}
-              <button
-                onClick={(e) => togglePinChat(chat.numero, chat.anclado, e)}
-                className="p-1.5 hover:bg-slate-600/50 rounded-full transition-colors"
-                title={chat.anclado ? "Desanclar chat" : "Anclar chat"}
-              >
-                <Pin className={`w-4 h-4 ${chat.anclado ? 'text-orange-400' : 'text-gray-400'}`} />
-              </button>
             </div>
           </div>
 
           {!compact && (
             <>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mt-3 text-sm">
+              {/* Info de cita */}
+              <div className="flex flex-wrap items-center gap-3 text-xs">
                 {chat.SERVICIO && (
-                  <div className="flex items-center gap-2 text-gray-300">
-                    <div className="w-2 h-2 bg-orange-400 rounded-full"></div>
-                    <span className="font-medium">Servicio:</span>
-                    <span className="text-gray-400 truncate">{chat.SERVICIO}</span>
+                  <div className="flex items-center gap-1.5 text-gray-400 bg-slate-800/50 px-2 py-1 rounded-md">
+                    <Briefcase className="w-3.5 h-3.5 text-orange-400" />
+                    <span className="truncate max-w-[150px]">{chat.SERVICIO}</span>
                   </div>
                 )}
                 {chat.FECHA_CITA && (
-                  <div className="flex items-center gap-2 text-gray-300">
-                    <Calendar className="w-4 h-4 text-orange-400" />
-                    <span className="font-medium">Cita:</span>
-                    <span className="text-gray-400">
-                      {new Date(chat.FECHA_CITA).toLocaleDateString('es-ES')} {chat.HORA_CITA || ''}
+                  <div className="flex items-center gap-1.5 text-gray-400 bg-slate-800/50 px-2 py-1 rounded-md">
+                    <Calendar className="w-3.5 h-3.5 text-orange-400" />
+                    <span>
+                      {new Date(chat.FECHA_CITA).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}
+                      {chat.HORA_CITA && ` ${chat.HORA_CITA}`}
                     </span>
                   </div>
                 )}
+                {chat.estado_cita && (
+                  <span className={`px-2 py-1 rounded-md text-xs font-medium border flex items-center gap-1 ${getStatusColor(chat.estado_cita)}`}>
+                    {getStatusIcon(chat.estado_cita)}
+                    <span className="capitalize">{chat.estado_cita}</span>
+                  </span>
+                )}
               </div>
-
-              {chat.ultimo_mensaje_texto && (
-                <div className="mt-3 pt-3 border-t border-slate-600/30">
-                  <p className="text-gray-400 text-sm line-clamp-2">
-                    <span className={`font-medium ${chat.ultimo_mensaje_tipo === 'saliente' ? 'text-orange-400' : 'text-blue-400'}`}>
-                      {chat.ultimo_mensaje_tipo === 'saliente' ? 'Tú: ' : 'Paciente: '}
-                    </span>
-                    {chat.ultimo_mensaje_texto}
-                  </p>
-                  <p className="text-gray-500 text-xs mt-1">
-                    {formatDate(chat.ultimo_mensaje)}
-                  </p>
-                </div>
-              )}
             </>
           )}
-
-          {compact && (
-            <div className="flex items-center justify-between mt-2 text-xs text-gray-400">
-              <span className="truncate flex-1">{chat.ultimo_mensaje_texto?.substring(0, 50)}...</span>
-              <span className="text-gray-500 ml-2">{formatDate(chat.ultimo_mensaje)}</span>
-            </div>
-          )}
         </div>
+
+        {/* Action button */}
+        <button
+          onClick={(e) => togglePinChat(chat.numero, chat.anclado, e)}
+          className="p-2 hover:bg-slate-600/50 rounded-full transition-colors self-start opacity-0 group-hover:opacity-100"
+          title={chat.anclado ? "Desanclar chat" : "Anclar chat"}
+        >
+          <Pin className={`w-4 h-4 ${chat.anclado ? 'text-orange-400' : 'text-gray-400'}`} />
+        </button>
       </div>
     </div>
   );
@@ -399,13 +416,18 @@ const ChatList = () => {
               <button
                 onClick={() => setShowFilters(!showFilters)}
                 className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-colors ${
-                  showFilters || selectedServicio !== "todos" || selectedProfesional !== "todos"
+                  showFilters || selectedServicio !== "todos" || selectedProfesional !== "todos" || readFilter !== "todos"
                     ? "bg-orange-500 text-white"
                     : "bg-slate-700/50 text-gray-400 hover:bg-slate-700"
                 }`}
               >
                 <Filter className="w-5 h-5" />
                 Filtros
+                {(selectedServicio !== "todos" || selectedProfesional !== "todos" || readFilter !== "todos") && (
+                  <span className="ml-1 px-1.5 py-0.5 bg-white/20 rounded-full text-xs">
+                    {[selectedServicio !== "todos" ? 1 : 0, selectedProfesional !== "todos" ? 1 : 0, readFilter !== "todos" ? 1 : 0].reduce((a, b) => a + b, 0)}
+                  </span>
+                )}
               </button>
               <button
                 onClick={() => setCompactView(!compactView)}
@@ -418,7 +440,19 @@ const ChatList = () => {
 
             {/* Advanced Filters */}
             {showFilters && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-3 border-t border-slate-700/30">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3 pt-3 border-t border-slate-700/30">
+                <div>
+                  <label className="block text-sm text-gray-400 mb-1">Estado de Lectura</label>
+                  <select
+                    value={readFilter}
+                    onChange={(e) => setReadFilter(e.target.value)}
+                    className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+                  >
+                    <option value="todos">Todos los mensajes</option>
+                    <option value="no_leidos">No leídos</option>
+                    <option value="leidos">Leídos</option>
+                  </select>
+                </div>
                 <div>
                   <label className="block text-sm text-gray-400 mb-1">Servicio</label>
                   <select
@@ -487,23 +521,38 @@ const ChatList = () => {
                   <div key={section.key} className="space-y-3">
                     <button
                       onClick={() => toggleSection(section.key)}
-                      className="w-full flex items-center justify-between text-left px-3 py-2 bg-slate-700/20 rounded-lg hover:bg-slate-700/30 transition-colors"
+                      className="w-full flex items-center justify-between text-left px-4 py-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-all border border-slate-600/20 hover:border-slate-600/40"
                     >
-                      <div className="flex items-center gap-2">
-                        <span className="text-xl">{section.icon}</span>
-                        <h3 className="text-white font-semibold">
-                          {section.title} ({section.chats.length})
-                        </h3>
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">{section.icon}</span>
+                        <div>
+                          <h3 className="text-white font-bold text-lg">
+                            {section.title}
+                          </h3>
+                          <p className="text-gray-400 text-xs">
+                            {section.chats.length} {section.chats.length === 1 ? 'chat' : 'chats'}
+                            {section.chats.filter(c => c.mensajes_no_leidos > 0).length > 0 &&
+                              ` • ${section.chats.filter(c => c.mensajes_no_leidos > 0).length} sin leer`
+                            }
+                          </p>
+                        </div>
                       </div>
-                      {collapsedSections[section.key] ? (
-                        <ChevronRight className="w-5 h-5 text-gray-400" />
-                      ) : (
-                        <ChevronDown className="w-5 h-5 text-gray-400" />
-                      )}
+                      <div className="flex items-center gap-2">
+                        {collapsedSections[section.key] && section.chats.filter(c => c.mensajes_no_leidos > 0).length > 0 && (
+                          <span className="px-2 py-1 bg-red-500 text-white text-xs font-bold rounded-full">
+                            {section.chats.reduce((sum, c) => sum + (c.mensajes_no_leidos || 0), 0)}
+                          </span>
+                        )}
+                        {collapsedSections[section.key] ? (
+                          <ChevronRight className="w-5 h-5 text-gray-400" />
+                        ) : (
+                          <ChevronDown className="w-5 h-5 text-gray-400" />
+                        )}
+                      </div>
                     </button>
 
                     {!collapsedSections[section.key] && (
-                      <div className="space-y-3 pl-2">
+                      <div className="space-y-3 pl-2 animate-fadeIn">
                         {section.chats.map(chat => (
                           <ChatCard key={chat.numero} chat={chat} compact={compactView} />
                         ))}
