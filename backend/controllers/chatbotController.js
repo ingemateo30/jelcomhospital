@@ -182,8 +182,15 @@ exports.handleWhatsAppResponse = async (req, res) => {
 
 async function saveMessage({ id, phone, body, fromMe, timestamp, status }) {
     try {
-        // Convertimos timestamp en un formato compatible con MySQL
-        const fecha = new Date(timestamp).toISOString().slice(0, 19).replace("T", " ");
+        // Convertir timestamp a fecha/hora local de Colombia (GMT-5)
+        const date = new Date(timestamp);
+
+        // Colombia está 5 horas atrás de UTC, por lo que restamos 5 horas
+        const colombiaOffset = -5; // -5 horas
+        const localDate = new Date(date.getTime() + (colombiaOffset * 60 * 60 * 1000));
+
+        // Formatear como DATETIME para MySQL (YYYY-MM-DD HH:MM:SS)
+        const fecha = localDate.toISOString().slice(0, 19).replace("T", " ");
 
         // Verificar si ya existe un mensaje similar en la última hora
         const [existingMessages] = await db.execute(

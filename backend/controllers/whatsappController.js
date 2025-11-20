@@ -906,9 +906,9 @@ async function saveMessageToDb({ id, phone, body, fromMe, timestamp, status }) {
     const date = new Date(timestamp);
 
     // Ajustar a zona horaria de Colombia (UTC-5)
-    // Restar 5 horas a UTC para obtener hora de Colombia
-    const colombiaOffset = -5 * 60; // -5 horas en minutos
-    const localDate = new Date(date.getTime() + (colombiaOffset * 60 * 1000));
+    // Colombia está 5 horas atrás de UTC, por lo que restamos 5 horas
+    const colombiaOffset = -5; // -5 horas
+    const localDate = new Date(date.getTime() + (colombiaOffset * 60 * 60 * 1000));
 
     // Formatear como DATETIME para MySQL (YYYY-MM-DD HH:MM:SS)
     const fecha = localDate.toISOString().slice(0, 19).replace("T", " ");
@@ -1050,7 +1050,7 @@ async function getChats(req, res) {
       SELECT
         m.numero,
         MAX(m.fecha) as ultimo_mensaje,
-        COUNT(m.id) as total_mensajes,
+        COUNT(DISTINCT m.id) as total_mensajes,
         c.NOMBRE,
         c.EMAIL,
         c.FECHA_CITA,
@@ -1064,7 +1064,15 @@ async function getChats(req, res) {
         COALESCE(ca.orden, 999999) as orden_anclado,
         CASE WHEN ca.numero IS NOT NULL THEN 1 ELSE 0 END as anclado
       FROM mensajes m
-      LEFT JOIN citas c ON m.numero = c.TELEFONO_FIJO
+      LEFT JOIN (
+        SELECT TELEFONO_FIJO, NOMBRE, EMAIL, FECHA_CITA, HORA_CITA, SERVICIO, PROFESIONAL, ESTADO
+        FROM citas
+        WHERE (TELEFONO_FIJO, FECHA_CITA, HORA_CITA) IN (
+          SELECT TELEFONO_FIJO, MAX(FECHA_CITA), MAX(HORA_CITA)
+          FROM citas
+          GROUP BY TELEFONO_FIJO
+        )
+      ) c ON m.numero = c.TELEFONO_FIJO
       LEFT JOIN chats_anclados ca ON m.numero = ca.numero
       WHERE 1=1
     `;
@@ -1232,8 +1240,8 @@ async function markMessagesAsRead(req, res) {
 
     // Convertir timestamp a fecha/hora local de Colombia (GMT-5)
     const now = new Date();
-    const colombiaOffset = -5 * 60; // -5 horas en minutos
-    const localDate = new Date(now.getTime() + (colombiaOffset * 60 * 1000));
+    const colombiaOffset = -5; // -5 horas
+    const localDate = new Date(now.getTime() + (colombiaOffset * 60 * 60 * 1000));
     const fechaLeido = localDate.toISOString().slice(0, 19).replace("T", " ");
 
     // Marcar todos los mensajes entrantes no leídos como leídos
