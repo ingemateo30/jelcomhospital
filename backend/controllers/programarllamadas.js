@@ -1,5 +1,6 @@
 const { iniciarLlamada } = require('../config/twilioConfig');
 const pool = require('../config/db');
+const Blacklist = require('../models/Blacklist');
 
 const programarLlamadasDelDiaSiguiente = async (req, res) => {
   try {
@@ -46,6 +47,7 @@ const programarLlamadasDelDiaSiguiente = async (req, res) => {
     // Ejecutar llamadas en background
     let exitosas = 0;
     let fallidas = 0;
+    let bloqueadas = 0;
     const errores = [];
 
     for (let i = 0; i < citas.length; i++) {
@@ -63,6 +65,36 @@ const programarLlamadasDelDiaSiguiente = async (req, res) => {
       });
 
       try {
+        // Verificar si el número está en la lista negra
+        const estaBloqueado = await Blacklist.estaEnBlacklist(cita.TELEFONO_FIJO);
+
+        if (estaBloqueado) {
+          bloqueadas++;
+          console.log(`🚫 [${i + 1}/${citas.length}] BLOQUEADO - ${cita.NOMBRE} (${cita.TELEFONO_FIJO}) está en lista negra`);
+
+          // Emitir evento de bloqueado
+          io.emit("voz:bloqueado", {
+            current: i + 1,
+            total: citas.length,
+            paciente: cita.NOMBRE,
+            numero: cita.TELEFONO_FIJO,
+            servicio: cita.SERVICIO,
+            exitosas,
+            fallidas,
+            bloqueadas
+          });
+
+          // Registrar en errores para el reporte final
+          errores.push({
+            paciente: cita.NOMBRE,
+            numero: cita.TELEFONO_FIJO,
+            error: "Número bloqueado en lista negra",
+            codigo: "BLACKLIST_BLOCKED"
+          });
+
+          continue; // Saltar al siguiente paciente
+        }
+
         const resultado = await iniciarLlamada(cita.TELEFONO_FIJO, cita.ID);
         exitosas++;
 
@@ -74,7 +106,8 @@ const programarLlamadasDelDiaSiguiente = async (req, res) => {
           numero: cita.TELEFONO_FIJO,
           llamadaId: resultado.id,
           exitosas,
-          fallidas
+          fallidas,
+          bloqueadas
         });
 
         console.log(`✅ [${i + 1}/${citas.length}] Llamada exitosa a ${cita.NOMBRE}`);
@@ -97,7 +130,8 @@ const programarLlamadasDelDiaSiguiente = async (req, res) => {
           error: error.message,
           codigo: error.code,
           exitosas,
-          fallidas
+          fallidas,
+          bloqueadas
         });
 
         console.error(`❌ [${i + 1}/${citas.length}] Error llamando a ${cita.NOMBRE}: ${error.message}`);
@@ -119,12 +153,13 @@ const programarLlamadasDelDiaSiguiente = async (req, res) => {
       total: citas.length,
       exitosas,
       fallidas,
+      bloqueadas,
       tasa_exito: ((exitosas / citas.length) * 100).toFixed(1) + "%",
       errores
     };
 
     io.emit("voz:completado", reporte);
-    console.log('✅ Todas las llamadas han sido procesadas.');
+    console.log(`✅ Todas las llamadas han sido procesadas. Exitosas: ${exitosas}, Fallidas: ${fallidas}, Bloqueadas: ${bloqueadas}`);
 
   } catch (error) {
     console.error('💥 Error al programar llamadas:', error);

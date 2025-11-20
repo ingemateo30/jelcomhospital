@@ -2,6 +2,7 @@ const { twiml } = require('twilio');
 const VoiceResponse = twiml.VoiceResponse;
 const pool = require('../config/db');
 const { iniciarLlamada } = require('../config/twilioConfig');
+const Blacklist = require('../models/Blacklist');
 
 exports.programarLlamada = async (req, res) => {
   try {
@@ -14,6 +15,19 @@ exports.programarLlamada = async (req, res) => {
       [citaId]
     );
     if (!cita.length) return res.status(404).json({ error: 'Cita no encontrada o ya procesada' });
+
+    // Verificar si el número está en la lista negra
+    const estaBloqueado = await Blacklist.estaEnBlacklist(cita[0].TELEFONO_FIJO);
+
+    if (estaBloqueado) {
+      console.log(`🚫 BLOQUEADO - ${cita[0].NOMBRE} (${cita[0].TELEFONO_FIJO}) está en lista negra`);
+      return res.status(403).json({
+        success: false,
+        error: 'Número bloqueado en lista negra',
+        codigo: 'BLACKLIST_BLOCKED',
+        mensaje: `❌ No se puede enviar recordatorio a ${cita[0].NOMBRE}. El número está en la lista negra.`
+      });
+    }
 
     const resultado = await iniciarLlamada(cita[0].TELEFONO_FIJO, citaId);
     res.json({
@@ -32,13 +46,23 @@ exports.manejarLlamada = async (req, res) => {
   try {
     const citaId = req.params.citaId;
     const [rows] = await pool.query(
-      `SELECT FECHA_CITA, HORA_CITA, SERVICIO, NOMBRE FROM citas WHERE ID = ?`,
+      `SELECT FECHA_CITA, HORA_CITA, SERVICIO, NOMBRE, TELEFONO_FIJO FROM citas WHERE ID = ?`,
       [citaId]
     );
     if (!rows.length) {
       return res.status(404).json({ error: 'Cita no encontrada' });
     }
-    const { FECHA_CITA, HORA_CITA, SERVICIO, NOMBRE } = rows[0];
+    const { FECHA_CITA, HORA_CITA, SERVICIO, NOMBRE, TELEFONO_FIJO } = rows[0];
+
+    // Verificar si el número está en la lista negra (segunda verificación de seguridad)
+    const estaBloqueado = await Blacklist.estaEnBlacklist(TELEFONO_FIJO);
+
+    if (estaBloqueado) {
+      console.log(`🚫 BLOQUEADO - Intento de llamada a número en lista negra: ${TELEFONO_FIJO}`);
+      // Colgar inmediatamente sin decir nada
+      twiml.hangup();
+      return res.status(200).set('Content-Type', 'text/xml').send(twiml.toString());
+    }
     const fecha = new Date(FECHA_CITA).toLocaleDateString('es-CO', {
       weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
     });
