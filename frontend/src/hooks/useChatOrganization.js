@@ -54,54 +54,43 @@ export const useChatOrganization = (chats) => {
   }, [chats]);
 
   const sections = useMemo(() => {
-    const result = [];
-
-    if (groupedChats.pinned?.length > 0) {
-      result.push({
+    // Siempre devolver todas las secciones para mantener estabilidad
+    // El filtrado de secciones vacías se hace en el componente
+    const allSections = [
+      {
         title: 'Anclados',
         key: 'pinned',
-        chats: groupedChats.pinned,
+        chats: groupedChats.pinned || [],
         icon: '📌'
-      });
-    }
-
-    if (groupedChats.today?.length > 0) {
-      result.push({
+      },
+      {
         title: 'Hoy',
         key: 'today',
-        chats: groupedChats.today,
+        chats: groupedChats.today || [],
         icon: '📅'
-      });
-    }
-
-    if (groupedChats.yesterday?.length > 0) {
-      result.push({
+      },
+      {
         title: 'Ayer',
         key: 'yesterday',
-        chats: groupedChats.yesterday,
+        chats: groupedChats.yesterday || [],
         icon: '🕐'
-      });
-    }
-
-    if (groupedChats.thisWeek?.length > 0) {
-      result.push({
+      },
+      {
         title: 'Esta semana',
         key: 'thisWeek',
-        chats: groupedChats.thisWeek,
+        chats: groupedChats.thisWeek || [],
         icon: '📆'
-      });
-    }
-
-    if (groupedChats.older?.length > 0) {
-      result.push({
+      },
+      {
         title: 'Más antiguos',
         key: 'older',
-        chats: groupedChats.older,
+        chats: groupedChats.older || [],
         icon: '🗂️'
-      });
-    }
+      }
+    ];
 
-    return result;
+    // Filtrar solo las secciones que tienen chats
+    return allSections.filter(section => section.chats.length > 0);
   }, [groupedChats]);
 
   return { groupedChats, sections };
