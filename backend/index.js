@@ -95,6 +95,11 @@ app.use("/api/envios", historialRoutes);
 const blacklistRoutes = require("./routes/blacklistRoutes");
 app.use("/api/blacklist", blacklistRoutes);
 
+// Webhook de Meta - Ruta directa para compatibilidad
+const { verifyWebhook, handleMetaWebhook } = require("./controllers/whatsappController");
+app.get("/webhook", verifyWebhook);
+app.post("/webhook", handleMetaWebhook);
+
 // Manejo de errores
 app.use((err, req, res, next) => {
     console.error(err.stack);
