@@ -20,6 +20,7 @@ import {
   FaHistory, // ✅ NUEVO ICONO PARA HISTORIAL
   FaComments, // ✅ NUEVO ICONO PARA RESPUESTAS
   FaCommentDots, // ✅ NUEVO ICONO PARA CHATS
+  FaBan, // ✅ NUEVO ICONO PARA LISTA NEGRA
 } from "react-icons/fa";
 import logo from "../assets/logos-jelcom.png";
 
@@ -119,11 +120,19 @@ const Dashboard = () => {
           />
           
           {/* ✅ NUEVO: Historial de Envíos */}
-          <SidebarButton 
-            icon={<FaHistory />} 
-            text="Historial de Envíos" 
-            collapsed={isCollapsed} 
-            onClick={() => navigate("/dashboard/historial")} 
+          <SidebarButton
+            icon={<FaHistory />}
+            text="Historial de Envíos"
+            collapsed={isCollapsed}
+            onClick={() => navigate("/dashboard/historial")}
+          />
+
+          {/* ✅ NUEVO: Lista Negra */}
+          <SidebarButton
+            icon={<FaBan />}
+            text="Lista Negra"
+            collapsed={isCollapsed}
+            onClick={() => navigate("/dashboard/blacklist")}
           />
 
           {/* Sección de Correos */}

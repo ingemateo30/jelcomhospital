@@ -20,6 +20,7 @@ import Recordatoriovoz from "./pages/ProgramarRecordatorio";
 import HistorialEnvios from "./pages/HistorialEnvios"; // ✅ NUEVO
 import ChatList from "./pages/ChatList"; // ✅ NUEVO - Lista de chats
 import ChatView from "./pages/ChatView"; // ✅ NUEVO - Vista individual del chat
+import Blacklist from "./pages/Blacklist"; // ✅ NUEVO - Lista negra
 
 const App = () => {
   return (
@@ -40,7 +41,10 @@ const App = () => {
             
             {/* ✅ NUEVA RUTA DE HISTORIAL */}
             <Route path="historial" element={<HistorialEnvios />} />
-            
+
+            {/* ✅ NUEVA RUTA DE LISTA NEGRA */}
+            <Route path="blacklist" element={<Blacklist />} />
+
             {/* Rutas de correos */}
             <Route path="enviar-correos" element={<SendEmails />} />
             <Route path="enviar-correo" element={<SendManualEmail />} />

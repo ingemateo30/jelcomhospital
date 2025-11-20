@@ -4,6 +4,7 @@ require('dotenv').config();
 const axios = require("axios");
 const LabsMobileClient = require("labsmobile-sms/src/LabsMobileClient");
 const LabsMobileModelTextMessage = require("labsmobile-sms/src/LabsMobileModelTextMessage");
+const Blacklist = require("../models/Blacklist");
 
 
 
@@ -18,14 +19,24 @@ exports.sendReminderSMS = async () => {
             return;
         }
         let count = 0;
+        let bloqueados = 0;
         for (let cita of citas) {
-            console.log(`📩 Enviando recordatorio para: ${cita.NOMBRE} con ${cita.PROFESIONAL}`);
+            console.log(`📩 Procesando recordatorio para: ${cita.NOMBRE} con ${cita.PROFESIONAL}`);
             const fechaFormateada = new Date(cita.FECHA_CITA).toISOString().split('T')[0];
             const mensaje = `Hola ${cita.NOMBRE},recuerda tu cita ${cita.SERVICIO} el día ${fechaFormateada} hora ${cita.HORA_CITA},porfavor llega con 10 minutos de anticipación,te esperamos.`;
             let telefono = cita.TELEFONO_FIJO.replace(/\D/g, '');
             if (!telefono.startsWith('57')) {
                 telefono = `57${telefono}`;
             }
+
+            // Verificar si el número está en la lista negra
+            const estaBloqueado = await Blacklist.estaEnBlacklist(telefono);
+            if (estaBloqueado) {
+                console.log(`🚫 Número bloqueado: ${cita.TELEFONO_FIJO} - No se enviará recordatorio`);
+                bloqueados++;
+                continue;
+            }
+
             if (telefono.length >= 10) {
                 try {
                     console.log(`📲 Enviando SMS a ${telefono}...`);
@@ -51,7 +62,7 @@ exports.sendReminderSMS = async () => {
                 await delay(1000);
             }
         }
-        console.log("🚀 Todos los recordatorios han sido procesados.");
+        console.log(`🚀 Recordatorios procesados. Total: ${citas.length} | Bloqueados: ${bloqueados} | Enviados: ${count - bloqueados}`);
     } catch (error) {
         console.error('❌ Error al enviar recordatorios de citas:', error);
     }
@@ -77,6 +88,17 @@ exports.sendManualSMS = async (req, res) => {
         if (numeroFormateado.length < 10) {
             return res.status(400).json({ success: false, message: "Número de teléfono inválido" });
         }
+
+        // Verificar si el número está en la lista negra
+        const estaBloqueado = await Blacklist.estaEnBlacklist(numeroFormateado);
+        if (estaBloqueado) {
+            console.log(`🚫 Número bloqueado: ${correo} - No se enviará SMS`);
+            return res.status(403).json({
+                success: false,
+                message: "Este número está en la lista negra y no puede recibir mensajes"
+            });
+        }
+
         console.log(`📲 Enviando SMS a ${correo}...`);
         const apiUser = process.env.LABSMOBILE_USER;
         const apiToken = process.env.LABSMOBILE_API_KEY;

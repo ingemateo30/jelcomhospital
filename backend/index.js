@@ -79,6 +79,9 @@ app.use("/api/voz", vozRoutes);
 const historialRoutes = require("./routes/historialRoutes");
 app.use("/api/envios", historialRoutes);
 
+const blacklistRoutes = require("./routes/blacklistRoutes");
+app.use("/api/blacklist", blacklistRoutes);
+
 // Manejo de errores
 app.use((err, req, res, next) => {
     console.error(err.stack);
