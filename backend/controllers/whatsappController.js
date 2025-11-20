@@ -179,8 +179,7 @@ async function enviarPlantillaMeta(numero, reminder) {
       extra: reminder.extra || ""
     };
 
-    // 🔥 SIEMPRE ENVIAR TODOS LOS 8 PARÁMETROS
-    // Meta requiere que se envíen TODOS los parámetros definidos en la plantilla
+  
     const bodyParameters = [
       { type: "text", text: campos.nombre_paciente },
       { type: "text", text: campos.fecha },
@@ -189,7 +188,7 @@ async function enviarPlantillaMeta(numero, reminder) {
       { type: "text", text: campos.profesional },
       { type: "text", text: campos.direccion1 },
       { type: "text", text: campos.direccion2 },
-      { type: "text", text: campos.extra || " " }, // Siempre incluir
+      { type: "text", text: campos.extra || " " },
     ];
 
     const payload = {
