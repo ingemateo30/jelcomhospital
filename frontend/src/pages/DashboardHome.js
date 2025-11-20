@@ -31,7 +31,7 @@ const DashboardHome = () => {
 
   const fetchData = () => {
     setLoading(true);
-    axios.get('http://localhost:3000/api/dashboard/stats')
+    axios.get('http://localhost:3001/api/dashboard/stats')
       .then(response => {
         setData(response.data);
         setLoading(false);
