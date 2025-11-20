@@ -12,6 +12,7 @@ const HistorialEnvios = () => {
         busqueda: ''
     });
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState(null);
     const [stats, setStats] = useState({
         total: 0,
         exitosos: 0,
@@ -25,53 +26,37 @@ const HistorialEnvios = () => {
 
     const cargarHistorial = async () => {
         setLoading(true);
+        setError(null);
         try {
             const token = localStorage.getItem("token");
-            
-            // Aquí deberías crear un endpoint en el backend que devuelva el historial
-            // Por ahora usaremos datos mock
+
             const response = await axios.get('http://localhost:3001/api/envios/historial', {
                 params: filtros,
                 headers: { Authorization: `Bearer ${token}` }
             });
 
-            setEnvios(response.data.envios);
-            setStats(response.data.stats);
+            setEnvios(response.data.envios || []);
+            setStats(response.data.stats || {
+                total: 0,
+                exitosos: 0,
+                fallidos: 0,
+                tasaExito: 0
+            });
         } catch (error) {
             console.error("Error cargando historial:", error);
-            // Datos mock para ejemplo
-            setEnvios(generarDatosMock());
-            calcularEstadisticas(generarDatosMock());
+            setError("Error al cargar el historial. Por favor, intenta de nuevo.");
+            setEnvios([]);
+            setStats({
+                total: 0,
+                exitosos: 0,
+                fallidos: 0,
+                tasaExito: 0
+            });
         } finally {
             setLoading(false);
         }
     };
 
-    const generarDatosMock = () => {
-        const tipos = ['whatsapp', 'voz'];
-        const estados = ['exitoso', 'fallido'];
-        const servicios = ['Cardiología', 'Pediatría', 'Ginecología', 'Odontología'];
-        
-        return Array.from({ length: 50 }, (_, i) => ({
-            id: i + 1,
-            tipo: tipos[Math.floor(Math.random() * tipos.length)],
-            paciente: `Paciente ${i + 1}`,
-            numero: `300${Math.floor(Math.random() * 10000000)}`,
-            servicio: servicios[Math.floor(Math.random() * servicios.length)],
-            fecha: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
-            estado: estados[Math.floor(Math.random() * estados.length)],
-            intentos: Math.floor(Math.random() * 3) + 1
-        }));
-    };
-
-    const calcularEstadisticas = (data) => {
-        const total = data.length;
-        const exitosos = data.filter(e => e.estado === 'exitoso').length;
-        const fallidos = total - exitosos;
-        const tasaExito = total > 0 ? ((exitosos / total) * 100).toFixed(1) : 0;
-
-        setStats({ total, exitosos, fallidos, tasaExito });
-    };
 
     const exportarCSV = () => {
         const headers = ['ID', 'Tipo', 'Paciente', 'Número', 'Servicio', 'Fecha', 'Estado', 'Intentos'];
@@ -194,6 +179,16 @@ const HistorialEnvios = () => {
                         </div>
                     </div>
                 </div>
+
+                {/* Mensaje de Error */}
+                {error && (
+                    <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-6">
+                        <div className="flex items-center gap-2 text-red-400">
+                            <XCircle className="w-5 h-5" />
+                            <p className="font-medium">{error}</p>
+                        </div>
+                    </div>
+                )}
 
                 {/* Filtros */}
                 <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/30 mb-6">
