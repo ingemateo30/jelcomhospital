@@ -958,7 +958,7 @@ async function limpiarHistorialMensajes(phone) {
  */
 async function getChats(req, res) {
   try {
-    const { filter } = req.query; // 'cancelled', 'active', o 'all'
+    const { filter, servicio, profesional, limit, offset } = req.query;
 
     let query = `
       SELECT
@@ -974,9 +974,12 @@ async function getChats(req, res) {
         c.ESTADO as estado_cita,
         (SELECT mensaje FROM mensajes WHERE numero = m.numero ORDER BY fecha DESC LIMIT 1) as ultimo_mensaje_texto,
         (SELECT tipo FROM mensajes WHERE numero = m.numero ORDER BY fecha DESC LIMIT 1) as ultimo_mensaje_tipo,
-        (SELECT COUNT(*) FROM mensajes WHERE numero = m.numero AND tipo = 'entrante' AND leido = 0) as mensajes_no_leidos
+        (SELECT COUNT(*) FROM mensajes WHERE numero = m.numero AND tipo = 'entrante' AND leido = 0) as mensajes_no_leidos,
+        COALESCE(ca.orden, 999999) as orden_anclado,
+        CASE WHEN ca.numero IS NOT NULL THEN 1 ELSE 0 END as anclado
       FROM mensajes m
       LEFT JOIN citas c ON m.numero = c.TELEFONO_FIJO
+      LEFT JOIN chats_anclados ca ON m.numero = ca.numero
       WHERE 1=1
     `;
 
@@ -989,16 +992,70 @@ async function getChats(req, res) {
       query += ` AND (c.ESTADO IS NULL OR c.ESTADO != 'cancelada')`;
     }
 
+    // Filtrar por servicio
+    if (servicio && servicio !== 'todos') {
+      query += ` AND c.SERVICIO = ?`;
+      params.push(servicio);
+    }
+
+    // Filtrar por profesional
+    if (profesional && profesional !== 'todos') {
+      query += ` AND c.PROFESIONAL = ?`;
+      params.push(profesional);
+    }
+
     query += `
-      GROUP BY m.numero, c.NOMBRE, c.EMAIL, c.FECHA_CITA, c.HORA_CITA, c.SERVICIO, c.PROFESIONAL, c.ESTADO
-      ORDER BY ultimo_mensaje DESC
+      GROUP BY m.numero, c.NOMBRE, c.EMAIL, c.FECHA_CITA, c.HORA_CITA, c.SERVICIO, c.PROFESIONAL, c.ESTADO, ca.orden, ca.numero
+      ORDER BY anclado DESC, orden_anclado ASC, ultimo_mensaje DESC
     `;
+
+    // Agregar paginación si se especifica
+    if (limit) {
+      query += ` LIMIT ?`;
+      params.push(parseInt(limit));
+
+      if (offset) {
+        query += ` OFFSET ?`;
+        params.push(parseInt(offset));
+      }
+    }
 
     const [chats] = await db.execute(query, params);
 
+    // Obtener total de chats para paginación
+    let countQuery = `
+      SELECT COUNT(DISTINCT m.numero) as total
+      FROM mensajes m
+      LEFT JOIN citas c ON m.numero = c.TELEFONO_FIJO
+      WHERE 1=1
+    `;
+
+    const countParams = [];
+
+    if (filter === 'cancelled') {
+      countQuery += ` AND c.ESTADO = 'cancelada'`;
+    } else if (filter === 'active') {
+      countQuery += ` AND (c.ESTADO IS NULL OR c.ESTADO != 'cancelada')`;
+    }
+
+    if (servicio && servicio !== 'todos') {
+      countQuery += ` AND c.SERVICIO = ?`;
+      countParams.push(servicio);
+    }
+
+    if (profesional && profesional !== 'todos') {
+      countQuery += ` AND c.PROFESIONAL = ?`;
+      countParams.push(profesional);
+    }
+
+    const [countResult] = await db.execute(countQuery, countParams);
+    const total = countResult[0].total;
+
     res.json({
       success: true,
-      chats
+      chats,
+      total,
+      hasMore: limit ? (parseInt(offset || 0) + chats.length < total) : false
     });
   } catch (error) {
     console.error('Error obteniendo lista de chats:', error);
@@ -1128,6 +1185,79 @@ async function markMessagesAsRead(req, res) {
   }
 }
 
+/**
+ * Anclar o desanclar un chat
+ */
+async function togglePinChat(req, res) {
+  try {
+    const { numero } = req.params;
+    const { pin } = req.body; // true para anclar, false para desanclar
+
+    if (pin) {
+      // Anclar chat
+      // Obtener el orden máximo actual
+      const [maxOrden] = await db.execute(
+        'SELECT COALESCE(MAX(orden), -1) + 1 as nuevo_orden FROM chats_anclados'
+      );
+      const nuevoOrden = maxOrden[0].nuevo_orden;
+
+      await db.execute(
+        'INSERT INTO chats_anclados (numero, orden) VALUES (?, ?) ON DUPLICATE KEY UPDATE orden = ?',
+        [numero, nuevoOrden, nuevoOrden]
+      );
+    } else {
+      // Desanclar chat
+      await db.execute('DELETE FROM chats_anclados WHERE numero = ?', [numero]);
+    }
+
+    res.json({
+      success: true,
+      message: pin ? 'Chat anclado correctamente' : 'Chat desanclado correctamente'
+    });
+  } catch (error) {
+    console.error('Error al anclar/desanclar chat:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error al actualizar estado del chat'
+    });
+  }
+}
+
+/**
+ * Obtener lista de servicios y profesionales para filtros
+ */
+async function getFiltersData(req, res) {
+  try {
+    // Obtener servicios únicos
+    const [servicios] = await db.execute(`
+      SELECT DISTINCT SERVICIO
+      FROM citas
+      WHERE SERVICIO IS NOT NULL AND SERVICIO != ''
+      ORDER BY SERVICIO
+    `);
+
+    // Obtener profesionales únicos
+    const [profesionales] = await db.execute(`
+      SELECT DISTINCT PROFESIONAL
+      FROM citas
+      WHERE PROFESIONAL IS NOT NULL AND PROFESIONAL != ''
+      ORDER BY PROFESIONAL
+    `);
+
+    res.json({
+      success: true,
+      servicios: servicios.map(s => s.SERVICIO),
+      profesionales: profesionales.map(p => p.PROFESIONAL)
+    });
+  } catch (error) {
+    console.error('Error obteniendo datos de filtros:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error al obtener datos de filtros'
+    });
+  }
+}
+
 module.exports = {
   sendWhatsAppReminder,
   processWhatsAppReply,
@@ -1138,4 +1268,6 @@ module.exports = {
   getChats,
   getChatMessages,
   markMessagesAsRead,
+  togglePinChat,
+  getFiltersData,
 };
