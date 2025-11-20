@@ -3,6 +3,7 @@ const axios = require("axios");
 const fs = require("fs");
 const WhatsAppReminder = require("../models/WhatsAppReminder");
 const db = require("../config/db");
+const Blacklist = require("../models/Blacklist");
 
 const META_TOKEN = process.env.META_TOKEN;
 const META_PHONE_NUMBER_ID = process.env.META_PHONE_NUMBER_ID;
@@ -307,6 +308,30 @@ const sendWhatsAppReminder = async (req, res) => {
         let numero = reminder.telefono;
         if (!numero.startsWith("+57")) {
           numero = "+57" + numero.replace(/^0+/, "");
+        }
+
+        // Verificar si el número está en la lista negra
+        const estaBloqueado = await Blacklist.estaEnBlacklist(numero);
+        if (estaBloqueado) {
+          console.log('   🚫 BLOQUEADO - Número en lista negra, omitiendo envío');
+          resultados.fallidos++;
+          resultados.errores.push({
+            numero: numero,
+            paciente: reminder.nombre_paciente,
+            error: "Número bloqueado en lista negra",
+            errorCode: "BLACKLIST_BLOCKED"
+          });
+
+          io.emit("whatsapp:bloqueado", {
+            current: i + 1,
+            total: reminders.length,
+            paciente: reminder.nombre_paciente,
+            numero: numero,
+            exitosos: resultados.exitosos,
+            fallidos: resultados.fallidos
+          });
+
+          continue; // Saltar al siguiente recordatorio
         }
 
         // Limpiar historial de mensajes antiguos para permitir nueva interacción
