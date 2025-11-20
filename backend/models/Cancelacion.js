@@ -16,10 +16,16 @@ class cancelacion {
         );
     }
 
-    static async cancelarCita(telefono) {
+    static async cancelarCita(telefono, motivo = 'Cancelado por el paciente', canceladoPor = 'paciente') {
         await db.execute(
-            "UPDATE citas SET ESTADO = 'cancelada' WHERE TELEFONO_FIJO = ? AND (ESTADO = 'pendiente' OR ESTADO = 'recordatorio enviado')",
-            [telefono]
+            `UPDATE citas
+             SET ESTADO = 'cancelada',
+                 MOTIVO_CANCELACION = ?,
+                 FECHA_CANCELACION = NOW(),
+                 CANCELADO_POR = ?
+             WHERE TELEFONO_FIJO = ?
+             AND (ESTADO = 'pendiente' OR ESTADO = 'recordatorio enviado')`,
+            [motivo, canceladoPor, telefono]
         );
     }
 

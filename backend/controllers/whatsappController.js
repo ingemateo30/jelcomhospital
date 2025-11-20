@@ -823,17 +823,40 @@ async function processUserResponse(whatsappId, phone, response, reminder, isButt
           console.log(`   ✅ Cita cancelada en Salud360: CitNum ${resultadoCancelacion.citNum}`);
           replyMessage = `❌ Tu cita médica para el ${fechaFormateada} a las ${reminder.HORA_CITA} ha sido cancelada exitosamente.\n\nSi deseas reagendarla, comunícate al 6077249701.`;
           newStatus = "cancelada";
-
-          await updateCitaStatusInDb(reminder.NUMERO_IDE, reminder.FECHA_CITA, reminder.HORA_CITA, 'cancelada');
         } else {
           console.error(`   ❌ Error cancelando en Salud360:`, resultadoCancelacion.error);
           replyMessage = `⚠️ Hemos registrado tu solicitud de cancelación para el ${fechaFormateada} a las ${reminder.HORA_CITA}.\n\nConfirma la cancelación llamando al 6077249701.`;
           newStatus = "cancelada";
         }
+
+        // Actualizar cita en BD local independientemente del resultado de Salud360
+        await updateCitaStatusInDb(
+          reminder.NUMERO_IDE,
+          reminder.FECHA_CITA,
+          reminder.HORA_CITA,
+          'cancelada',
+          'Cancelado por paciente vía WhatsApp',
+          'paciente'
+        );
+
       } catch (error) {
         console.error(`   ❌ Error en cancelación:`, error.message);
         replyMessage = `⚠️ Hemos registrado tu solicitud de cancelación.\n\nPor favor confirma llamando al 6077249701.`;
         newStatus = "cancelada";
+
+        // Actualizar cita en BD local incluso si hay error
+        try {
+          await updateCitaStatusInDb(
+            reminder.NUMERO_IDE,
+            reminder.FECHA_CITA,
+            reminder.HORA_CITA,
+            'cancelada',
+            'Cancelado por paciente vía WhatsApp',
+            'paciente'
+          );
+        } catch (dbError) {
+          console.error(`   ❌ Error actualizando BD:`, dbError.message);
+        }
       }
 
     } else if (responseLower.includes('reagendar') || responseLower.includes('reprogramar') || responseLower.includes('cambiar')) {
@@ -1003,17 +1026,38 @@ async function updateReminderStatusInDb(phone, newStatus) {
 /**
  * Actualizar estado de cita en BD
  */
-async function updateCitaStatusInDb(numeroIde, fechaCita, horaCita, newStatus) {
+async function updateCitaStatusInDb(numeroIde, fechaCita, horaCita, newStatus, motivoCancelacion = null, canceladoPor = null) {
   try {
-    const [result] = await db.execute(
-      `UPDATE citas
-       SET ESTADO = ?
-       WHERE NUMERO_IDE = ?
-       AND FECHA_CITA = ?
-       AND HORA_CITA = ?`,
-      [newStatus, numeroIde, fechaCita, horaCita]
-    );
+    let query;
+    let params;
+
+    if (newStatus === 'cancelada') {
+      // Si es cancelación, actualizar campos adicionales
+      query = `UPDATE citas
+               SET ESTADO = ?,
+                   MOTIVO_CANCELACION = ?,
+                   FECHA_CANCELACION = NOW(),
+                   CANCELADO_POR = ?
+               WHERE NUMERO_IDE = ?
+               AND FECHA_CITA = ?
+               AND HORA_CITA = ?`;
+      params = [newStatus, motivoCancelacion, canceladoPor, numeroIde, fechaCita, horaCita];
+    } else {
+      // Para otros estados, solo actualizar ESTADO
+      query = `UPDATE citas
+               SET ESTADO = ?
+               WHERE NUMERO_IDE = ?
+               AND FECHA_CITA = ?
+               AND HORA_CITA = ?`;
+      params = [newStatus, numeroIde, fechaCita, horaCita];
+    }
+
+    const [result] = await db.execute(query, params);
     console.log(`   ✅ Estado de cita actualizado: ${result.affectedRows} filas`);
+
+    if (result.affectedRows === 0) {
+      console.warn(`   ⚠️ No se encontró cita para actualizar: NUMERO_IDE=${numeroIde}, FECHA=${fechaCita}, HORA=${horaCita}`);
+    }
   } catch (error) {
     console.error('Error actualizando estado de cita:', error);
   }
