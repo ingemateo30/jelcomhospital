@@ -913,17 +913,14 @@ async function saveMessageToDb({ id, phone, body, fromMe, timestamp, status }) {
     // Formatear como DATETIME para MySQL (YYYY-MM-DD HH:MM:SS)
     const fecha = localDate.toISOString().slice(0, 19).replace("T", " ");
 
-    // Verificar duplicados (última semana)
+    // Verificar duplicados por ID único del mensaje de WhatsApp
     const [existingMessages] = await db.execute(
-      `SELECT id FROM mensajes
-       WHERE numero = ?
-       AND fecha >= DATE_SUB(?, INTERVAL 1 WEEK)
-       LIMIT 1`,
-      [phone, fecha]
+      `SELECT id FROM mensajes WHERE id = ? LIMIT 1`,
+      [id]
     );
 
     if (existingMessages.length > 0) {
-      console.log(`   🛑 Mensaje duplicado detectado, no se inserta`);
+      console.log(`   🛑 Mensaje duplicado detectado (mismo ID), no se inserta`);
       return;
     }
 
