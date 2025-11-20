@@ -72,6 +72,12 @@ const programarLlamadasDelDiaSiguiente = async (req, res) => {
           bloqueadas++;
           console.log(`🚫 [${i + 1}/${citas.length}] BLOQUEADO - ${cita.NOMBRE} (${cita.TELEFONO_FIJO}) está en lista negra`);
 
+          // Marcar la cita como bloqueada en la base de datos
+          await db.query(
+            'UPDATE citas SET ESTADO = ? WHERE ID = ?',
+            ['bloqueado', cita.ID]
+          );
+
           // Emitir evento de bloqueado
           io.emit("voz:bloqueado", {
             current: i + 1,

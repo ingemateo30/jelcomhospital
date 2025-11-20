@@ -47,7 +47,7 @@ router.get('/historial', verificarRol(['admin', 'usuario']), async (req, res) =>
         1 as intentos,
         'citas' as origen
       FROM citas
-      WHERE ESTADO IN ('recordatorio enviado', 'pendiente', 'cancelada')
+      WHERE ESTADO IN ('recordatorio enviado', 'pendiente', 'cancelada', 'bloqueado')
       ${whereClause})
       UNION ALL
       (SELECT
@@ -62,7 +62,7 @@ router.get('/historial', verificarRol(['admin', 'usuario']), async (req, res) =>
         1 as intentos,
         'historico' as origen
       FROM citas_historico
-      WHERE ESTADO IN ('recordatorio enviado', 'pendiente', 'cancelada')
+      WHERE ESTADO IN ('recordatorio enviado', 'pendiente', 'cancelada', 'bloqueado')
       ${whereClause})
       ORDER BY fecha DESC
       LIMIT ?
@@ -74,11 +74,20 @@ router.get('/historial', verificarRol(['admin', 'usuario']), async (req, res) =>
     const [envios] = await db.query(query, allParams);
     
     // Transformar estados
-    const enviosTransformados = envios.map(envio => ({
-      ...envio,
-      estado: envio.estado === 'recordatorio enviado' ? 'exitoso' : 'fallido',
-      fecha: envio.fecha || envio.fecha_cita
-    }));
+    const enviosTransformados = envios.map(envio => {
+      let estadoTransformado = 'fallido';
+      if (envio.estado === 'recordatorio enviado') {
+        estadoTransformado = 'exitoso';
+      } else if (envio.estado === 'bloqueado') {
+        estadoTransformado = 'bloqueado';
+      }
+
+      return {
+        ...envio,
+        estado: estadoTransformado,
+        fecha: envio.fecha || envio.fecha_cita
+      };
+    });
     
     // Filtrar por tipo si se especifica
     let enviosFiltrados = enviosTransformados;
@@ -97,7 +106,8 @@ router.get('/historial', verificarRol(['admin', 'usuario']), async (req, res) =>
       total: enviosFiltrados.length,
       exitosos: enviosFiltrados.filter(e => e.estado === 'exitoso').length,
       fallidos: enviosFiltrados.filter(e => e.estado === 'fallido').length,
-      tasaExito: enviosFiltrados.length > 0 
+      bloqueados: enviosFiltrados.filter(e => e.estado === 'bloqueado').length,
+      tasaExito: enviosFiltrados.length > 0
         ? ((enviosFiltrados.filter(e => e.estado === 'exitoso').length / enviosFiltrados.length) * 100).toFixed(1)
         : 0
     };

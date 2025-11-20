@@ -39,6 +39,19 @@ app.use(require("body-parser").raw());
 app.use(require("body-parser").json());
 app.use(require("body-parser").urlencoded({ extended: true }));
 
+// Servir archivos multimedia estáticos
+const path = require("path");
+const mediaDir = process.env.MEDIA_DIR || path.join(__dirname, 'uploads/media');
+app.use('/media', express.static(mediaDir));
+console.log(`📁 Directorio de multimedia disponible en /media`);
+
+// Crear directorio de uploads si no existe
+const fs = require("fs");
+if (!fs.existsSync(mediaDir)) {
+  fs.mkdirSync(mediaDir, { recursive: true });
+  console.log(`📁 Directorio de multimedia creado: ${mediaDir}`);
+}
+
 // Socket.io eventos
 io.on("connection", (socket) => {
     console.log("🔌 Cliente conectado:", socket.id);

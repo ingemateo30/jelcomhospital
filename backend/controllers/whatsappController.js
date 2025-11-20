@@ -4,6 +4,7 @@ const fs = require("fs");
 const WhatsAppReminder = require("../models/WhatsAppReminder");
 const db = require("../config/db");
 const Blacklist = require("../models/Blacklist");
+const mediaService = require("../services/mediaService");
 
 const META_TOKEN = process.env.META_TOKEN;
 const META_PHONE_NUMBER_ID = process.env.META_PHONE_NUMBER_ID;
@@ -322,6 +323,9 @@ const sendWhatsAppReminder = async (req, res) => {
             errorCode: "BLACKLIST_BLOCKED"
           });
 
+          // Marcar la cita como bloqueada en la base de datos
+          await WhatsAppReminder.updateReminderStatus(reminder.id, "bloqueado");
+
           io.emit("whatsapp:bloqueado", {
             current: i + 1,
             total: reminders.length,
@@ -631,6 +635,7 @@ async function processMetaMessage(message, value) {
 
     let messageBody = '';
     let isButtonResponse = false;
+    let mediaData = null;
 
     // Detectar tipo de mensaje
     if (type === 'interactive' && message.interactive) {
@@ -657,6 +662,43 @@ async function processMetaMessage(message, value) {
         console.log(`   💭 Mensaje casual detectado, se ignora sin responder`);
         return;
       }
+    } else if (type === 'image' && message.image) {
+      // Mensaje con imagen
+      messageBody = message.image.caption || '[Imagen]';
+      mediaData = {
+        mediaType: 'image',
+        mediaId: message.image.id,
+        mimeType: message.image.mime_type
+      };
+      console.log(`   🖼️ Imagen recibida - ID: ${mediaData.mediaId}`);
+    } else if (type === 'audio' && message.audio) {
+      // Mensaje con audio/nota de voz
+      messageBody = '[Audio]';
+      mediaData = {
+        mediaType: 'audio',
+        mediaId: message.audio.id,
+        mimeType: message.audio.mime_type
+      };
+      console.log(`   🎤 Audio recibido - ID: ${mediaData.mediaId}`);
+    } else if (type === 'video' && message.video) {
+      // Mensaje con video
+      messageBody = message.video.caption || '[Video]';
+      mediaData = {
+        mediaType: 'video',
+        mediaId: message.video.id,
+        mimeType: message.video.mime_type
+      };
+      console.log(`   🎥 Video recibido - ID: ${mediaData.mediaId}`);
+    } else if (type === 'document' && message.document) {
+      // Mensaje con documento
+      messageBody = message.document.filename || '[Documento]';
+      mediaData = {
+        mediaType: 'document',
+        mediaId: message.document.id,
+        mimeType: message.document.mime_type,
+        filename: message.document.filename
+      };
+      console.log(`   📄 Documento recibido - ID: ${mediaData.mediaId}`);
     } else {
       console.log(`   ⚠️ Tipo de mensaje no soportado: ${type}`);
       return;
@@ -672,6 +714,23 @@ async function processMetaMessage(message, value) {
       status: 'pendiente'
     });
 
+    // Si hay multimedia, procesarlo y descargarlo
+    if (mediaData) {
+      try {
+        console.log(`   📥 Procesando archivo multimedia...`);
+        const mediaResult = await mediaService.processMediaMessage({
+          messageId: id,
+          mediaId: mediaData.mediaId,
+          phone: phone,
+          mediaType: mediaData.mediaType
+        });
+        console.log(`   ✅ Multimedia procesado: ${mediaResult.publicUrl}`);
+      } catch (mediaError) {
+        console.error(`   ❌ Error procesando multimedia:`, mediaError);
+        // No detener el flujo si falla la descarga del media
+      }
+    }
+
     // Emitir evento Socket.io para actualizar frontend en tiempo real
     if (global.io) {
       global.io.emit("chat:nuevo_mensaje", {
@@ -681,7 +740,9 @@ async function processMetaMessage(message, value) {
           numero: phone,
           mensaje: messageBody,
           fecha: new Date(parseInt(timestamp) * 1000).toISOString(),
-          tipo: 'entrante'
+          tipo: 'entrante',
+          tipo_media: mediaData?.mediaType,
+          media_id: mediaData?.mediaId
         }
       });
     }
