@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { Calendar, Search, Filter, Download, CheckCircle, XCircle, Clock, TrendingUp } from "lucide-react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const HistorialEnvios = () => {
+    const navigate = useNavigate();
     const [envios, setEnvios] = useState([]);
     const [filtros, setFiltros] = useState({
         tipo: 'todos', // whatsapp, voz, todos
@@ -30,6 +32,14 @@ const HistorialEnvios = () => {
         try {
             const token = localStorage.getItem("token");
 
+            // Verificar si existe el token
+            if (!token) {
+                setError("No se encontró el token de autenticación. Por favor, inicia sesión nuevamente.");
+                localStorage.clear();
+                setTimeout(() => navigate("/login"), 2000);
+                return;
+            }
+
             const response = await axios.get('http://localhost:3001/api/envios/historial', {
                 params: filtros,
                 headers: { Authorization: `Bearer ${token}` }
@@ -44,7 +54,18 @@ const HistorialEnvios = () => {
             });
         } catch (error) {
             console.error("Error cargando historial:", error);
-            setError("Error al cargar el historial. Por favor, intenta de nuevo.");
+
+            // Manejar errores de autenticación
+            if (error.response?.status === 401) {
+                setError("Tu sesión ha expirado. Redirigiendo al login...");
+                localStorage.clear();
+                setTimeout(() => navigate("/login"), 2000);
+            } else if (error.response?.status === 403) {
+                setError("No tienes permisos para acceder a esta información.");
+            } else {
+                setError("Error al cargar el historial. Por favor, intenta de nuevo.");
+            }
+
             setEnvios([]);
             setStats({
                 total: 0,
