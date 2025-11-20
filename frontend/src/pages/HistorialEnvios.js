@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Calendar, Search, Filter, Download, CheckCircle, XCircle, Clock, TrendingUp } from "lucide-react";
+import { Calendar, Search, Filter, Download, CheckCircle, XCircle, Clock, TrendingUp, Shield } from "lucide-react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
@@ -19,6 +19,7 @@ const HistorialEnvios = () => {
         total: 0,
         exitosos: 0,
         fallidos: 0,
+        bloqueados: 0,
         tasaExito: 0
     });
 
@@ -50,6 +51,7 @@ const HistorialEnvios = () => {
                 total: 0,
                 exitosos: 0,
                 fallidos: 0,
+                bloqueados: 0,
                 tasaExito: 0
             });
         } catch (error) {
@@ -71,6 +73,7 @@ const HistorialEnvios = () => {
                 total: 0,
                 exitosos: 0,
                 fallidos: 0,
+                bloqueados: 0,
                 tasaExito: 0
             });
         } finally {
@@ -159,7 +162,7 @@ const HistorialEnvios = () => {
                 </div>
 
                 {/* Estadísticas */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
                     <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/30">
                         <div className="flex items-center justify-between">
                             <div>
@@ -187,6 +190,16 @@ const HistorialEnvios = () => {
                                 <p className="text-2xl font-bold text-red-400">{stats.fallidos}</p>
                             </div>
                             <XCircle className="w-8 h-8 text-red-400" />
+                        </div>
+                    </div>
+
+                    <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/30">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-gray-400 text-sm">Bloqueados</p>
+                                <p className="text-2xl font-bold text-orange-400">{stats.bloqueados}</p>
+                            </div>
+                            <Shield className="w-8 h-8 text-orange-400" />
                         </div>
                     </div>
 
