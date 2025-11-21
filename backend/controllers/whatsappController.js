@@ -520,15 +520,19 @@ const getCitasCanceladas = async (req, res) => {
         ID,
         NOMBRE,
         TELEFONO_FIJO,
+        NUMERO_IDE,
         FECHA_CITA,
         HORA_CITA,
         SERVICIO,
         PROFESIONAL,
         ESTADO,
+        MOTIVO_CANCELACION,
+        FECHA_CANCELACION,
+        CANCELADO_POR,
         CREATED_AT
       FROM citas
       WHERE ESTADO = 'cancelada'
-      ORDER BY FECHA_CITA DESC, HORA_CITA DESC
+      ORDER BY FECHA_CANCELACION DESC, FECHA_CITA DESC, HORA_CITA DESC
     `);
 
     res.json(rows);
@@ -656,12 +660,6 @@ async function processMetaMessage(message, value) {
       // Mensaje de texto normal
       messageBody = message.text.body;
       console.log(`   💬 Texto recibido: ${messageBody}`);
-
-      // Si es un mensaje casual, ignorar completamente
-      if (esMensajeCasual(messageBody)) {
-        console.log(`   💭 Mensaje casual detectado, se ignora sin responder`);
-        return;
-      }
     } else if (type === 'image' && message.image) {
       // Mensaje con imagen
       messageBody = message.image.caption || '[Imagen]';
@@ -747,6 +745,12 @@ async function processMetaMessage(message, value) {
       });
     }
 
+    // Si es mensaje de texto casual, guardarlo pero no procesar respuesta automática
+    if (type === 'text' && !isButtonResponse && esMensajeCasual(messageBody)) {
+      console.log(`   💭 Mensaje casual detectado - guardado en BD pero sin respuesta automática`);
+      return;
+    }
+
     // Buscar cita asociada al número
     const reminder = await getCitaByPhone(phone);
 
@@ -801,6 +805,14 @@ async function processUserResponse(whatsappId, phone, response, reminder, isButt
 
     } else if (responseLower === 'cancelar_cita' || responseLower === 'no' || responseLower === 'cancelar') {
       console.log(`   🔄 Iniciando cancelación para ${phone}`);
+      console.log(`   📋 Datos de la cita:`);
+      console.log(`      - ID: ${reminder.ID}`);
+      console.log(`      - Nombre: ${reminder.NOMBRE}`);
+      console.log(`      - Teléfono: ${reminder.TELEFONO_FIJO}`);
+      console.log(`      - Número IDE: ${reminder.NUMERO_IDE}`);
+      console.log(`      - Fecha: ${reminder.FECHA_CITA}`);
+      console.log(`      - Hora: ${reminder.HORA_CITA}`);
+      console.log(`      - Estado actual: ${reminder.ESTADO}`);
 
       try {
         const salud360CitasService = require("../services/salud360CitasService");
@@ -812,7 +824,7 @@ async function processUserResponse(whatsappId, phone, response, reminder, isButt
           hora: reminder.HORA_CITA
         };
 
-        console.log(`   📋 Datos para cancelación:`, datosPaciente);
+        console.log(`   📋 Datos para cancelación en Salud360:`, datosPaciente);
 
         const resultadoCancelacion = await salud360CitasService.buscarYCancelarCita(
           datosPaciente,
@@ -830,6 +842,7 @@ async function processUserResponse(whatsappId, phone, response, reminder, isButt
         }
 
         // Actualizar cita en BD local independientemente del resultado de Salud360
+        console.log(`   💾 Actualizando estado en BD local...`);
         await updateCitaStatusInDb(
           reminder.NUMERO_IDE,
           reminder.FECHA_CITA,
@@ -838,6 +851,7 @@ async function processUserResponse(whatsappId, phone, response, reminder, isButt
           'Cancelado por paciente vía WhatsApp',
           'paciente'
         );
+        console.log(`   ✅ Estado actualizado en BD local`);
 
       } catch (error) {
         console.error(`   ❌ Error en cancelación:`, error.message);
@@ -846,6 +860,7 @@ async function processUserResponse(whatsappId, phone, response, reminder, isButt
 
         // Actualizar cita en BD local incluso si hay error
         try {
+          console.log(`   💾 Intentando actualizar BD local después de error...`);
           await updateCitaStatusInDb(
             reminder.NUMERO_IDE,
             reminder.FECHA_CITA,
@@ -854,6 +869,7 @@ async function processUserResponse(whatsappId, phone, response, reminder, isButt
             'Cancelado por paciente vía WhatsApp',
             'paciente'
           );
+          console.log(`   ✅ Estado actualizado en BD local (con errores en Salud360)`);
         } catch (dbError) {
           console.error(`   ❌ Error actualizando BD:`, dbError.message);
         }
@@ -1106,13 +1122,14 @@ async function getChats(req, res) {
         CASE WHEN ca.numero IS NOT NULL THEN 1 ELSE 0 END as anclado
       FROM mensajes m
       LEFT JOIN (
-        SELECT TELEFONO_FIJO, NOMBRE, EMAIL, FECHA_CITA, HORA_CITA, SERVICIO, PROFESIONAL, ESTADO
-        FROM citas
-        WHERE (TELEFONO_FIJO, FECHA_CITA, HORA_CITA) IN (
-          SELECT TELEFONO_FIJO, MAX(FECHA_CITA), MAX(HORA_CITA)
+        SELECT c1.*
+        FROM citas c1
+        INNER JOIN (
+          SELECT TELEFONO_FIJO, MAX(CONCAT(FECHA_CITA, ' ', HORA_CITA)) as max_fecha_hora
           FROM citas
           GROUP BY TELEFONO_FIJO
-        )
+        ) c2 ON c1.TELEFONO_FIJO = c2.TELEFONO_FIJO
+           AND CONCAT(c1.FECHA_CITA, ' ', c1.HORA_CITA) = c2.max_fecha_hora
       ) c ON m.numero = c.TELEFONO_FIJO
       LEFT JOIN chats_anclados ca ON m.numero = ca.numero
       WHERE 1=1
