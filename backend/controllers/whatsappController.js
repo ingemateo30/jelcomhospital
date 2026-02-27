@@ -745,9 +745,9 @@ async function processMetaMessage(message, value) {
       });
     }
 
-    // Si es mensaje de texto casual, guardarlo pero no procesar respuesta automática
-    if (type === 'text' && !isButtonResponse && esMensajeCasual(messageBody)) {
-      console.log(`   💭 Mensaje casual detectado - guardado en BD pero sin respuesta automática`);
+    // Solo procesar respuestas de botón - ignorar todos los mensajes de texto
+    if (!isButtonResponse) {
+      console.log(`   💭 Mensaje de texto de ${phone} guardado pero no procesado - el chatbot solo responde al botón de cancelación`);
       return;
     }
 
@@ -787,6 +787,12 @@ async function processUserResponse(whatsappId, phone, response, reminder, isButt
   try {
     const responseLower = response.toLowerCase();
 
+    // Solo procesar el botón de cancelación
+    if (responseLower !== 'cancelar_cita') {
+      console.log(`   ❓ Payload de botón no reconocido: ${response} - solo se acepta CANCELAR_CITA`);
+      return;
+    }
+
     const fechaCita = new Date(reminder.FECHA_CITA);
     const fechaFormateada = fechaCita.toLocaleDateString("es-CO", {
       year: "numeric",
@@ -795,54 +801,59 @@ async function processUserResponse(whatsappId, phone, response, reminder, isButt
     });
 
     let replyMessage = '';
-    let newStatus = '';
+    const newStatus = 'cancelada';
 
-    // Determinar acción según la respuesta
-    if (responseLower === 'confirmar_cita' || responseLower === 'sí' || responseLower === 'si' || responseLower === 'confirmo') {
-      replyMessage = `✅ Gracias por confirmar tu cita médica para el ${fechaFormateada} a las ${reminder.HORA_CITA}. Te esperamos puntualmente.\n\nSi necesitas cambiar el estado, contáctanos al 6077249701`;
-      newStatus = "confirmada";
-      console.log(`   ✅ Cita confirmada`);
+    console.log(`   🔄 Iniciando cancelación para ${phone}`);
+    console.log(`   📋 Datos de la cita:`);
+    console.log(`      - ID: ${reminder.ID}`);
+    console.log(`      - Nombre: ${reminder.NOMBRE}`);
+    console.log(`      - Número IDE: ${reminder.NUMERO_IDE}`);
+    console.log(`      - Fecha: ${reminder.FECHA_CITA}`);
+    console.log(`      - Hora: ${reminder.HORA_CITA}`);
 
-    } else if (responseLower === 'cancelar_cita' || responseLower === 'no' || responseLower === 'cancelar') {
-      console.log(`   🔄 Iniciando cancelación para ${phone}`);
-      console.log(`   📋 Datos de la cita:`);
-      console.log(`      - ID: ${reminder.ID}`);
-      console.log(`      - Nombre: ${reminder.NOMBRE}`);
-      console.log(`      - Teléfono: ${reminder.TELEFONO_FIJO}`);
-      console.log(`      - Número IDE: ${reminder.NUMERO_IDE}`);
-      console.log(`      - Fecha: ${reminder.FECHA_CITA}`);
-      console.log(`      - Hora: ${reminder.HORA_CITA}`);
-      console.log(`      - Estado actual: ${reminder.ESTADO}`);
+    try {
+      const salud360CitasService = require("../services/salud360CitasService");
+
+      const datosPaciente = {
+        tipoId: reminder.TIPO_IDE_PACIENTE || 'CC',
+        numeroId: reminder.NUMERO_IDE,
+        fecha: new Date(reminder.FECHA_CITA).toISOString().split('T')[0],
+        hora: reminder.HORA_CITA
+      };
+
+      console.log(`   📋 Datos para cancelación en Salud360:`, datosPaciente);
+
+      const resultadoCancelacion = await salud360CitasService.buscarYCancelarCita(
+        datosPaciente,
+        'Cancelado por paciente vía WhatsApp'
+      );
+
+      if (resultadoCancelacion.success) {
+        console.log(`   ✅ Cita cancelada en Salud360: CitNum ${resultadoCancelacion.citNum}`);
+        replyMessage = `❌ Tu cita médica para el ${fechaFormateada} a las ${reminder.HORA_CITA} ha sido cancelada exitosamente.\n\nSi deseas reagendarla, comunícate al 6077249701.`;
+      } else {
+        console.error(`   ❌ Error cancelando en Salud360:`, resultadoCancelacion.error);
+        replyMessage = `⚠️ Hemos registrado tu solicitud de cancelación para el ${fechaFormateada} a las ${reminder.HORA_CITA}.\n\nConfirma la cancelación llamando al 6077249701.`;
+      }
+
+      // Actualizar cita en BD local independientemente del resultado de Salud360
+      console.log(`   💾 Actualizando estado en BD local...`);
+      await updateCitaStatusInDb(
+        reminder.NUMERO_IDE,
+        reminder.FECHA_CITA,
+        reminder.HORA_CITA,
+        'cancelada',
+        'Cancelado por paciente vía WhatsApp',
+        'paciente'
+      );
+      console.log(`   ✅ Estado actualizado en BD local`);
+
+    } catch (error) {
+      console.error(`   ❌ Error en cancelación:`, error.message);
+      replyMessage = `⚠️ Hemos registrado tu solicitud de cancelación.\n\nPor favor confirma llamando al 6077249701.`;
 
       try {
-        const salud360CitasService = require("../services/salud360CitasService");
-
-        const datosPaciente = {
-          tipoId: reminder.TIPO_IDE_PACIENTE || 'CC',
-          numeroId: reminder.NUMERO_IDE,
-          fecha: new Date(reminder.FECHA_CITA).toISOString().split('T')[0],
-          hora: reminder.HORA_CITA
-        };
-
-        console.log(`   📋 Datos para cancelación en Salud360:`, datosPaciente);
-
-        const resultadoCancelacion = await salud360CitasService.buscarYCancelarCita(
-          datosPaciente,
-          'Cancelado por paciente vía WhatsApp'
-        );
-
-        if (resultadoCancelacion.success) {
-          console.log(`   ✅ Cita cancelada en Salud360: CitNum ${resultadoCancelacion.citNum}`);
-          replyMessage = `❌ Tu cita médica para el ${fechaFormateada} a las ${reminder.HORA_CITA} ha sido cancelada exitosamente.\n\nSi deseas reagendarla, comunícate al 6077249701.`;
-          newStatus = "cancelada";
-        } else {
-          console.error(`   ❌ Error cancelando en Salud360:`, resultadoCancelacion.error);
-          replyMessage = `⚠️ Hemos registrado tu solicitud de cancelación para el ${fechaFormateada} a las ${reminder.HORA_CITA}.\n\nConfirma la cancelación llamando al 6077249701.`;
-          newStatus = "cancelada";
-        }
-
-        // Actualizar cita en BD local independientemente del resultado de Salud360
-        console.log(`   💾 Actualizando estado en BD local...`);
+        console.log(`   💾 Intentando actualizar BD local después de error...`);
         await updateCitaStatusInDb(
           reminder.NUMERO_IDE,
           reminder.FECHA_CITA,
@@ -851,50 +862,18 @@ async function processUserResponse(whatsappId, phone, response, reminder, isButt
           'Cancelado por paciente vía WhatsApp',
           'paciente'
         );
-        console.log(`   ✅ Estado actualizado en BD local`);
-
-      } catch (error) {
-        console.error(`   ❌ Error en cancelación:`, error.message);
-        replyMessage = `⚠️ Hemos registrado tu solicitud de cancelación.\n\nPor favor confirma llamando al 6077249701.`;
-        newStatus = "cancelada";
-
-        // Actualizar cita en BD local incluso si hay error
-        try {
-          console.log(`   💾 Intentando actualizar BD local después de error...`);
-          await updateCitaStatusInDb(
-            reminder.NUMERO_IDE,
-            reminder.FECHA_CITA,
-            reminder.HORA_CITA,
-            'cancelada',
-            'Cancelado por paciente vía WhatsApp',
-            'paciente'
-          );
-          console.log(`   ✅ Estado actualizado en BD local (con errores en Salud360)`);
-        } catch (dbError) {
-          console.error(`   ❌ Error actualizando BD:`, dbError.message);
-        }
+        console.log(`   ✅ Estado actualizado en BD local (con errores en Salud360)`);
+      } catch (dbError) {
+        console.error(`   ❌ Error actualizando BD:`, dbError.message);
       }
-
-    } else if (responseLower.includes('reagendar') || responseLower.includes('reprogramar') || responseLower.includes('cambiar')) {
-      replyMessage = `🔄 Hemos recibido tu solicitud para reagendar la cita del ${fechaFormateada} a las ${reminder.HORA_CITA}.\n\nLlámanos al 6077249701 para coordinar una nueva fecha.`;
-      newStatus = "reagendamiento solicitado";
-      console.log(`   🔄 Reagendamiento solicitado`);
-
-    } else {
-      replyMessage = `❓ No pudimos procesar tu respuesta. Por favor responde:\n\n✅ "Sí" o "Confirmo" - Confirmar cita\n❌ "No" o "Cancelar" - Cancelar cita\n🔄 "Reagendar" - Cambiar fecha\n\nO llámanos al 6077249701`;
-      console.log(`   ❓ Respuesta no reconocida`);
     }
 
-    // Enviar respuesta al usuario
     if (replyMessage) {
       await sendWhatsAppMessage(whatsappId, replyMessage);
     }
 
-    // Actualizar estado en BD
-    if (newStatus) {
-      await updateReminderStatusInDb(phone, newStatus);
-      console.log(`   💾 Estado actualizado: ${newStatus}`);
-    }
+    await updateReminderStatusInDb(phone, newStatus);
+    console.log(`   💾 Estado actualizado: ${newStatus}`);
 
   } catch (error) {
     console.error('❌ Error procesando respuesta de usuario:', error);
@@ -998,7 +977,7 @@ async function saveMessageToDb({ id, phone, body, fromMe, timestamp, status }) {
 async function getCitaByPhone(phone) {
   try {
     const [rows] = await db.execute(
-      `SELECT * FROM citas WHERE TELEFONO_FIJO = ? ORDER BY FECHA_CITA DESC LIMIT 1`,
+      `SELECT * FROM citas WHERE TELEFONO_FIJO = ? AND ESTADO = 'recordatorio enviado' ORDER BY FECHA_CITA DESC LIMIT 1`,
       [phone]
     );
     return rows.length > 0 ? rows[0] : null;
