@@ -32,8 +32,12 @@ class Salud360Client {
       console.log(`[Salud360] Cliente SOAP creado para: ${serviceName}`);
       return client;
     } catch (error) {
-      console.error(`[Salud360] Error creando cliente SOAP para ${serviceName}:`, error.message);
-      throw new Error(`No se pudo conectar al servicio ${serviceName}: ${error.message}`);
+      const detail = error?.response?.body || error?.cause?.message || error?.stack || error?.message || String(error);
+      console.error(`[Salud360] Error creando cliente SOAP para ${serviceName}:`);
+      console.error(`   Tipo: ${error?.constructor?.name}`);
+      console.error(`   Mensaje: ${error?.message}`);
+      console.error(`   Detalle: ${detail}`);
+      throw new Error(`No se pudo conectar al servicio ${serviceName}: ${error?.message || String(error)}`);
     }
   }
 

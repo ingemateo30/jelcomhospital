@@ -1389,6 +1389,48 @@ async function getFiltersData(req, res) {
   }
 }
 
+const diagnosticoMeta = async (req, res) => {
+  try {
+    const phoneNumberId = META_PHONE_NUMBER_ID;
+    const token = META_TOKEN;
+    const baseUrl = META_WA_BASE_URL;
+
+    // 1. Obtener info del phone number
+    const phoneInfoRes = await axios.get(
+      `${baseUrl}/${phoneNumberId}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    const phoneInfo = phoneInfoRes.data;
+
+    // 2. Obtener WABA ID desde el phone number
+    const wabaId = phoneInfo.whatsapp_business_account_id || phoneInfo.id;
+
+    // 3. Listar plantillas del WABA
+    let templates = [];
+    try {
+      const tplRes = await axios.get(
+        `${baseUrl}/${wabaId}/message_templates?fields=name,status,language`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      templates = tplRes.data.data || [];
+    } catch (e) {
+      templates = [{ error: e.response?.data || e.message }];
+    }
+
+    res.json({
+      phoneNumberId,
+      phoneInfo,
+      wabaId,
+      templates,
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: error.response?.data || error.message,
+      phoneNumberId: META_PHONE_NUMBER_ID,
+    });
+  }
+};
+
 module.exports = {
   sendWhatsAppReminder,
   processWhatsAppReply,
@@ -1401,4 +1443,5 @@ module.exports = {
   markMessagesAsRead,
   togglePinChat,
   getFiltersData,
+  diagnosticoMeta,
 };

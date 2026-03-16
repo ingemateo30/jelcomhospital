@@ -10,7 +10,8 @@ const {
   getChatMessages,
   markMessagesAsRead,
   togglePinChat,
-  getFiltersData
+  getFiltersData,
+  diagnosticoMeta,
 } = require("../controllers/whatsappController");
 const { handleWhatsAppResponse } = require("../controllers/chatbotController");
 
@@ -38,5 +39,8 @@ router.put("/chats/:numero/pin", togglePinChat);  // Anclar/desanclar chat
 
 // Filtros - Obtener servicios y profesionales
 router.get("/filters", getFiltersData);  // Lista de servicios y profesionales para filtros
+
+// Diagnóstico Meta API
+router.get("/diagnostico-meta", diagnosticoMeta);
 
 module.exports = router;
