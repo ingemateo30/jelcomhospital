@@ -77,7 +77,7 @@ UPDATE mensajes SET leido = TRUE WHERE tipo = 'saliente' AND leido = FALSE;
 -- ============================================================
 CREATE TABLE IF NOT EXISTS `multimedia_descargas` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
-    `mensaje_id` VARCHAR(200) NOT NULL,
+    `mensaje_id` VARCHAR(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
     `media_id` VARCHAR(255) NOT NULL,
     `url_original` TEXT NOT NULL,
     `url_local` TEXT DEFAULT NULL,
@@ -90,7 +90,7 @@ CREATE TABLE IF NOT EXISTS `multimedia_descargas` (
     FOREIGN KEY (`mensaje_id`) REFERENCES `mensajes`(`id`) ON DELETE CASCADE,
     INDEX `idx_estado` (`estado`),
     INDEX `idx_media_id` (`media_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- ============================================================
 -- RESUMEN DE CAMBIOS APLICADOS:
