@@ -1,27 +1,8 @@
 {
-  "fecha": "2026-03-16T20:09:42.482Z",
+  "fecha": "2026-03-16T20:14:41.937Z",
   "total": 1,
-  "exitosos": 0,
-  "fallidos": 1,
-  "tasa_exito": "0.0%",
-  "errores": [
-    {
-      "numero": "+573007015239",
-      "paciente": "MARIA FERNANDA GOMEZ",
-      "error": "(#132001) Template name does not exist in the translation",
-      "errorCode": 132001,
-      "fullError": {
-        "error": {
-          "message": "(#132001) Template name does not exist in the translation",
-          "type": "OAuthException",
-          "code": 132001,
-          "error_data": {
-            "messaging_product": "whatsapp",
-            "details": "template name (cancelar) does not exist in es"
-          },
-          "fbtrace_id": "AqAZGdDhUJ2s3iHaeCgCXvb"
-        }
-      }
-    }
-  ]
+  "exitosos": 1,
+  "fallidos": 0,
+  "tasa_exito": "100.0%",
+  "errores": []
 }

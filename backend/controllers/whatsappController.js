@@ -223,7 +223,7 @@ async function enviarPlantillaMeta(numero, reminder) {
             parameters: [
               {
                 type: "payload",
-                payload: "CANCELAR CITA"
+                payload: "CANCELAR_CITA"
               }
             ]
           }
