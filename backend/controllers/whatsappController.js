@@ -216,6 +216,20 @@ async function enviarPlantillaMeta(numero, reminder) {
             type: "body",
             parameters: bodyParameters,
           },
+<<<<<<< HEAD
+=======
+          {
+            type: "button",
+            sub_type: "quick_reply",
+            index: "1",
+            parameters: [
+              {
+                type: "payload",
+                payload: "CANCELAR_CITA"
+              }
+            ]
+          }
+>>>>>>> 6b57babdf839112e09c100b9cd9f390db1e8ff06
         ],
       },
     };
