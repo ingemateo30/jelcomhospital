@@ -575,17 +575,12 @@ const verifyWebhook = (req, res) => {
  */
 const handleMetaWebhook = async (req, res) => {
   try {
-    console.log('📨 Webhook Meta recibido:', JSON.stringify(req.body, null, 2));
-
     // Responder inmediatamente a Meta (requerido)
     res.status(200).send('EVENT_RECEIVED');
 
     const { entry } = req.body;
 
-    if (!entry || entry.length === 0) {
-      console.log('⚠️ No hay entradas en el webhook');
-      return;
-    }
+    if (!entry || entry.length === 0) return;
 
     // Procesar cada entrada
     for (const item of entry) {
@@ -596,6 +591,11 @@ const handleMetaWebhook = async (req, res) => {
 
         const value = change.value;
         const messages = value.messages || [];
+
+        // Ignorar webhooks de estado (delivered, read, sent) — no son mensajes
+        if (messages.length === 0) continue;
+
+        console.log('📨 Webhook Meta — mensajes recibidos:', messages.length);
 
         for (const message of messages) {
           await processMetaMessage(message, value);
@@ -630,8 +630,8 @@ async function processMetaMessage(message, value) {
   try {
     const { from, id, timestamp, type } = message;
 
-    // Limpiar número de teléfono (quitar prefijo de país)
-    const phone = from.replace('57', '');
+    // Limpiar número de teléfono (quitar prefijo de país Colombia +57)
+    const phone = from.replace(/^\+?57/, '');
 
     console.log(`\n📱 Procesando mensaje de ${phone}`);
     console.log(`   Tipo: ${type}`);
