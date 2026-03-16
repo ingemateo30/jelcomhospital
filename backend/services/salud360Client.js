@@ -1,14 +1,21 @@
 const soap = require('soap');
+const https = require('https');
 const path = require('path');
 const fs = require('fs');
 require('dotenv').config();
+
+// Salud360 usa HTTPS con certificado auto-firmado o no verificable.
+// Se usa un agente HTTPS con rejectUnauthorized:false solo para este servicio interno.
+const sslAgent = new https.Agent({ rejectUnauthorized: false });
 
 /**
  * Cliente SOAP genérico para los WebServices de Salud360
  */
 class Salud360Client {
   constructor() {
-    this.baseUrl = process.env.SALUD360_BASE_URL;
+    // Forzar HTTPS aunque SALUD360_BASE_URL venga con http://
+    const rawUrl = process.env.SALUD360_BASE_URL || '';
+    this.baseUrl = rawUrl.replace(/^http:\/\//i, 'https://');
     this.usuario = process.env.SALUD360_USER;
     this.password = process.env.SALUD360_PASS;
     this.empresaCod = process.env.SALUD360_EMPRESA_COD;
@@ -19,23 +26,32 @@ class Salud360Client {
 
   /**
    * Crea un cliente SOAP para el servicio especificado.
-   * Usa WSDL local si existe, si no intenta descargarlo de la red.
+   * Usa WSDL local si existe, si no intenta descargarlo vía HTTPS.
    */
   async createClient(serviceName) {
     const localWsdlPath = path.join(this.wsdlDir, `${serviceName}.wsdl`);
-    const remoteWsdlUrl = `${this.baseUrl}${serviceName}?wsdl`;
     const endpoint = `${this.baseUrl}${serviceName}`;
-
     const useLocal = fs.existsSync(localWsdlPath);
-    const wsdlSource = useLocal ? localWsdlPath : remoteWsdlUrl;
+    const wsdlSource = useLocal ? localWsdlPath : `${endpoint}?wsdl`;
 
     console.log(`[Salud360] Cargando WSDL ${useLocal ? 'LOCAL' : 'REMOTO'}: ${wsdlSource}`);
+    console.log(`[Salud360] Endpoint SOAP: ${endpoint}`);
 
     try {
       const client = await soap.createClientAsync(wsdlSource, {
         disableCache: true,
         endpoint,
+        wsdl_options: {
+          httpsAgent: sslAgent,
+          rejectUnauthorized: false,
+        },
       });
+
+      // Aplicar agente SSL también a las llamadas SOAP reales
+      if (client.httpClient && client.httpClient.defaults) {
+        client.httpClient.defaults.httpsAgent = sslAgent;
+      }
+
       console.log(`[Salud360] Cliente SOAP creado para: ${serviceName}`);
       return client;
     } catch (error) {
@@ -51,10 +67,6 @@ class Salud360Client {
         console.error(`   Error[${i}]: ${e?.constructor?.name} - código=${e?.code} - ${e?.message}`);
       });
 
-      // Si falló con WSDL local, no hay fallback útil
-      if (useLocal) {
-        throw new Error(`Fallo al crear cliente SOAP desde WSDL local (${serviceName}): ${error?.message}`);
-      }
       throw new Error(`No se pudo conectar al servicio ${serviceName}: ${error?.message || String(error)}`);
     }
   }
