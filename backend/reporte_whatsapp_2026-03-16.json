@@ -1,5 +1,5 @@
 {
-  "fecha": "2026-03-16T19:46:17.859Z",
+  "fecha": "2026-03-16T20:09:42.482Z",
   "total": 1,
   "exitosos": 0,
   "fallidos": 1,
@@ -19,7 +19,7 @@
             "messaging_product": "whatsapp",
             "details": "template name (cancelar) does not exist in es"
           },
-          "fbtrace_id": "AZjvinkjOfqaVf8xgJvU6qu"
+          "fbtrace_id": "AqAZGdDhUJ2s3iHaeCgCXvb"
         }
       }
     }
