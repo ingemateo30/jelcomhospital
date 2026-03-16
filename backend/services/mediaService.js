@@ -22,18 +22,13 @@ if (!fs.existsSync(MEDIA_DIR)) {
 
 /**
  * Obtener información del archivo multimedia desde Meta API
- * @param {string} mediaId - ID del media en Meta API
- * @returns {Promise<Object>} Información del media (url, mime_type, sha256, file_size)
  */
 async function getMediaInfo(mediaId) {
   try {
     const url = `${META_WA_BASE_URL}/${mediaId}`;
     const response = await axios.get(url, {
-      headers: {
-        'Authorization': `Bearer ${META_TOKEN}`
-      }
+      headers: { 'Authorization': `Bearer ${META_TOKEN}` }
     });
-
     console.log(`📋 Info del media ${mediaId}:`, response.data);
     return response.data;
   } catch (error) {
@@ -44,27 +39,18 @@ async function getMediaInfo(mediaId) {
 
 /**
  * Descargar archivo multimedia desde la URL de Meta
- * @param {string} mediaUrl - URL del archivo en Meta API
- * @param {string} mediaId - ID del media para nombrar el archivo
- * @param {string} mimeType - Tipo MIME del archivo
- * @returns {Promise<string>} Ruta local del archivo descargado
  */
 async function downloadMediaFile(mediaUrl, mediaId, mimeType) {
   try {
-    // Obtener extensión del archivo según el MIME type
     const extension = getFileExtension(mimeType);
     const filename = `${mediaId}${extension}`;
     const filepath = path.join(MEDIA_DIR, filename);
 
-    // Descargar el archivo
     const response = await axios.get(mediaUrl, {
-      headers: {
-        'Authorization': `Bearer ${META_TOKEN}`
-      },
+      headers: { 'Authorization': `Bearer ${META_TOKEN}` },
       responseType: 'stream'
     });
 
-    // Guardar el archivo en disco
     const writer = fs.createWriteStream(filepath);
     response.data.pipe(writer);
 
@@ -86,8 +72,6 @@ async function downloadMediaFile(mediaUrl, mediaId, mimeType) {
 
 /**
  * Obtener extensión de archivo según el MIME type
- * @param {string} mimeType - Tipo MIME del archivo
- * @returns {string} Extensión del archivo con punto (ej: .jpg)
  */
 function getFileExtension(mimeType) {
   const mimeMap = {
@@ -133,16 +117,13 @@ function getFileExtension(mimeType) {
 }
 
 /**
- * Procesar y guardar archivo multimedia completo
- * @param {Object} params - Parámetros del media
- * @param {string} params.messageId - ID del mensaje
- * @param {string} params.mediaId - ID del media en Meta API
- * @param {string} params.phone - Número de teléfono del remitente
- * @param {string} params.mediaType - Tipo de media (image, audio, video, document)
- * @returns {Promise<Object>} Información del archivo procesado
+ * Procesar y guardar archivo multimedia completo.
+ * El tracking en multimedia_descargas es opcional — si falla (tabla inexistente,
+ * FK, etc.) el flujo continúa y los datos críticos se guardan en mensajes.
  */
 async function processMediaMessage(params) {
   const { messageId, mediaId, phone, mediaType } = params;
+  let trackingInserted = false;
 
   try {
     console.log(`🎬 Procesando media ${mediaType} - ID: ${mediaId}`);
@@ -151,13 +132,18 @@ async function processMediaMessage(params) {
     const mediaInfo = await getMediaInfo(mediaId);
     const { url: mediaUrl, mime_type, sha256, file_size } = mediaInfo;
 
-    // 2. Registrar descarga en BD (estado: downloading)
-    await db.query(
-      `INSERT INTO multimedia_descargas
-       (mensaje_id, media_id, url_original, estado, intentos)
-       VALUES (?, ?, ?, 'downloading', 1)`,
-      [messageId, mediaId, mediaUrl]
-    );
+    // 2. Registrar descarga en BD (estado: downloading) — opcional
+    try {
+      await db.execute(
+        `INSERT INTO multimedia_descargas
+         (mensaje_id, media_id, url_original, estado, intentos)
+         VALUES (?, ?, ?, 'downloading', 1)`,
+        [messageId, mediaId, mediaUrl]
+      );
+      trackingInserted = true;
+    } catch (trackErr) {
+      console.warn(`⚠️ No se pudo registrar en multimedia_descargas: ${trackErr.message}`);
+    }
 
     // 3. Descargar el archivo
     const localPath = await downloadMediaFile(mediaUrl, mediaId, mime_type);
@@ -169,7 +155,7 @@ async function processMediaMessage(params) {
     // 5. Generar URL pública para acceso (relativa al servidor)
     const publicUrl = `/media/${path.basename(localPath)}`;
 
-    // 6. Preparar metadata según el tipo
+    // 6. Preparar metadata
     const metadata = {
       sha256,
       original_size: file_size,
@@ -177,29 +163,35 @@ async function processMediaMessage(params) {
       downloaded_at: new Date().toISOString()
     };
 
-    // 7. Actualizar mensaje en BD con información del media
-    await db.query(
+    // 7. Actualizar mensaje en BD con información del media (crítico)
+    await db.execute(
       `UPDATE mensajes
        SET tipo_media = ?,
-           url_media = ?,
-           url_meta = ?,
-           media_id = ?,
-           mime_type = ?,
-           tamaño_archivo = ?,
-           metadata = ?
+           url_media  = ?,
+           url_meta   = ?,
+           media_id   = ?,
+           mime_type  = ?,
+           \`tamaño_archivo\` = ?,
+           metadata   = ?
        WHERE id = ?`,
       [mediaType, publicUrl, mediaUrl, mediaId, mime_type, fileSize, JSON.stringify(metadata), messageId]
     );
 
-    // 8. Actualizar estado de descarga a completado
-    await db.query(
-      `UPDATE multimedia_descargas
-       SET estado = 'completed',
-           url_local = ?,
-           fecha_actualizacion = NOW()
-       WHERE mensaje_id = ? AND media_id = ?`,
-      [publicUrl, messageId, mediaId]
-    );
+    // 8. Actualizar estado de descarga a completado (opcional)
+    if (trackingInserted) {
+      try {
+        await db.execute(
+          `UPDATE multimedia_descargas
+           SET estado = 'completed',
+               url_local = ?,
+               fecha_actualizacion = NOW()
+           WHERE mensaje_id = ? AND media_id = ?`,
+          [publicUrl, messageId, mediaId]
+        );
+      } catch (trackErr) {
+        console.warn(`⚠️ No se pudo actualizar multimedia_descargas: ${trackErr.message}`);
+      }
+    }
 
     console.log(`✅ Media procesado exitosamente: ${publicUrl}`);
 
@@ -214,48 +206,49 @@ async function processMediaMessage(params) {
     };
 
   } catch (error) {
-    console.error(`❌ Error procesando media ${mediaId}:`, error);
+    console.error(`❌ Error procesando media ${mediaId}:`, error.message);
 
-    // Registrar error en BD
-    await db.query(
-      `UPDATE multimedia_descargas
-       SET estado = 'failed',
-           error_mensaje = ?,
-           intentos = intentos + 1,
-           fecha_actualizacion = NOW()
-       WHERE mensaje_id = ? AND media_id = ?`,
-      [error.message, messageId, mediaId]
-    );
+    // Registrar error en BD (opcional)
+    if (trackingInserted) {
+      try {
+        await db.execute(
+          `UPDATE multimedia_descargas
+           SET estado = 'failed',
+               error_mensaje = ?,
+               intentos = intentos + 1,
+               fecha_actualizacion = NOW()
+           WHERE mensaje_id = ? AND media_id = ?`,
+          [error.message, messageId, mediaId]
+        );
+      } catch (trackErr) {
+        // silencioso
+      }
+    }
 
     throw error;
   }
 }
 
 /**
- * Limpiar archivos antiguos de multimedia (opcional - para mantenimiento)
- * @param {number} daysOld - Días de antigüedad para eliminar
- * @returns {Promise<number>} Cantidad de archivos eliminados
+ * Limpiar archivos antiguos de multimedia (mantenimiento)
  */
 async function cleanupOldMedia(daysOld = 90) {
   try {
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - daysOld);
 
-    // Obtener archivos antiguos
-    const [rows] = await db.query(
-      `SELECT m.url_media, m.media_id
-       FROM mensajes m
-       WHERE m.fecha < ? AND m.tipo_media IS NOT NULL`,
+    const [rows] = await db.execute(
+      `SELECT url_media, media_id
+       FROM mensajes
+       WHERE fecha < ? AND tipo_media IS NOT NULL`,
       [cutoffDate]
     );
 
     let deletedCount = 0;
-
     for (const row of rows) {
       try {
         const filename = path.basename(row.url_media);
         const filepath = path.join(MEDIA_DIR, filename);
-
         if (fs.existsSync(filepath)) {
           fs.unlinkSync(filepath);
           deletedCount++;
@@ -268,7 +261,6 @@ async function cleanupOldMedia(daysOld = 90) {
 
     console.log(`🧹 Limpieza completada: ${deletedCount} archivos eliminados`);
     return deletedCount;
-
   } catch (error) {
     console.error('❌ Error en limpieza de archivos:', error);
     throw error;
@@ -277,25 +269,22 @@ async function cleanupOldMedia(daysOld = 90) {
 
 /**
  * Obtener estadísticas de multimedia
- * @returns {Promise<Object>} Estadísticas de uso de multimedia
  */
 async function getMediaStats() {
   try {
-    const [stats] = await db.query(`
+    const [stats] = await db.execute(`
       SELECT
         tipo_media,
         COUNT(*) as total,
-        SUM(tamaño_archivo) as total_bytes,
-        ROUND(AVG(tamaño_archivo)) as promedio_bytes
+        SUM(\`tamaño_archivo\`) as total_bytes,
+        ROUND(AVG(\`tamaño_archivo\`)) as promedio_bytes
       FROM mensajes
       WHERE tipo_media IS NOT NULL
       GROUP BY tipo_media
     `);
 
-    const [downloadStats] = await db.query(`
-      SELECT
-        estado,
-        COUNT(*) as total
+    const [downloadStats] = await db.execute(`
+      SELECT estado, COUNT(*) as total
       FROM multimedia_descargas
       GROUP BY estado
     `);

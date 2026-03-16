@@ -702,21 +702,24 @@ async function processMetaMessage(message, value) {
       return;
     }
 
-    // Guardar mensaje en BD
+    // Guardar mensaje en BD (incluyendo tipo_media y media_id desde el inicio)
     await saveMessageToDb({
       id,
       phone,
       body: messageBody,
       fromMe: false,
       timestamp: new Date(parseInt(timestamp) * 1000).toISOString(),
-      status: 'pendiente'
+      status: 'pendiente',
+      tipoMedia: mediaData?.mediaType || null,
+      mediaId: mediaData?.mediaId || null
     });
 
-    // Si hay multimedia, procesarlo y descargarlo
+    // Si hay multimedia, descargarlo y actualizar BD con url_media
+    let mediaResult = null;
     if (mediaData) {
       try {
         console.log(`   📥 Procesando archivo multimedia...`);
-        const mediaResult = await mediaService.processMediaMessage({
+        mediaResult = await mediaService.processMediaMessage({
           messageId: id,
           mediaId: mediaData.mediaId,
           phone: phone,
@@ -724,12 +727,12 @@ async function processMetaMessage(message, value) {
         });
         console.log(`   ✅ Multimedia procesado: ${mediaResult.publicUrl}`);
       } catch (mediaError) {
-        console.error(`   ❌ Error procesando multimedia:`, mediaError);
-        // No detener el flujo si falla la descarga del media
+        console.error(`   ❌ Error procesando multimedia:`, mediaError.message);
+        // No detener el flujo si falla la descarga
       }
     }
 
-    // Emitir evento Socket.io para actualizar frontend en tiempo real
+    // Emitir evento Socket.io con todos los datos de media disponibles
     if (global.io) {
       global.io.emit("chat:nuevo_mensaje", {
         numero: phone,
@@ -739,8 +742,10 @@ async function processMetaMessage(message, value) {
           mensaje: messageBody,
           fecha: new Date(parseInt(timestamp) * 1000).toISOString(),
           tipo: 'entrante',
-          tipo_media: mediaData?.mediaType,
-          media_id: mediaData?.mediaId
+          tipo_media: mediaData?.mediaType || null,
+          media_id: mediaData?.mediaId || null,
+          url_media: mediaResult?.publicUrl || null,
+          mime_type: mediaResult?.mimeType || null
         }
       });
     }
@@ -918,7 +923,7 @@ async function sendWhatsAppMessage(to, text) {
 /**
  * Guardar mensaje en base de datos
  */
-async function saveMessageToDb({ id, phone, body, fromMe, timestamp, status }) {
+async function saveMessageToDb({ id, phone, body, fromMe, timestamp, status, tipoMedia, mediaId }) {
   try {
     // Convertir timestamp a fecha/hora local de Colombia (GMT-5)
     const date = new Date(timestamp);
@@ -946,12 +951,13 @@ async function saveMessageToDb({ id, phone, body, fromMe, timestamp, status }) {
     const leido = fromMe ? 1 : 0;
 
     await db.execute(
-      `INSERT INTO mensajes (id, numero, mensaje, fecha, tipo, estado, leido)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [id, phone, body, fecha, fromMe ? 'saliente' : 'entrante', status, leido]
+      `INSERT INTO mensajes (id, numero, mensaje, fecha, tipo, estado, leido, tipo_media, media_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [id, phone, body, fecha, fromMe ? 'saliente' : 'entrante', status, leido,
+       tipoMedia || null, mediaId || null]
     );
 
-    console.log(`   📝 Mensaje guardado en BD [${fecha}]`);
+    console.log(`   📝 Mensaje guardado en BD [${fecha}]${tipoMedia ? ` [${tipoMedia}]` : ''}`);
 
     // Emitir evento Socket.io solo para mensajes salientes (los entrantes ya se emiten en processMetaMessage)
     if (fromMe && global.io) {
