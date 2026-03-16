@@ -1,5 +1,5 @@
 {
-  "fecha": "2026-03-16T18:59:12.371Z",
+  "fecha": "2026-03-16T19:46:17.859Z",
   "total": 1,
   "exitosos": 0,
   "fallidos": 1,
@@ -17,9 +17,9 @@
           "code": 132001,
           "error_data": {
             "messaging_product": "whatsapp",
-            "details": "template name (recordatorio_prueba) does not exist in es"
+            "details": "template name (cancelar) does not exist in es"
           },
-          "fbtrace_id": "A_xIT06xyx2tcBecuXYB72c"
+          "fbtrace_id": "AZjvinkjOfqaVf8xgJvU6qu"
         }
       }
     }

@@ -198,7 +198,7 @@ async function enviarPlantillaMeta(numero, reminder) {
       to: numero,
       type: "template",
       template: {
-        name: "recordatorio_prueba",
+        name: "cancelar",
         language: { code: "es" },
         components: [
           {
@@ -216,17 +216,6 @@ async function enviarPlantillaMeta(numero, reminder) {
             type: "body",
             parameters: bodyParameters,
           },
-          {
-            type: "button",
-            sub_type: "quick_reply",
-            index: "0",
-            parameters: [
-              {
-                type: "payload",
-                payload: "CANCELAR_CITA"
-              }
-            ]
-          }
         ],
       },
     };
