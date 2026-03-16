@@ -1,58 +1,83 @@
 const soap = require('soap');
+const https = require('https');
+const path = require('path');
+const fs = require('fs');
 require('dotenv').config();
+
+// Salud360 usa HTTPS con certificado auto-firmado o no verificable.
+// Se usa un agente HTTPS con rejectUnauthorized:false solo para este servicio interno.
+const sslAgent = new https.Agent({ rejectUnauthorized: false });
 
 /**
  * Cliente SOAP genérico para los WebServices de Salud360
  */
 class Salud360Client {
   constructor() {
-    this.baseUrl = process.env.SALUD360_BASE_URL;
+    // Forzar HTTPS aunque SALUD360_BASE_URL venga con http://
+    const rawUrl = process.env.SALUD360_BASE_URL || '';
+    this.baseUrl = rawUrl.replace(/^http:\/\//i, 'https://');
     this.usuario = process.env.SALUD360_USER;
     this.password = process.env.SALUD360_PASS;
     this.empresaCod = process.env.SALUD360_EMPRESA_COD;
     this.sedeCod = process.env.SALUD360_SEDE_COD;
     this.homsedciucli = process.env.SALUD360_HOMSEDCIUCLI;
+    this.wsdlDir = path.join(__dirname, '..', 'wsdl');
   }
 
   /**
-   * Crea un cliente SOAP para el servicio especificado
-   * @param {string} serviceName - Nombre del servicio (ej: 'awsproximascitas')
-   * @returns {Promise<Object>} Cliente SOAP
+   * Crea un cliente SOAP para el servicio especificado.
+   * Usa WSDL local si existe, si no intenta descargarlo vía HTTPS.
    */
   async createClient(serviceName) {
-    try {
-      const wsdlUrl = `${this.baseUrl}${serviceName}?wsdl`;
-      console.log(`[Salud360] Conectando a: ${wsdlUrl}`);
+    const localWsdlPath = path.join(this.wsdlDir, `${serviceName}.wsdl`);
+    const endpoint = `${this.baseUrl}${serviceName}`;
+    const useLocal = fs.existsSync(localWsdlPath);
+    const wsdlSource = useLocal ? localWsdlPath : `${endpoint}?wsdl`;
 
-      const client = await soap.createClientAsync(wsdlUrl, {
+    console.log(`[Salud360] Cargando WSDL ${useLocal ? 'LOCAL' : 'REMOTO'}: ${wsdlSource}`);
+    console.log(`[Salud360] Endpoint SOAP: ${endpoint}`);
+
+    try {
+      const client = await soap.createClientAsync(wsdlSource, {
         disableCache: true,
-        endpoint: `${this.baseUrl}${serviceName}`
+        endpoint,
+        wsdl_options: {
+          httpsAgent: sslAgent,
+          rejectUnauthorized: false,
+        },
       });
+
+      // Aplicar agente SSL también a las llamadas SOAP reales
+      if (client.httpClient && client.httpClient.defaults) {
+        client.httpClient.defaults.httpsAgent = sslAgent;
+      }
 
       console.log(`[Salud360] Cliente SOAP creado para: ${serviceName}`);
       return client;
     } catch (error) {
-      const detail = error?.response?.body || error?.cause?.message || error?.stack || error?.message || String(error);
+      const aggregateErrors = error?.cause?.errors || error?.errors || [];
+      const detail = error?.cause?.message || error?.response?.body || error?.stack || error?.message || String(error);
+
       console.error(`[Salud360] Error creando cliente SOAP para ${serviceName}:`);
       console.error(`   Tipo: ${error?.constructor?.name}`);
       console.error(`   Mensaje: ${error?.message}`);
+      console.error(`   Código: ${error?.code}`);
       console.error(`   Detalle: ${detail}`);
+      aggregateErrors.forEach((e, i) => {
+        console.error(`   Error[${i}]: ${e?.constructor?.name} - código=${e?.code} - ${e?.message}`);
+      });
+
       throw new Error(`No se pudo conectar al servicio ${serviceName}: ${error?.message || String(error)}`);
     }
   }
 
   /**
    * Ejecuta un método del WebService de Salud360
-   * @param {string} serviceName - Nombre del servicio
-   * @param {string} methodName - Nombre del método (ej: 'Execute')
-   * @param {Object} params - Parámetros del método
-   * @returns {Promise<Object>} Respuesta del servicio
    */
   async executeMethod(serviceName, methodName, params) {
     try {
       const client = await this.createClient(serviceName);
 
-      // Agregar credenciales a los parámetros
       const paramsWithAuth = {
         ...params,
         Usulog: this.usuario,
@@ -76,24 +101,15 @@ class Salud360Client {
 
   /**
    * Maneja los errores de Salud360
-   * @param {Object} response - Respuesta del servicio
-   * @returns {Object} Respuesta procesada o error
    */
   handleResponse(response) {
     const codigo = response.Codigo;
     const resultado = response.Resultado;
 
-    // Códigos de éxito
     if (codigo === 'S01') {
-      return {
-        success: true,
-        codigo,
-        resultado,
-        data: response
-      };
+      return { success: true, codigo, resultado, data: response };
     }
 
-    // Códigos de error
     const errorMessages = {
       'S02': 'Usuario o contraseña incorrecta',
       'S03': 'Código de Ciudad no existe o Cita Inexistente o Paciente no encontrado',
