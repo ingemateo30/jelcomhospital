@@ -20,7 +20,7 @@ const server = http.createServer(app);
 // Configurar Socket.io con CORS
 const io = socketIo(server, {
     cors: {
-        origin: process.env.CLIENT_URL || "http://localhost:3002",
+        origin: process.env.CLIENT_URL || "http://localhost:3000",
         methods: ["GET", "POST"],
         credentials: true
     }
@@ -30,7 +30,7 @@ const io = socketIo(server, {
 global.io = io;
 
 // Middleware
-app.use(cors({ origin: process.env.CLIENT_URL || "http://localhost:3002" }));
+app.use(cors({ origin: process.env.CLIENT_URL || "http://localhost:3000" }));
 app.use(express.json());
 app.use(morgan("dev"));
 app.use(express.urlencoded({ extended: true }));

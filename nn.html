@@ -1,0 +1,1562 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jelcom — Presentación Corporativa 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&display=swap" rel="stylesheet">
+
+<style>
+/* ══════════════════════════════════════════════════════════
+   ▸ CONFIGURACIÓN RÁPIDA — Edita estas variables para
+     personalizar colores, fuentes y animaciones globales
+══════════════════════════════════════════════════════════ */
+:root {
+  --black:    #0a0a0a;
+  --black2:   #111111;
+  --black3:   #1a1a1a;
+  --orange:   #f5820d;
+  --orange2:  #e8730a;
+  --orange-lt:#ffa940;
+  --white:    #ffffff;
+  --offwhite: #f5f0e8;
+  --gray:     #9a9a9a;
+  --lgray:    #e8e8e8;
+  --text:     #1a1a1a;
+  --slide-w:  297mm;
+  --slide-h:  167mm;
+  --anim-dur: 0.6s;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Barlow', sans-serif;
+  background: #0f0f0f;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  overflow-x: hidden;
+}
+
+/* ══ CONTROL BAR ══ */
+.control-bar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 48px;
+  background: rgba(10,10,10,0.97);
+  border-bottom: 1px solid rgba(245,130,13,0.25);
+  display: flex; align-items: center;
+  padding: 0 16px; gap: 8px;
+  z-index: 10000;
+  backdrop-filter: blur(10px);
+}
+
+.ctrl-label {
+  font-size: 7pt; letter-spacing: 0.2em; text-transform: uppercase;
+  color: rgba(245,130,13,0.6); font-weight: 700;
+  margin-right: 6px; white-space: nowrap;
+}
+
+.ctrl-btn {
+  padding: 6px 14px; border: 1px solid rgba(245,130,13,0.3);
+  background: transparent; color: rgba(255,255,255,0.7);
+  border-radius: 2px; cursor: pointer;
+  font-family: 'Barlow', sans-serif;
+  font-size: 8pt; font-weight: 600; letter-spacing: 0.06em;
+  text-transform: uppercase; transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.ctrl-btn:hover { background: rgba(245,130,13,0.15); color: var(--orange); border-color: var(--orange); }
+.ctrl-btn.active { background: var(--orange); color: var(--black); border-color: var(--orange); }
+
+.ctrl-sep { width: 1px; height: 24px; background: rgba(255,255,255,0.08); margin: 0 4px; }
+
+.ctrl-slide-btns { display: flex; gap: 4px; }
+
+.ctrl-slide-dot {
+  width: 28px; height: 28px; border-radius: 2px;
+  border: 1px solid rgba(245,130,13,0.2);
+  background: transparent; cursor: pointer;
+  font-family: 'Bebas Neue', sans-serif; font-size: 11pt;
+  color: rgba(255,255,255,0.4); transition: all 0.2s;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.ctrl-slide-dot:hover { border-color: var(--orange); color: var(--orange); }
+.ctrl-slide-dot.active { background: var(--orange); color: var(--black); border-color: var(--orange); }
+
+.ctrl-right { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+
+.print-btn {
+  padding: 8px 20px;
+  background: var(--orange); color: var(--black);
+  border: none; cursor: pointer; border-radius: 2px;
+  font-family: 'Barlow', sans-serif;
+  font-size: 8pt; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; transition: background 0.2s;
+}
+
+.print-btn:hover { background: var(--orange-lt); }
+
+/* ══ SLIDES WRAPPER ══ */
+.slides-wrapper {
+  padding-top: 64px;
+  padding-bottom: 32px;
+}
+
+/* ══ SLIDE BASE ══ */
+.slide {
+  width: var(--slide-w);
+  height: var(--slide-h);
+  margin: 0 auto 20px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  background: var(--black);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 4px 16px rgba(245,130,13,0.08);
+  transition: box-shadow 0.3s;
+}
+
+/* Slide animation base */
+.slide .anim-item {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity var(--anim-dur) ease, transform var(--anim-dur) ease;
+}
+
+.slide.visible .anim-item { opacity: 1; transform: translateY(0); }
+
+/* Staggered delays */
+.slide .anim-item:nth-child(1) { transition-delay: 0.05s; }
+.slide .anim-item:nth-child(2) { transition-delay: 0.12s; }
+.slide .anim-item:nth-child(3) { transition-delay: 0.19s; }
+.slide .anim-item:nth-child(4) { transition-delay: 0.26s; }
+.slide .anim-item:nth-child(5) { transition-delay: 0.33s; }
+.slide .anim-item:nth-child(6) { transition-delay: 0.40s; }
+.slide .anim-item:nth-child(7) { transition-delay: 0.47s; }
+.slide .anim-item:nth-child(8) { transition-delay: 0.54s; }
+
+/* Orange line animation */
+.slide .anim-line {
+  transform-origin: left;
+  transform: scaleX(0);
+  transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.slide.visible .anim-line { transform: scaleX(1); }
+
+/* Fade-up for cards */
+.slide .anim-card {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity 0.55s ease, transform 0.55s ease;
+}
+.slide.visible .anim-card { opacity: 1; transform: translateY(0); }
+.slide .anim-card:nth-child(1) { transition-delay: 0.1s; }
+.slide .anim-card:nth-child(2) { transition-delay: 0.22s; }
+.slide .anim-card:nth-child(3) { transition-delay: 0.34s; }
+
+/* Number counter animation */
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.slide.visible .anim-stat {
+  animation: countUp 0.6s ease forwards;
+}
+.slide.visible .anim-stat:nth-child(1) { animation-delay: 0.2s; }
+.slide.visible .anim-stat:nth-child(2) { animation-delay: 0.35s; }
+.slide.visible .anim-stat:nth-child(3) { animation-delay: 0.5s; }
+
+/* Subtle grain texture overlay */
+.slide::after {
+  content: '';
+  position: absolute; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none; z-index: 100;
+  opacity: 0.4;
+}
+
+/* ══ IMAGE PLACEHOLDERS ══ */
+.img-container {
+  position: relative;
+  width: 100%; height: 100%;
+  overflow: hidden;
+}
+
+.img-bg {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  transition: transform 8s ease;
+}
+
+.slide:hover .img-bg { transform: scale(1.03); }
+
+.img-placeholder {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 8px;
+  background: rgba(245,130,13,0.04);
+  border: 1.5px dashed rgba(245,130,13,0.2);
+}
+
+.img-placeholder-icon {
+  width: 32px; height: 32px; opacity: 0.3;
+}
+
+.img-placeholder-label {
+  font-size: 6.5pt; letter-spacing: 0.12em;
+  text-transform: uppercase; color: rgba(245,130,13,0.4);
+  font-weight: 600; text-align: center; line-height: 1.4;
+}
+
+/* ══ LOGO AREA ══ */
+.logo-container {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 4px;
+}
+
+.logo-img-wrap {
+  width: 48px; height: 48px;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden; border-radius: 2px;
+}
+
+.logo-img-wrap img { width: 100%; height: 100%; object-fit: contain; }
+
+.logo-placeholder-wrap {
+  width: 40px; height: 40px;
+  border: 1.5px dashed rgba(245,130,13,0.3);
+  border-radius: 2px;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* ══ SLIDE HEADER / FOOTER ══ */
+.slide-header {
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 12mm;
+  background: var(--black);
+  border-bottom: 2px solid var(--orange);
+  display: flex; align-items: center;
+  padding: 0 12mm; justify-content: space-between;
+  z-index: 20;
+}
+
+.sh-brand {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 16pt; color: var(--white); letter-spacing: 0.06em;
+  display: flex; align-items: center; gap: 8px;
+}
+
+.sh-brand span { color: var(--orange); }
+
+.sh-logo-sm {
+  height: 20px; width: auto;
+  object-fit: contain;
+  filter: brightness(10);
+}
+
+.sh-section {
+  font-size: 7pt; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--gray); font-weight: 500;
+}
+
+.slide-footer {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 7mm;
+  background: var(--orange);
+  display: flex; align-items: center;
+  padding: 0 12mm; justify-content: space-between;
+  z-index: 20;
+}
+
+.sf-text {
+  font-size: 6.5pt; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--black);
+}
+
+.sf-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 12pt; color: rgba(0,0,0,0.4);
+}
+
+/* ════════════════════
+   SLIDE 1 — PORTADA
+════════════════════ */
+.s1 { background: var(--black); }
+
+.s1-left {
+  width: 52%; padding: 14mm 0 14mm 16mm;
+  display: flex; flex-direction: column; justify-content: center;
+  position: relative; z-index: 2;
+}
+
+.s1-right {
+  flex: 1; position: relative; overflow: hidden;
+}
+
+.s1-cut {
+  position: absolute; top: 0; left: -40px; bottom: 0; right: 0;
+  background: var(--black3);
+  clip-path: polygon(60px 0%, 100% 0%, 100% 100%, 0% 100%);
+}
+
+.s1-accent { width: 44px; height: 3px; background: var(--orange); margin-bottom: 14px; }
+
+.s1-kicker {
+  font-size: 7pt; letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--orange); font-weight: 600; margin-bottom: 16px;
+}
+
+.s1-logo-area {
+  margin-bottom: 6px;
+}
+
+.s1-logo-text {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 54pt; color: var(--white);
+  letter-spacing: 0.04em; line-height: 1;
+}
+
+.s1-logo-text span { color: var(--orange); }
+
+.s1-sub {
+  font-size: 8pt; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--gray); font-weight: 400; margin-bottom: 22px;
+}
+
+.s1-headline {
+  font-size: 13.5pt; line-height: 1.35;
+  color: var(--white); font-weight: 300;
+  max-width: 116mm; margin-bottom: 18px;
+}
+
+.s1-headline strong { color: var(--orange-lt); font-weight: 600; }
+
+.s1-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+
+.pill {
+  padding: 4px 12px; border-radius: 1px;
+  font-size: 7pt; letter-spacing: 0.06em;
+  font-weight: 600; text-transform: uppercase;
+}
+
+.pill-outline { border: 1px solid rgba(255,255,255,.16); color: rgba(255,255,255,.6); }
+.pill-orange  { background: var(--orange); color: var(--black); }
+
+.s1-footer {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 8mm; background: var(--orange);
+  display: flex; align-items: center; padding: 0 16mm;
+  justify-content: space-between; z-index: 10;
+}
+
+.s1-footer-text {
+  font-size: 7.5pt; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--black);
+}
+
+/* ════════════════════
+   SLIDE 2 — QUIÉNES SOMOS
+════════════════════ */
+.s2 { flex-direction: column; background: var(--white); }
+
+.s2-body {
+  flex: 1; padding: 14mm 12mm 10mm;
+  display: grid; grid-template-columns: 1fr 1fr;
+  margin-top: 12mm; margin-bottom: 7mm;
+}
+
+.s2-left { padding-right: 12mm; border-right: 1px solid var(--lgray); }
+.s2-right { padding-left: 12mm; }
+
+.s2-eyebrow {
+  font-size: 7pt; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--orange); font-weight: 700; margin-bottom: 8px;
+}
+
+.s2-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 26pt; color: var(--black); line-height: 1;
+  margin-bottom: 12px; letter-spacing: 0.02em;
+}
+
+.s2-body-text {
+  font-size: 8.5pt; font-weight: 300; line-height: 1.7;
+  color: #444; margin-bottom: 14px;
+}
+
+.big-stat { display: flex; gap: 18px; }
+
+.bs-item { text-align: center; }
+
+.bs-val {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28pt; color: var(--orange); line-height: 1;
+}
+
+.bs-lbl {
+  font-size: 7pt; text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--gray); font-weight: 500; line-height: 1.3;
+}
+
+/* DESPUÉS */
+.s2-right {
+  padding-left: 12mm;
+  display: flex;
+  flex-direction: column;
+}
+
+.s2-img-wrap {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  max-height: 58mm;        /* ← limita la altura máxima */
+  background: var(--lgray); border-radius: 2px;
+  overflow: hidden; margin-bottom: 12px; position: relative;
+  flex-shrink: 0;
+}
+
+.service-list {
+  flex: 1;
+  list-style: none;
+  overflow: hidden;        /* evita que se desborde */
+}
+
+
+.service-list li {
+  font-size: 8.5pt; font-weight: 400; color: var(--text);
+  padding: 7px 0; border-bottom: 1px solid var(--lgray);
+  display: flex; align-items: center; gap: 10px; line-height: 1.3;
+}
+
+.service-list li:last-child { border-bottom: none; }
+
+.sl-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 16pt; color: var(--orange); line-height: 1;
+  flex-shrink: 0; width: 22px;
+}
+
+.sl-label { font-size: 8.5pt; font-weight: 600; color: var(--black); line-height: 1.2; }
+.sl-sub   { font-size: 7pt; color: var(--gray); font-weight: 300; }
+
+/* ════════════════════
+   SLIDE 3 — SMS + WA
+════════════════════ */
+.s3 { background: var(--black); flex-direction: column; }
+
+.s3-body {
+  flex: 1; padding: 13mm 12mm 8mm;
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 10px; margin-top: 12mm; margin-bottom: 7mm;
+}
+
+.channel-block {
+  border-radius: 2px; padding: 14px 16px;
+  position: relative; overflow: hidden;
+}
+
+.channel-block.dark {
+  background: var(--black3); border: 1px solid rgba(255,255,255,.08);
+}
+
+.channel-block.orange { background: var(--orange); }
+
+.cb-tag {
+  font-size: 6.5pt; letter-spacing: 0.18em; font-weight: 700;
+  text-transform: uppercase; margin-bottom: 6px;
+}
+
+.channel-block.dark .cb-tag   { color: var(--orange); }
+.channel-block.orange .cb-tag { color: rgba(0,0,0,.5); }
+
+.cb-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 18pt; letter-spacing: 0.03em; margin-bottom: 6px; line-height: 1;
+}
+
+.channel-block.dark .cb-title   { color: var(--white); }
+.channel-block.orange .cb-title { color: var(--black); }
+
+.cb-desc {
+  font-size: 7.5pt; font-weight: 300; line-height: 1.65; margin-bottom: 8px;
+}
+
+.channel-block.dark .cb-desc   { color: rgba(255,255,255,.55); }
+.channel-block.orange .cb-desc { color: rgba(0,0,0,.7); }
+
+.cb-min-note {
+  font-size: 7pt; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; padding: 4px 8px; border-radius: 1px;
+  display: inline-block; margin-bottom: 8px;
+}
+
+.channel-block.dark .cb-min-note { background: rgba(245,130,13,0.12); color: var(--orange-lt); }
+.channel-block.orange .cb-min-note { background: rgba(0,0,0,0.12); color: rgba(0,0,0,.7); }
+
+.cb-price-row { display: flex; gap: 14px; flex-wrap: wrap; }
+
+.cb-price { display: flex; flex-direction: column; }
+
+.cb-price-val {
+  font-family: 'Bebas Neue', sans-serif; font-size: 18pt; line-height: 1;
+}
+
+.channel-block.dark .cb-price-val   { color: var(--orange); }
+.channel-block.orange .cb-price-val { color: var(--black); }
+
+.cb-price-lbl {
+  font-size: 7pt; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 500;
+}
+
+.channel-block.dark .cb-price-lbl   { color: rgba(255,255,255,.35); }
+.channel-block.orange .cb-price-lbl { color: rgba(0,0,0,.45); }
+
+.cb-img-wrap {
+  height: 50px; border-radius: 2px; margin-bottom: 10px;
+  overflow: hidden; position: relative;
+}
+
+.channel-block.dark .cb-img-wrap   { background: rgba(255,255,255,.04); }
+.channel-block.orange .cb-img-wrap { background: rgba(0,0,0,.08); }
+
+/* ════════════════════
+   SLIDE 4 — EMAIL + VOZ
+════════════════════ */
+.s4 { background: var(--offwhite); flex-direction: column; }
+
+.s4-body {
+  flex: 1; padding: 13mm 12mm 8mm;
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 10px; margin-top: 12mm; margin-bottom: 7mm;
+}
+
+.channel-block2 {
+  border-radius: 2px; padding: 14px 16px;
+  position: relative; overflow: hidden;
+}
+
+.channel-block2.light {
+  background: var(--white); border: 1px solid rgba(0,0,0,.07);
+  box-shadow: 0 2px 12px rgba(0,0,0,.05);
+}
+
+.channel-block2.black { background: var(--black); }
+
+.cb2-tag {
+  font-size: 6.5pt; letter-spacing: 0.18em; font-weight: 700;
+  text-transform: uppercase; margin-bottom: 6px; color: var(--orange);
+}
+
+.cb2-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 18pt; letter-spacing: 0.03em; margin-bottom: 6px; line-height: 1;
+}
+
+.channel-block2.light .cb2-title { color: var(--black); }
+.channel-block2.black .cb2-title { color: var(--white); }
+
+.cb2-desc {
+  font-size: 7.5pt; font-weight: 300; line-height: 1.65; margin-bottom: 8px;
+}
+
+.channel-block2.light .cb2-desc { color: #555; }
+.channel-block2.black .cb2-desc { color: rgba(255,255,255,.55); }
+
+.cb2-min-note {
+  font-size: 7pt; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; padding: 4px 8px; border-radius: 1px;
+  display: inline-block; margin-bottom: 8px;
+}
+
+.channel-block2.light .cb2-min-note { background: rgba(245,130,13,0.1); color: var(--orange2); }
+.channel-block2.black .cb2-min-note { background: rgba(245,130,13,0.12); color: var(--orange-lt); }
+
+.cb2-img-wrap {
+  height: 50px; border-radius: 2px; margin-bottom: 10px;
+  overflow: hidden; position: relative;
+}
+
+.channel-block2.light .cb2-img-wrap { background: var(--lgray); }
+.channel-block2.black .cb2-img-wrap { background: rgba(255,255,255,.05); }
+
+.cb2-price-row { display: flex; gap: 14px; flex-wrap: wrap; }
+
+.cb2-price-val {
+  font-family: 'Bebas Neue', sans-serif; font-size: 18pt; line-height: 1;
+  color: var(--orange);
+}
+
+.cb2-price-lbl {
+  font-size: 7pt; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 500;
+}
+
+.channel-block2.light .cb2-price-lbl { color: #888; }
+.channel-block2.black .cb2-price-lbl { color: rgba(255,255,255,.35); }
+
+/* ════════════════════
+   SLIDE 5 — PAQUETES
+════════════════════ */
+.s5 { background: var(--black); flex-direction: column; }
+
+.s5-body {
+  flex: 1; padding: 13mm 12mm 8mm;
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 10px; margin-top: 12mm; margin-bottom: 7mm;
+}
+
+.pack-card {
+  border-radius: 2px; overflow: hidden;
+  display: flex; flex-direction: column;
+}
+
+.pack-card.std, .pack-card.emp {
+  background: var(--black3); border: 1px solid rgba(255,255,255,.07);
+}
+
+.pack-card.prem { background: var(--orange); }
+
+.pack-head {
+  padding: 12px 14px 10px;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+}
+
+.pack-card.prem .pack-head { border-bottom-color: rgba(0,0,0,.1); }
+
+.pack-tag {
+  font-size: 6.5pt; letter-spacing: 0.18em; text-transform: uppercase;
+  font-weight: 700; margin-bottom: 4px;
+}
+
+.pack-card.std .pack-tag, .pack-card.emp .pack-tag { color: var(--orange); }
+.pack-card.prem .pack-tag { color: rgba(0,0,0,.45); }
+
+.pack-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 18pt; letter-spacing: 0.04em; line-height: 1;
+}
+
+.pack-card.std .pack-name, .pack-card.emp .pack-name { color: var(--white); }
+.pack-card.prem .pack-name { color: var(--black); }
+
+.pack-price {
+  font-family: 'Bebas Neue', sans-serif; font-size: 22pt; line-height: 1; margin-top: 6px;
+}
+
+.pack-card.std .pack-price, .pack-card.emp .pack-price { color: var(--orange); }
+.pack-card.prem .pack-price { color: var(--black); }
+
+.pack-psub {
+  font-size: 7pt; text-transform: uppercase; letter-spacing: 0.06em;
+  font-weight: 500; margin-top: 1px;
+}
+
+.pack-card.std .pack-psub, .pack-card.emp .pack-psub { color: rgba(255,255,255,.3); }
+.pack-card.prem .pack-psub { color: rgba(0,0,0,.4); }
+
+.pack-body { padding: 10px 14px; flex: 1; }
+
+.pack-row {
+  font-size: 7.5pt; font-weight: 400; line-height: 1.5; margin-bottom: 5px;
+  display: flex; align-items: baseline; gap: 7px;
+}
+
+.pack-row::before {
+  content: ''; width: 14px; height: 1.5px; flex-shrink: 0; margin-top: 7px;
+}
+
+.pack-card.std .pack-row, .pack-card.emp .pack-row { color: rgba(255,255,255,.6); }
+.pack-card.std .pack-row::before, .pack-card.emp .pack-row::before { background: rgba(245,130,13,.5); }
+.pack-card.prem .pack-row { color: rgba(0,0,0,.75); }
+.pack-card.prem .pack-row::before { background: rgba(0,0,0,.3); }
+
+/* ════════════════════
+   SLIDE 6 — BENEFICIOS
+════════════════════ */
+.s6 { background: var(--white); flex-direction: column; }
+
+.s6-body {
+  flex: 1; padding: 13mm 12mm 8mm;
+  display: grid; grid-template-columns: 55% 1fr;
+  gap: 12mm; margin-top: 12mm; margin-bottom: 7mm;
+}
+
+.s6-eyebrow {
+  font-size: 7pt; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--orange); font-weight: 700; margin-bottom: 8px;
+}
+
+.metric-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 8px; margin-bottom: 10px;
+}
+
+.metric-card {
+  background: var(--black); border-radius: 2px; padding: 10px 12px;
+}
+
+.mc-val {
+  font-family: 'Bebas Neue', sans-serif; font-size: 22pt;
+  color: var(--orange); line-height: 1; margin-bottom: 2px;
+}
+
+.mc-label { font-size: 7.5pt; color: rgba(255,255,255,.5); font-weight: 300; line-height: 1.4; }
+
+.mc-compare { display: flex; align-items: center; gap: 5px; margin-top: 4px; }
+.mc-before  { font-size: 7pt; color: rgba(255,255,255,.25); text-decoration: line-through; font-weight: 300; }
+.mc-arrow   { font-size: 9pt; color: var(--orange); font-weight: 700; }
+.mc-after   { font-size: 7pt; color: rgba(245,130,13,.9); font-weight: 600; }
+
+.s6-img-wrap {
+  width: 100%; height: 300px;
+  background: var(--lgray); border-radius: 2px;
+  overflow: hidden; position: relative;
+}
+
+.cond-list { list-style: none; }
+
+.cond-list li {
+  font-size: 8pt; font-weight: 400; color: var(--text);
+  padding: 7px 0; border-bottom: 1px solid var(--lgray);
+  display: flex; align-items: flex-start; gap: 8px; line-height: 1.4;
+}
+
+.cond-list li:last-child { border-bottom: none; }
+
+.cond-dot {
+  width: 5px; height: 5px; background: var(--orange);
+  border-radius: 50%; flex-shrink: 0; margin-top: 5px;
+}
+
+/* ════════════════════
+   SLIDE 7 — CIERRE
+════════════════════ */
+.s7 { background: var(--black); }
+
+.s7-left {
+  width: 55%; padding: 14mm 12mm 14mm 16mm;
+  display: flex; flex-direction: column; justify-content: center;
+  position: relative; z-index: 2;
+}
+
+.s7-right { flex: 1; position: relative; overflow: hidden; }
+
+.s7-right-bg {
+  position: absolute; inset: 0; background: var(--orange);
+  clip-path: polygon(30px 0%, 100% 0%, 100% 100%, 0% 100%);
+}
+
+.s7-right-img img {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  display: block;
+  transition: none;
+}
+
+
+
+
+
+.s7-accent { width: 44px; height: 4px; background: var(--orange); margin-bottom: 14px; }
+
+.s7-kicker {
+  font-size: 7pt; letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--orange); font-weight: 600; margin-bottom: 12px;
+}
+
+.s7-headline {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 30pt; color: var(--white); line-height: 1;
+  letter-spacing: 0.03em; margin-bottom: 14px;
+}
+
+.s7-headline span { color: var(--orange); }
+
+.s7-body {
+  font-size: 9pt; font-weight: 300; line-height: 1.7;
+  color: rgba(255,255,255,.55); max-width: 110mm; margin-bottom: 20px;
+}
+
+.s7-contacts { display: flex; flex-direction: column; gap: 8px; }
+
+.s7-contact { display: flex; align-items: center; gap: 10px; }
+
+.s7c-bar { width: 2px; height: 28px; background: var(--orange); flex-shrink: 0; }
+
+.s7c-label {
+  font-size: 6.5pt; letter-spacing: 0.14em; text-transform: uppercase;
+  color: rgba(255,255,255,.3); font-weight: 600; margin-bottom: 2px;
+}
+
+.s7c-val { font-size: 9.5pt; color: var(--white); font-weight: 500; }
+
+/* ══ SINGLE SLIDE MODE ══ */
+body.single-mode .slides-wrapper { padding-top: 0; }
+body.single-mode .slide { display: none; margin: 0; box-shadow: none; }
+body.single-mode .slide.active-slide {
+  display: flex;
+  width: 100vw; height: 100vh;
+  max-width: none; max-height: none;
+  border-radius: 0;
+}
+body.single-mode .slide.active-slide .anim-item,
+body.single-mode .slide.active-slide .anim-card,
+body.single-mode .slide.active-slide .anim-stat,
+body.single-mode .slide.active-slide .anim-line {
+  /* ensure already-visible */
+}
+
+/* ══ PRINT ══ */
+@page { size: A4 landscape; margin: 0; }
+
+@media print {
+  body { background: white; }
+  .control-bar { display: none !important; }
+  .slide {
+    display: flex !important;
+    page-break-after: always;
+    margin: 0 !important;
+    box-shadow: none !important;
+    width: 297mm; height: 167mm;
+  }
+  .slide:last-child { page-break-after: avoid; }
+  .slide::after { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════
+     ▸ BARRA DE CONTROL — Navega, presenta y configura
+══════════════════════════════════════════════════════════ -->
+<div class="control-bar" id="controlBar">
+  <span class="ctrl-label">Jelcom 2026</span>
+  <div class="ctrl-sep"></div>
+  <div class="ctrl-slide-btns" id="slideNav">
+    <button class="ctrl-slide-dot active" onclick="goSlide(0)" title="Portada">1</button>
+    <button class="ctrl-slide-dot" onclick="goSlide(1)" title="Quiénes Somos">2</button>
+    <button class="ctrl-slide-dot" onclick="goSlide(2)" title="SMS & WhatsApp">3</button>
+    <button class="ctrl-slide-dot" onclick="goSlide(3)" title="Email & Voz">4</button>
+    <button class="ctrl-slide-dot" onclick="goSlide(4)" title="Paquetes">5</button>
+    <button class="ctrl-slide-dot" onclick="goSlide(5)" title="Beneficios">6</button>
+    <button class="ctrl-slide-dot" onclick="goSlide(6)" title="Cierre">7</button>
+  </div>
+  <div class="ctrl-sep"></div>
+  <button class="ctrl-btn" id="btnScroll" onclick="toggleMode()">Presentar (pantalla completa)</button>
+  <button class="ctrl-btn" onclick="prevSlide()">← Anterior</button>
+  <button class="ctrl-btn" onclick="nextSlide()">Siguiente →</button>
+  <div class="ctrl-right">
+    <button class="print-btn" onclick="window.print()">Imprimir / PDF</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     ▸ SLIDES
+══════════════════════════════════════════════════════════ -->
+<div class="slides-wrapper" id="slidesWrapper">
+
+<!-- ═══════════════════════════
+     SLIDE 1 — PORTADA
+═══════════════════════════ -->
+<div class="slide s1" id="slide-0">
+
+  <div class="s1-left">
+    <div class="s1-accent anim-line"></div>
+    <div class="s1-kicker anim-item">Propuesta Comercial 2026</div>
+
+    <!-- LOGO: Cambia CONFIG.logo.url para mostrar tu logo -->
+    <div class="s1-logo-area anim-item" id="s1LogoArea">
+      <!-- Renderizado por JS desde CONFIG.logo -->
+    </div>
+
+    <div class="s1-sub anim-item">Soluciones Empresariales &nbsp;·&nbsp; Comunicación Multicanal</div>
+
+    <div class="s1-headline anim-item">
+      Conectamos su marca con cada cliente a través de <strong>SMS, WhatsApp, Email y Voz Automatizada</strong>
+    </div>
+
+    <div class="s1-pills anim-item">
+      <div class="pill pill-orange">SMS Masivo</div>
+      <div class="pill pill-outline">WhatsApp Business API</div>
+      <div class="pill pill-outline">Email Marketing</div>
+      <div class="pill pill-outline">IVR / Voz</div>
+    </div>
+  </div>
+
+  <div class="s1-right">
+    <div class="s1-cut"></div>
+    <!-- IMAGEN PORTADA: configura en CONFIG.images.cover -->
+    <div class="img-container" id="imgCover">
+      <!-- renderizado por JS -->
+    </div>
+  </div>
+
+  <div class="s1-footer anim-item">
+    <div class="s1-footer-text" id="s1FooterLeft"><!-- desde CONFIG --></div>
+    <div class="s1-footer-text" id="s1FooterRight"><!-- desde CONFIG --></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════
+     SLIDE 2 — QUIÉNES SOMOS
+═══════════════════════════ -->
+<div class="slide s2" id="slide-1">
+  <div class="slide-header">
+    <div class="sh-brand" id="sh2Brand"><!-- desde CONFIG --></div>
+    <div class="sh-section">Quiénes Somos &nbsp;·&nbsp; Nuestra Propuesta</div>
+  </div>
+
+  <div class="s2-body">
+    <div class="s2-left">
+      <div class="s2-eyebrow anim-item">Soluciones integrales de comunicación</div>
+      <div class="s2-title anim-item">OPTIMIZAMOS CADA PUNTO DE CONTACTO CON SUS CLIENTES</div>
+      <p class="s2-body-text anim-item">Jelcom Soluciones Empresariales ofrece una plataforma multicanal diseñada para que su organización llegue a cada cliente de forma oportuna, medible y automatizada. Nuestro objetivo es maximizar el alcance, la interacción y la conversión de sus comunicaciones corporativas, comerciales y transaccionales.</p>
+
+      <div class="big-stat">
+        <div class="bs-item anim-stat">
+          <div class="bs-val">95%</div>
+          <div class="bs-lbl">Tasa apertura<br>WhatsApp</div>
+        </div>
+        <div class="bs-item anim-stat">
+          <div class="bs-val">2–5</div>
+          <div class="bs-lbl">Días hábiles<br>implementación</div>
+        </div>
+        <div class="bs-item anim-stat">
+          <div class="bs-val">4</div>
+          <div class="bs-lbl">Canales<br>integrados</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="s2-right">
+      <div class="s2-img-wrap anim-item">
+        <div class="img-container" id="imgTeam"><!-- desde CONFIG --></div>
+      </div>
+
+      <ul class="service-list">
+        <li class="anim-item">
+          <span class="sl-num">01</span>
+          <div><div class="sl-label">Mensajería SMS Masiva</div><div class="sl-sub">Cobertura nacional e internacional</div></div>
+        </li>
+        <li class="anim-item">
+          <span class="sl-num">02</span>
+          <div><div class="sl-label">WhatsApp Business API</div><div class="sl-sub">API oficial Meta · Apertura &gt;95%</div></div>
+        </li>
+        <li class="anim-item">
+          <span class="sl-num">03</span>
+          <div><div class="sl-label">Email Marketing Masivo</div><div class="sl-sub">Hasta 50.000 envíos · Reportes incluidos</div></div>
+        </li>
+        <li class="anim-item">
+          <span class="sl-num">04</span>
+          <div><div class="sl-label">Bot de Llamadas IVR / Voz</div><div class="sl-sub">Recordatorios y confirmaciones automáticas</div></div>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <div class="sf-text" id="sf2Text"><!-- desde CONFIG --></div>
+    <div class="sf-num">02</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════
+     SLIDE 3 — SMS + WHATSAPP
+═══════════════════════════ -->
+<div class="slide s3" id="slide-2">
+  <div class="slide-header" style="background:var(--black);">
+    <div class="sh-brand" id="sh3Brand"><!-- desde CONFIG --></div>
+    <div class="sh-section" style="color:rgba(255,255,255,.35)">Servicios &nbsp;·&nbsp; SMS y WhatsApp</div>
+  </div>
+
+  <div class="s3-body">
+    <div class="channel-block dark anim-card">
+      <div class="cb-tag">Mensajería de Texto Masiva</div>
+      <div class="cb-title">SMS MASIVO</div>
+      <div class="cb-min-note">⚡ Mínimo: 5.000 SMS</div>
+      <p class="cb-desc">Alcance universal sin dependencia de datos ni apps. Funciona en cualquier dispositivo móvil, con cobertura nacional e internacional, confirmación de entrega DLR y hasta 9 mensajes por segundo con rate limit automático.</p>
+      <div class="cb-price-row">
+        <div class="cb-price">
+          <div class="cb-price-val">$100</div>
+          <div class="cb-price-lbl">/ SMS normal</div>
+        </div>
+        <div class="cb-price">
+          <div class="cb-price-val">$110</div>
+          <div class="cb-price-lbl">/ SMS con link</div>
+        </div>
+        <div class="cb-price">
+          <div class="cb-price-val">$150K</div>
+          <div class="cb-price-lbl">/ mes plataforma</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="channel-block orange anim-card">
+      
+      <div class="cb-tag">WhatsApp Business API</div>
+      <div class="cb-title">WHATSAPP API</div>
+      <div class="cb-min-note">⚡ Mínimo: 1.000 mensajes</div>
+      <p class="cb-desc">Canal de mayor efectividad del mercado. Mensajes con plantillas HSM aprobadas por Meta, entrega 24/7, métricas en tiempo real y respuesta bidireccional para sus campañas de comunicación y recordatorio.</p>
+      <div class="cb-price-row">
+        <div class="cb-price">
+          <div class="cb-price-val" style="color:var(--black);">$450</div>
+          <div class="cb-price-lbl" style="color:rgba(0,0,0,.45);">/ mensaje</div>
+        </div>
+        <div class="cb-price">
+          <div class="cb-price-val" style="color:var(--black);">$450K</div>
+          <div class="cb-price-lbl" style="color:rgba(0,0,0,.45);">Config. inicial</div>
+        </div>
+        <div class="cb-price">
+          <div class="cb-price-val" style="color:var(--black);">$4.5M</div>
+          <div class="cb-price-lbl" style="color:rgba(0,0,0,.45);">10K msj / mes</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <div class="sf-text" id="sf3Text"><!-- desde CONFIG --></div>
+    <div class="sf-num">03</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════
+     SLIDE 4 — EMAIL + VOZ
+═══════════════════════════ -->
+<div class="slide s4" id="slide-3">
+  <div class="slide-header" style="background:var(--black);">
+    <div class="sh-brand" id="sh4Brand"><!-- desde CONFIG --></div>
+    <div class="sh-section" style="color:rgba(255,255,255,.35)">Servicios &nbsp;·&nbsp; Email y Voz Automatizada</div>
+  </div>
+
+  <div class="s4-body">
+    <div class="channel-block2 light anim-card">
+      <div class="cb2-tag">Email Marketing Masivo</div>
+      <div class="cb2-title">EMAIL MASIVO</div>
+      <div class="cb2-min-note">⚡ Mínimo: 1.000 correos</div>
+      <p class="cb2-desc">Envíos masivos HTML con seguimiento completo de apertura, clics y rebotes. Incluye mejores prácticas de entregabilidad, reportes en tiempo real y gestión de listas. Ideal para comunicados, promociones e información institucional.</p>
+      <div class="cb2-price-row">
+        <div>
+          <div class="cb2-price-val">$200</div>
+          <div class="cb2-price-lbl">/ contacto (hasta 50K)</div>
+        </div>
+        <div>
+          <div class="cb2-price-val">$2M</div>
+          <div class="cb2-price-lbl">paquete 10K / mes</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="channel-block2 black anim-card">
+      <div class="cb2-tag">Bot de Llamada Automatizado</div>
+      <div class="cb2-title">IVR / VOZ</div>
+      <div class="cb2-min-note">⚡ Mínimo: 1.000 minutos</div>
+      <p class="cb2-desc">Llamadas salientes automatizadas con mensajes de voz sintetizados. Ideal para recordatorios de citas, encuestas de satisfacción y confirmaciones transaccionales. Incluye reporte de actividad y respuesta del receptor en tiempo real.</p>
+      <div class="cb2-price-row">
+        <div>
+          <div class="cb2-price-val">$400</div>
+          <div class="cb2-price-lbl">/ minuto saliente</div>
+        </div>
+        <div>
+          <div class="cb2-price-val">$2M</div>
+          <div class="cb2-price-lbl">paquete 5.000 min</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <div class="sf-text" id="sf4Text"><!-- desde CONFIG --></div>
+    <div class="sf-num">04</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════
+     SLIDE 5 — PAQUETES
+═══════════════════════════ -->
+<div class="slide s5" id="slide-4">
+  <div class="slide-header" style="background:var(--black);">
+    <div class="sh-brand" id="sh5Brand"><!-- desde CONFIG --></div>
+    <div class="sh-section" style="color:rgba(255,255,255,.35)">Paquetes Integrados &nbsp;·&nbsp; Ahorro por Combo</div>
+  </div>
+
+  <div class="s5-body">
+    <div class="pack-card std anim-card">
+      <div class="pack-head">
+        <div class="pack-tag">Pack Starter</div>
+        <div class="pack-name">STARTER</div>
+        <div class="pack-price">$2.650.000</div>
+        <div class="pack-psub">+ IVA / mes</div>
+      </div>
+      <div class="pack-body">
+        <div class="pack-row">SMS: 5.000 mensajes</div>
+        <div class="pack-row">WhatsApp: 2.000 mensajes</div>
+        <div class="pack-row">Email: 5.000 envíos</div>
+        <div class="pack-row">Bot voz: 1.000 minutos</div>
+        <div class="pack-row">Ideal para pequeñas empresas</div>
+        <div class="pack-row">Panel de control incluido</div>
+      </div>
+    </div>
+
+    <div class="pack-card emp anim-card">
+      <div class="pack-head">
+        <div class="pack-tag">Pack Empresarial</div>
+        <div class="pack-name">EMPRESARIAL</div>
+        <div class="pack-price">$6.300.000</div>
+        <div class="pack-psub">+ IVA / mes</div>
+      </div>
+      <div class="pack-body">
+        <div class="pack-row">SMS: 10.000 mensajes</div>
+        <div class="pack-row">WhatsApp: 5.000 mensajes</div>
+        <div class="pack-row">Email: 10.000 envíos</div>
+        <div class="pack-row">Bot voz: 3.000 minutos</div>
+        <div class="pack-row">Para campañas completas</div>
+        <div class="pack-row">Soporte técnico dedicado</div>
+      </div>
+    </div>
+
+    <div class="pack-card prem anim-card">
+      <div class="pack-head">
+        <div class="pack-tag">Pack Premium</div>
+        <div class="pack-name">CORPORATIVO</div>
+        <div class="pack-price" style="color:var(--black)">$11.300.000</div>
+        <div class="pack-psub">+ IVA / mes</div>
+      </div>
+      <div class="pack-body">
+        <div class="pack-row">SMS: 30.000 mensajes</div>
+        <div class="pack-row">WhatsApp: 10.000 mensajes</div>
+        <div class="pack-row">Email: 10.000 envíos</div>
+        <div class="pack-row">Bot voz: 5.000 minutos</div>
+        <div class="pack-row">Comunicación total multicanal</div>
+        <div class="pack-row">Integración centralizada</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <div class="sf-text" id="sf5Text"><!-- desde CONFIG --></div>
+    <div class="sf-num">05</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════
+     SLIDE 6 — BENEFICIOS
+═══════════════════════════ -->
+<div class="slide s6" id="slide-5">
+  <div class="slide-header" style="background:var(--black);">
+    <div class="sh-brand" id="sh6Brand"><!-- desde CONFIG --></div>
+    <div class="sh-section" style="color:rgba(255,255,255,.35)">Ventajas &nbsp;·&nbsp; Condiciones Comerciales</div>
+  </div>
+
+  <div class="s6-body">
+    <div class="s6-left">
+      <div class="s6-eyebrow anim-item">Por qué Jelcom</div>
+      <div class="metric-grid">
+        <div class="metric-card anim-card">
+          <div class="mc-val">&gt;95%</div>
+          <div class="mc-label">Tasa apertura WhatsApp</div>
+          <div class="mc-compare">
+            <span class="mc-before">Email 22%</span>
+            <span class="mc-arrow">→</span>
+            <span class="mc-after">WA +95%</span>
+          </div>
+        </div>
+        <div class="metric-card anim-card">
+          <div class="mc-val">24/7</div>
+          <div class="mc-label">Entrega y monitoreo automático</div>
+          <div class="mc-compare"><span class="mc-after">Sin intervención manual</span></div>
+        </div>
+        <div class="metric-card anim-card">
+          <div class="mc-val">2–5</div>
+          <div class="mc-label">Días hábiles para implementar</div>
+          <div class="mc-compare"><span class="mc-after">Rápida puesta en marcha</span></div>
+        </div>
+        <div class="metric-card anim-card">
+          <div class="mc-val">4×</div>
+          <div class="mc-label">Canales simultáneos activos</div>
+          <div class="mc-compare"><span class="mc-after">Plataforma unificada</span></div>
+        </div>
+      </div>
+      <div class="s6-img-wrap anim-item">
+        <div class="img-container" id="imgDash"><!-- desde CONFIG --></div>
+      </div>
+    </div>
+
+    <div class="s6-right">
+      <div class="s6-eyebrow anim-item">Condiciones comerciales</div>
+      <ul class="cond-list">
+        <li class="anim-item"><span class="cond-dot"></span><div><strong>Facturación mensual</strong> con desglose detallado por canal y campaña.</div></li>
+        <li class="anim-item"><span class="cond-dot"></span><div><strong>Contrato mínimo 3 meses</strong> para planes empresariales. Sin letra pequeña.</div></li>
+        <li class="anim-item"><span class="cond-dot"></span><div><strong>Soporte técnico</strong> vía Email y WhatsApp Business con tiempo de respuesta garantizado.</div></li>
+        <li class="anim-item"><span class="cond-dot"></span><div><strong>Implementación en 2 a 5 días hábiles</strong> desde la firma del contrato.</div></li>
+        <li class="anim-item"><span class="cond-dot"></span><div><strong>Reportes y KPIs en tiempo real</strong> — estadísticas de entrega, apertura, clics y respuesta.</div></li>
+        <li class="anim-item"><span class="cond-dot"></span><div><strong>Escalado por volumen</strong> disponible con tarifas competitivas.</div></li>
+        <li class="anim-item"><span class="cond-dot"></span><div><strong>Integración multicanal centralizada</strong> — un solo proveedor para todos sus canales.</div></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="slide-footer">
+    <div class="sf-text" id="sf6Text"><!-- desde CONFIG --></div>
+    <div class="sf-num">06</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════
+     SLIDE 7 — CIERRE / CTA
+═══════════════════════════ -->
+<div class="slide s7" id="slide-6">
+  <div class="s7-left">
+    <div class="s7-accent anim-line"></div>
+    <div class="s7-kicker anim-item">Próximo paso</div>
+    <div class="s7-headline anim-item">
+      HAGAMOS<br>QUE SU <span>MENSAJE</span><br>LLEGUE HOY
+    </div>
+    <p class="s7-body anim-item">Jelcom está listo para implementar la solución de comunicación multicanal que Ruitoque Golf Club necesita. Contáctenos para iniciar el proceso en menos de 5 días hábiles.</p>
+    <div class="s7-contacts" id="s7Contacts">
+      <!-- desde CONFIG -->
+    </div>
+  </div>
+
+  <div class="s7-right">
+    <div class="s7-right-bg"></div>
+    <div class="s7-right-img">
+      <div class="img-container" id="imgClosing" style="position:absolute;inset:0;">
+        <!-- desde CONFIG -->
+      </div>
+    </div>
+  </div>
+
+  <div class="slide-footer" style="background:var(--black); border-top: 1px solid rgba(255,255,255,.06);">
+    <div class="sf-text" style="color:rgba(255,255,255,.4);" id="sf7Text"><!-- desde CONFIG --></div>
+    <div class="sf-num" style="color:rgba(255,165,64,.4);">07</div>
+  </div>
+</div>
+
+</div><!-- /slides-wrapper -->
+
+<!-- ══════════════════════════════════════════════════════════
+     ▸ CONFIGURACIÓN PRINCIPAL
+     Edita este bloque para personalizar la presentación
+══════════════════════════════════════════════════════════ -->
+<script>
+/* ════════════════════════════════════════════════════════════
+   CONFIG — Todo lo que necesitas personalizar está aquí
+   ════════════════════════════════════════════════════════════
+
+   IMÁGENES:
+     - Usa una URL pública (https://...) o
+     - Convierte tu imagen local a base64:
+         Abre la imagen → En el navegador, ve a la consola (F12)
+         y ejecuta:
+           const img = document.createElement('img');
+           img.src = 'tu_imagen.jpg';  ← ruta local
+           // O arrastra la imagen al navegador y copia la URL
+         Alternativamente usa: https://www.base64-image.de/
+     - Deja "" para mostrar el marcador de posición
+
+   LOGO:
+     - url: URL o base64 del logo de la empresa
+     - height: altura del logo en portada (px)
+     - showText: true = muestra "JELCOM" junto al logo
+                 false = solo logo, oculta el texto
+════════════════════════════════════════════════════════════ */
+const CONFIG = {
+
+  /* ── Información de la empresa ── */
+  empresa: {
+    nombre:    "Jelcom",
+    slogan:    "Soluciones Empresariales",
+    telefono:  "3212631673",
+    email:     "info.jelcom@gmail.com",
+    cliente:   "Ruitoque Golf Club",
+    fecha:     "Febrero 2026",
+    contacto:  "María Alejandra Rueda",
+    cargo:     "Directora de Operaciones",
+  },
+
+  /* ── Logo de la empresa ── */
+  logo: {
+    url:      "",           // ← Pega aquí la URL o base64 de tu logo
+    height:   120,           // ← Altura del logo en portada (px)
+    showText: true,         // ← true: muestra "JELCOM" + logo / false: solo logo
+  },
+
+  /* ── Imágenes por sección ──
+     Opciones: URL pública o cadena base64 ("data:image/...;base64,...")
+     Deja "" para usar el marcador de posición gris            */
+  images: {
+    cover:   "2.jpeg",   // Portada (slide 1) — imagen de fondo derecho
+    team:    "imagen1.png",   // Quiénes somos (slide 2) — foto del equipo / oficina
+    sms:     "",   // SMS (slide 3) — captura de plataforma SMS
+    wa:      "",   // WhatsApp (slide 3) — captura de API WA
+    email:   "",   // Email (slide 4) — ejemplo campaña email
+    voz:     "",   // Bot Voz (slide 4) — dashboard IVR
+    dash:    "33.jpg",   // Dashboard / reportes (slide 6)
+    closing: "10.png",   // Imagen de cierre (slide 7)
+  },
+
+  /* ── Colores opcionales (sobrescriben las variables CSS) ──
+     Deja en null para usar los valores por defecto             */
+  colors: {
+    orange:   null,   // null = "#f5820d" por defecto
+    black:    null,   // null = "#0a0a0a" por defecto
+  },
+
+};
+/* ════════════════════════════════════════════════════════════
+   FIN DE CONFIGURACIÓN
+════════════════════════════════════════════════════════════ */
+
+
+/* ──────────────────────────────────────
+   MOTOR — No necesitas editar esto
+────────────────────────────────────── */
+
+// Apply custom colors
+if (CONFIG.colors.orange) document.documentElement.style.setProperty('--orange', CONFIG.colors.orange);
+if (CONFIG.colors.black)  document.documentElement.style.setProperty('--black',  CONFIG.colors.black);
+
+/* Render an image container or placeholder */
+function renderImg(containerId, url, label, dark) {
+  const c = document.getElementById(containerId);
+  if (!c) return;
+  if (url) {
+    const img = document.createElement('img');
+    img.src = url;
+    img.className = 'img-bg';
+    img.alt = label;
+    img.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;';
+    c.appendChild(img);
+  } else {
+    const ph = document.createElement('div');
+    ph.className = 'img-placeholder';
+    ph.style.background = dark ? 'rgba(0,0,0,0.06)' : 'rgba(245,130,13,0.03)';
+    ph.innerHTML = `
+      <svg class="img-placeholder-icon" viewBox="0 0 24 24" fill="none" stroke="${dark?'#555':'rgba(245,130,13,0.5)'}" stroke-width="1.5">
+        <rect x="3" y="3" width="18" height="18" rx="2"/>
+        <circle cx="8.5" cy="8.5" r="1.5"/>
+        <path d="M21 15l-5-5L5 21"/>
+      </svg>
+      <div class="img-placeholder-label" style="color:${dark?'rgba(0,0,0,0.3)':'rgba(245,130,13,0.4)'}">${label}</div>`;
+    c.appendChild(ph);
+  }
+}
+
+/* Render logo in header/portada */
+function renderLogo(containerId, small) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  const { url, height, showText } = CONFIG.logo;
+  const { nombre } = CONFIG.empresa;
+
+  // Derive display name parts: first 3 chars black, rest orange
+  const half = Math.ceil(nombre.length / 2);
+  const nameA = nombre.slice(0, half).toUpperCase();
+  const nameB = nombre.slice(half).toUpperCase();
+
+  if (small) {
+    // Compact header logo
+    el.innerHTML = url
+      ? `<img src="${url}" class="sh-logo-sm" alt="${nombre}" style="height:20px;margin-right:6px;">`
+      : '';
+    el.innerHTML += showText || !url
+      ? `${nameA}<span>${nameB}</span>`
+      : '';
+  } else {
+    // Portada logo
+    const logoImgHtml = url
+      ? `<div class="logo-img-wrap" style="height:${height}px;width:auto;">
+           <img src="${url}" alt="${nombre}" style="height:100%;width:auto;object-fit:contain;">
+         </div>`
+      : `<div class="logo-placeholder-wrap" style="width:${height}px;height:${height}px;">
+           <svg viewBox="0 0 24 24" fill="none" stroke="rgba(245,130,13,0.4)" stroke-width="1.5" width="20" height="20">
+             <rect x="2" y="2" width="20" height="20" rx="3"/>
+             <path d="M7 12h10M12 7v10"/>
+           </svg>
+         </div>`;
+
+    const textHtml = (showText || !url)
+      ? `<div class="s1-logo-text anim-item">${nameA}<span>${nameB}</span></div>`
+      : '';
+
+    el.innerHTML = `<div class="logo-container">${logoImgHtml}${textHtml}</div>`;
+  }
+}
+
+/* Render contact rows in slide 7 */
+function renderContacts() {
+  const c = document.getElementById('s7Contacts');
+  if (!c) return;
+  const { contacto, cargo, telefono, email } = CONFIG.empresa;
+  const rows = [
+    [cargo,                  contacto],
+    ['Teléfono / WhatsApp',  telefono],
+    ['Correo electrónico',   email],
+  ];
+  c.innerHTML = rows.map(([lbl, val]) => `
+    <div class="s7-contact anim-item">
+      <div class="s7c-bar"></div>
+      <div>
+        <div class="s7c-label">${lbl}</div>
+        <div class="s7c-val">${val}</div>
+      </div>
+    </div>`).join('');
+}
+
+/* Render footer texts */
+function renderFooters() {
+  const { nombre, slogan, email, telefono, cliente, fecha } = CONFIG.empresa;
+  const brand = `${nombre} ${slogan}`;
+  const contact = `${telefono} &nbsp;·&nbsp; ${email}`;
+
+  // Slide 1 footer
+  const f1l = document.getElementById('s1FooterLeft');
+  const f1r = document.getElementById('s1FooterRight');
+  if (f1l) f1l.textContent = `${brand} · ${cliente} · ${fecha}`;
+  if (f1r) f1r.innerHTML = contact;
+
+  // Inner slide footers
+  const footerIds = ['sf2Text','sf3Text','sf4Text','sf5Text','sf6Text','sf7Text'];
+  footerIds.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = `${brand} &nbsp;·&nbsp; ${email}`;
+  });
+}
+
+/* Render all header brand names */
+function renderHeaders() {
+  const { nombre } = CONFIG.empresa;
+  const half = Math.ceil(nombre.length / 2);
+  const nameA = nombre.slice(0, half).toUpperCase();
+  const nameB = nombre.slice(half).toUpperCase();
+  ['sh2Brand','sh3Brand','sh4Brand','sh5Brand','sh6Brand'].forEach(id => {
+    renderLogo(id, true);
+  });
+}
+
+/* Initialize everything */
+function init() {
+  const img = CONFIG.images;
+
+  // Logo in portada
+  renderLogo('s1LogoArea', false);
+
+  // Images
+  renderImg('imgCover',   img.cover,   'Imagen de portada',           false);
+  renderImg('imgTeam',    img.team,    'Foto equipo / oficina',        true);
+  renderImg('imgSms',     img.sms,     'Captura plataforma SMS',       false);
+  renderImg('imgWa',      img.wa,      'Captura WhatsApp API',         false);
+  renderImg('imgEmail',   img.email,   'Ejemplo campaña email',        true);
+  renderImg('imgVoz',     img.voz,     'Dashboard IVR / Voz',         false);
+  renderImg('imgDash',    img.dash,    'Dashboard / reportes',         true);
+  renderImg('imgClosing', img.closing, 'Imagen corporativa',           false);
+
+  // Text content
+  renderContacts();
+  renderFooters();
+  renderHeaders();
+}
+
+init();
+
+/* ── INTERSECTION OBSERVER: trigger animations when slide is visible ── */
+const slides = document.querySelectorAll('.slide');
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.15 });
+
+slides.forEach(s => observer.observe(s));
+
+/* ── SLIDE NAVIGATION ── */
+let currentSlide = -1;
+let isSingleMode = false;
+
+function updateDots(idx) {
+  document.querySelectorAll('.ctrl-slide-dot').forEach((d, i) => {
+    d.classList.toggle('active', i === idx);
+  });
+}
+
+function goSlide(idx) {
+  currentSlide = idx;
+  updateDots(idx);
+  if (isSingleMode) {
+    slides.forEach((s, i) => {
+      s.classList.toggle('active-slide', i === idx);
+      if (i === idx) setTimeout(() => s.classList.add('visible'), 50);
+    });
+  } else {
+    const target = document.getElementById(`slide-${idx}`);
+    if (target) {
+      const bar = document.getElementById('controlBar');
+      const barH = bar ? bar.offsetHeight : 48;
+      const top = target.getBoundingClientRect().top + window.scrollY - barH - 12;
+      window.scrollTo({ top, behavior: 'smooth' });
+    }
+  }
+}
+
+function nextSlide() {
+  const next = Math.min((currentSlide < 0 ? 0 : currentSlide) + 1, slides.length - 1);
+  goSlide(next);
+}
+
+function prevSlide() {
+  const prev = Math.max((currentSlide < 0 ? 0 : currentSlide) - 1, 0);
+  goSlide(prev);
+}
+
+function toggleMode() {
+  isSingleMode = !isSingleMode;
+  document.body.classList.toggle('single-mode', isSingleMode);
+  const btn = document.getElementById('btnScroll');
+  const bar = document.getElementById('controlBar');
+
+  if (isSingleMode) {
+    btn.textContent = 'Ver todas las diapositivas';
+    btn.classList.add('active');
+    bar.style.background = 'rgba(0,0,0,0.95)';
+    const startIdx = currentSlide < 0 ? 0 : currentSlide;
+    goSlide(startIdx);
+  } else {
+    btn.textContent = 'Presentar (pantalla completa)';
+    btn.classList.remove('active');
+    bar.style.background = '';
+    slides.forEach(s => s.classList.remove('active-slide'));
+    if (currentSlide >= 0) {
+      setTimeout(() => goSlide(currentSlide), 100);
+    }
+  }
+}
+
+/* Keyboard navigation */
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ')  { e.preventDefault(); nextSlide(); }
+  if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')                     { e.preventDefault(); prevSlide(); }
+  if (e.key === 'Escape' && isSingleMode)                                 { toggleMode(); }
+  if (e.key === 'f' || e.key === 'F')                                     { toggleMode(); }
+});
+
+/* Track current slide while scrolling */
+const scrollObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting && !isSingleMode) {
+      const idx = Array.from(slides).indexOf(entry.target);
+      if (idx !== -1) { currentSlide = idx; updateDots(idx); }
+    }
+  });
+}, { threshold: 0.5 });
+
+slides.forEach(s => scrollObserver.observe(s));
+</script>
+</body>
+</html>
