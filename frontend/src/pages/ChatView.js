@@ -82,7 +82,7 @@ function MediaBubble({ mensaje, isSaliente }) {
   if (mensaje.tipo_media === "audio") return (
     <div>
       {src
-        ? <audio src={src} controls className="w-full min-w-[240px] mt-1" />
+        ? <audio src={src} controls className="w-full max-w-full mt-1" />
         : <div className="flex items-center gap-2 text-sm opacity-60 py-1"><Headphones className="w-4 h-4"/><span>Audio</span></div>
       }
     </div>
@@ -225,11 +225,11 @@ const ChatView = () => {
   /* ─── render ─── */
   return (
     <div
-      className="flex flex-col bg-[#0b141a]"
+      className="flex flex-col bg-[#0b141a] w-full overflow-x-hidden"
       style={{ height: "calc(100vh - 72px)" }}
     >
       {/* ══ Header ══ */}
-      <div className="flex-shrink-0 bg-[#202c33] px-4 py-2.5 flex items-center gap-3 border-b border-white/5 shadow-sm">
+      <div className="flex-shrink-0 bg-[#202c33] px-4 py-2.5 flex items-center gap-3 border-b border-white/5 shadow-sm min-w-0">
         <button
           onClick={() => navigate("/dashboard/chats")}
           className="p-1.5 -ml-1.5 rounded-full hover:bg-white/10 transition-colors"
@@ -272,8 +272,8 @@ const ChatView = () => {
 
       {/* ══ Patient info panel (collapsible) ══ */}
       {showInfo && paciente && (
-        <div className="flex-shrink-0 bg-[#182229] border-b border-white/5 px-5 py-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="flex-shrink-0 bg-[#182229] border-b border-white/5 px-4 py-3 overflow-x-hidden">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 w-full">
             {paciente.SERVICIO && (
               <div className="flex items-center gap-2">
                 <Briefcase className="w-4 h-4 text-orange-400 flex-shrink-0"/>
@@ -313,11 +313,11 @@ const ChatView = () => {
               </div>
             )}
             {paciente.EMAIL && (
-              <div className="flex items-center gap-2 col-span-2">
+              <div className="flex items-center gap-2 min-w-0">
                 <Mail className="w-4 h-4 text-orange-400 flex-shrink-0"/>
-                <div>
+                <div className="min-w-0">
                   <p className="text-[10px] text-[#8696a0] uppercase tracking-wide">Correo</p>
-                  <p className="text-[#e9edef] text-sm font-medium">{paciente.EMAIL}</p>
+                  <p className="text-[#e9edef] text-sm font-medium truncate">{paciente.EMAIL}</p>
                 </div>
               </div>
             )}
@@ -328,7 +328,7 @@ const ChatView = () => {
       {/* ══ Messages area ══ */}
       <div
         ref={chatAreaRef}
-        className="flex-1 overflow-y-auto px-4 py-3"
+        className="flex-1 overflow-y-auto overflow-x-hidden px-4 py-3"
         style={{
           backgroundImage: `
             radial-gradient(circle at 1px 1px, rgba(255,255,255,0.03) 1px, transparent 0)
@@ -417,9 +417,9 @@ function MessageBubble({ msg, isSent, isFirst, isLast }) {
     : `${isFirst ? "4px" : "18px"} ${isFirst ? "18px" : "18px"} 18px ${isLast ? "4px" : "18px"}`;
 
   return (
-    <div className={`flex ${isSent ? "justify-end" : "justify-start"} ${isLast ? "mb-1" : "mb-0.5"}`}>
+    <div className={`flex ${isSent ? "justify-end" : "justify-start"} ${isLast ? "mb-1" : "mb-0.5"} w-full`}>
       <div
-        className={`relative max-w-[70%] min-w-[80px] px-3 py-2 shadow-sm ${
+        className={`relative max-w-[85%] sm:max-w-[75%] md:max-w-[65%] min-w-0 px-3 py-2 shadow-sm overflow-hidden ${
           isSent
             ? "bg-[#005c4b] text-[#e9edef]"
             : "bg-[#202c33] text-[#e9edef]"

@@ -189,7 +189,7 @@ const ChatList = () => {
 
   /* ─── render ─── */
   return (
-    <div className="flex flex-col bg-[#111b21]" style={{ height: "calc(100vh - 72px)" }}>
+    <div className="flex flex-col bg-[#111b21] w-full overflow-x-hidden" style={{ height: "calc(100vh - 72px)" }}>
 
       {/* ── Top bar ── */}
       <div className="flex-shrink-0 bg-[#202c33] px-4 py-3 flex items-center justify-between">
@@ -244,7 +244,7 @@ const ChatList = () => {
       <div
         ref={scrollRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto"
+        className="flex-1 overflow-y-auto overflow-x-hidden"
       >
         {error && (
           <div className="mx-4 mt-3 bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-lg text-sm">
@@ -330,8 +330,8 @@ function ChatItem({ chat, isLast, onClick }) {
           </span>
         </div>
 
-        <div className="flex items-center justify-between gap-2">
-          <LastMessagePreview chat={chat} />
+        <div className="flex items-center justify-between gap-2 min-w-0">
+          <div className="min-w-0 flex-1"><LastMessagePreview chat={chat} /></div>
           <div className="flex-shrink-0 flex items-center gap-1.5">
             {unread > 0 && (
               <span className="min-w-[20px] h-5 px-1 bg-orange-500 text-white text-[11px] font-bold rounded-full flex items-center justify-center">
