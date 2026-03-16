@@ -2,147 +2,185 @@ import { useEffect, useState, useRef, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import io from "socket.io-client";
-import { ArrowLeft, User, Phone, Calendar, Briefcase, Loader2, CheckCircle, XCircle, Clock, RefreshCw, Mail, Check, CheckCheck, Reply, Image, Video, Headphones, FileText, Download } from "lucide-react";
+import {
+  ArrowLeft, User, Phone, Calendar, Briefcase, Clock, Mail,
+  CheckCheck, Image, Video, Headphones, FileText, Download,
+  Loader2, ChevronDown, ChevronUp, CheckCircle, XCircle, RefreshCw,
+  Info,
+} from "lucide-react";
 
-const BASE_URL = process.env.REACT_APP_API_URL?.replace('/api', '') || "http://localhost:3001";
+const API_URL    = process.env.REACT_APP_API_URL || "http://localhost:3001/api";
+const SOCKET_URL = process.env.REACT_APP_API_URL?.replace('/api', '') || "http://localhost:3001";
+const BASE_URL   = SOCKET_URL;
 
+/* ─── helpers ─── */
+const AVATAR_COLORS = [
+  ["#e53935","#b71c1c"],["#8e24aa","#4a148c"],["#1e88e5","#0d47a1"],
+  ["#00897b","#004d40"],["#fb8c00","#e65100"],["#6d4c41","#3e2723"],
+  ["#039be5","#01579b"],["#43a047","#1b5e20"],
+];
+function avatarColor(name = "") {
+  const n = (name.charCodeAt(0)||0) + (name.charCodeAt(1)||0);
+  return AVATAR_COLORS[n % AVATAR_COLORS.length];
+}
+function initials(name = "") {
+  const p = name.trim().split(/\s+/);
+  if (p.length >= 2) return (p[0][0]+p[1][0]).toUpperCase();
+  return name.slice(0,2).toUpperCase()||"?";
+}
+function formatPhone(phone) {
+  if (!phone) return "";
+  const c = phone.toString().replace(/\D/g,"");
+  if (c.length === 10) return `${c.slice(0,3)} ${c.slice(3,6)} ${c.slice(6)}`;
+  return phone;
+}
+function formatTime(dateStr) {
+  if (!dateStr) return "";
+  return new Date(dateStr).toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit",hour12:false});
+}
+function formatDateSeparator(dateStr) {
+  if (!dateStr) return "";
+  const d    = new Date(dateStr);
+  const now  = new Date();
+  const msDay = 86400000;
+  const dDay  = new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime();
+  const nDay  = new Date(now.getFullYear(),now.getMonth(),now.getDate()).getTime();
+  const diff  = Math.round((nDay - dDay)/msDay);
+  if (diff === 0) return "Hoy";
+  if (diff === 1) return "Ayer";
+  return d.toLocaleDateString("es-ES",{day:"2-digit",month:"long",year:"numeric"});
+}
+
+/* ─── Media bubble ─── */
 function MediaBubble({ mensaje, isSaliente }) {
-  const src = mensaje.url_media ? `${BASE_URL}${mensaje.url_media}` : null;
-  const caption = mensaje.mensaje && !mensaje.mensaje.startsWith('[') ? mensaje.mensaje : null;
+  const src     = mensaje.url_media ? `${BASE_URL}${mensaje.url_media}` : null;
+  const caption = mensaje.mensaje && !mensaje.mensaje.startsWith("[") ? mensaje.mensaje : null;
+  const bubbleText = (txt) => (
+    <p className="text-[15px] leading-relaxed whitespace-pre-wrap break-words mt-1">{txt}</p>
+  );
 
-  if (mensaje.tipo_media === 'image') {
-    return (
-      <div className="space-y-1">
-        {src
-          ? <img src={src} alt="imagen" className="rounded-lg max-w-full max-h-60 object-cover" />
-          : <div className="flex items-center gap-2 text-sm opacity-70"><Image className="w-4 h-4" /><span>Imagen no disponible</span></div>
-        }
-        {caption && <p className="text-[15px] leading-relaxed whitespace-pre-wrap break-words">{caption}</p>}
-      </div>
-    );
-  }
+  if (mensaje.tipo_media === "image") return (
+    <div>
+      {src
+        ? <img src={src} alt="imagen" className="rounded-xl max-w-full max-h-64 object-cover" />
+        : <div className="flex items-center gap-2 text-sm opacity-60 py-1"><Image className="w-4 h-4"/><span>Imagen</span></div>
+      }
+      {caption && bubbleText(caption)}
+    </div>
+  );
 
-  if (mensaje.tipo_media === 'video') {
-    return (
-      <div className="space-y-1">
-        {src
-          ? <video src={src} controls className="rounded-lg max-w-full max-h-60" />
-          : <div className="flex items-center gap-2 text-sm opacity-70"><Video className="w-4 h-4" /><span>Video no disponible</span></div>
-        }
-        {caption && <p className="text-[15px] leading-relaxed whitespace-pre-wrap break-words">{caption}</p>}
-      </div>
-    );
-  }
+  if (mensaje.tipo_media === "video") return (
+    <div>
+      {src
+        ? <video src={src} controls className="rounded-xl max-w-full max-h-64" />
+        : <div className="flex items-center gap-2 text-sm opacity-60 py-1"><Video className="w-4 h-4"/><span>Video</span></div>
+      }
+      {caption && bubbleText(caption)}
+    </div>
+  );
 
-  if (mensaje.tipo_media === 'audio') {
-    return (
-      <div className="space-y-1">
-        {src
-          ? <audio src={src} controls className="w-full min-w-[200px]" />
-          : <div className="flex items-center gap-2 text-sm opacity-70"><Headphones className="w-4 h-4" /><span>Audio no disponible</span></div>
-        }
-        {caption && <p className="text-[15px] leading-relaxed whitespace-pre-wrap break-words">{caption}</p>}
-      </div>
-    );
-  }
+  if (mensaje.tipo_media === "audio") return (
+    <div>
+      {src
+        ? <audio src={src} controls className="w-full min-w-[240px] mt-1" />
+        : <div className="flex items-center gap-2 text-sm opacity-60 py-1"><Headphones className="w-4 h-4"/><span>Audio</span></div>
+      }
+    </div>
+  );
 
-  if (mensaje.tipo_media === 'document') {
-    const filename = mensaje.url_media ? mensaje.url_media.split('/').pop() : 'documento';
+  if (mensaje.tipo_media === "document") {
+    const fname = mensaje.url_media?.split("/").pop() || "documento";
     return (
-      <div className="space-y-1">
+      <div>
         {src
           ? (
             <a href={src} target="_blank" rel="noopener noreferrer"
-               className={`flex items-center gap-2 text-sm underline ${isSaliente ? 'text-orange-100' : 'text-blue-300'}`}>
-              <FileText className="w-4 h-4 flex-shrink-0" />
-              <span className="break-all">{caption || filename}</span>
-              <Download className="w-4 h-4 flex-shrink-0" />
+               className={`flex items-center gap-2 text-sm rounded-lg p-2 ${
+                 isSaliente ? "bg-orange-700/40 hover:bg-orange-700/60" : "bg-[#1a2e38] hover:bg-[#1f3540]"
+               } transition-colors`}>
+              <div className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
+                <FileText className="w-5 h-5"/>
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-[13px] font-medium">{caption || fname}</p>
+                <p className="text-[11px] opacity-60 uppercase">{fname.split(".").pop()}</p>
+              </div>
+              <Download className="w-4 h-4 flex-shrink-0 opacity-70"/>
             </a>
           )
-          : <div className="flex items-center gap-2 text-sm opacity-70"><FileText className="w-4 h-4" /><span>Documento no disponible</span></div>
+          : <div className="flex items-center gap-2 text-sm opacity-60 py-1"><FileText className="w-4 h-4"/><span>Documento</span></div>
         }
       </div>
     );
   }
 
-  // Texto plano
-  return <p className="text-[15px] leading-relaxed whitespace-pre-wrap break-words mb-1">{mensaje.mensaje}</p>;
+  return <p className="text-[15px] leading-relaxed whitespace-pre-wrap break-words">{mensaje.mensaje}</p>;
 }
 
-const API_URL = process.env.REACT_APP_API_URL || "http://localhost:3001/api";
-const SOCKET_URL = process.env.REACT_APP_API_URL?.replace('/api', '') || "http://localhost:3001";
-
-const ChatView = () => {
-  const { numero } = useParams();
-  const navigate = useNavigate();
-  const [mensajes, setMensajes] = useState([]);
-  const [paciente, setPaciente] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState("");
-  const messagesEndRef = useRef(null);
-  const socketRef = useRef(null);
-
-  useEffect(() => {
-    fetchChatMessages();
-
-    // Conectar a Socket.io
-    socketRef.current = io(SOCKET_URL);
-
-    // Escuchar nuevos mensajes
-    socketRef.current.on("chat:nuevo_mensaje", (data) => {
-      // Solo agregar si es para este chat
-      if (data.numero === numero) {
-        setMensajes(prev => [...prev, data.mensaje]);
-      }
-    });
-
-    // Cleanup al desmontar
-    return () => {
-      if (socketRef.current) {
-        socketRef.current.disconnect();
-      }
-    };
-  }, [numero]);
-
-  useEffect(() => {
-    // Scroll to bottom when messages load
-    scrollToBottom();
-  }, [mensajes]);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+/* ─── appointment status ─── */
+function statusBadge(estado) {
+  const map = {
+    confirmada:              { icon: <CheckCircle className="w-3.5 h-3.5"/>, bg:"bg-emerald-500/15 text-emerald-400 border-emerald-500/25" },
+    cancelada:               { icon: <XCircle    className="w-3.5 h-3.5"/>, bg:"bg-red-500/15 text-red-400 border-red-500/25" },
+    "reagendamiento solicitado": { icon: <RefreshCw  className="w-3.5 h-3.5"/>, bg:"bg-blue-500/15 text-blue-400 border-blue-500/25" },
   };
+  const s = map[estado] || { icon:<Clock className="w-3.5 h-3.5"/>, bg:"bg-orange-500/15 text-orange-400 border-orange-500/25" };
+  return (
+    <span className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border ${s.bg}`}>
+      {s.icon}{estado}
+    </span>
+  );
+}
 
-  const fetchChatMessages = async () => {
+/* ─── message grouping ─── */
+function groupMessages(msgs) {
+  const groups = [];
+  let curDate = null, curGroup = [];
+  msgs.forEach(m => {
+    const d = new Date(m.fecha);
+    const key = new Date(d.getFullYear(),d.getMonth(),d.getDate()).getTime();
+    if (key !== curDate) {
+      if (curGroup.length) groups.push({ date: curDate, messages: curGroup });
+      curDate = key; curGroup = [m];
+    } else {
+      curGroup.push(m);
+    }
+  });
+  if (curGroup.length) groups.push({ date: curDate, messages: curGroup });
+  return groups;
+}
+
+/* ─── ChatView ─── */
+const ChatView = () => {
+  const { numero }  = useParams();
+  const navigate    = useNavigate();
+  const [mensajes,  setMensajes]  = useState([]);
+  const [paciente,  setPaciente]  = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error,     setError]     = useState("");
+  const [showInfo,  setShowInfo]  = useState(false);
+
+  const messagesEndRef = useRef(null);
+  const socketRef      = useRef(null);
+  const chatAreaRef    = useRef(null);
+
+  /* ─── fetch ─── */
+  const fetchMessages = async () => {
     try {
       setIsLoading(true);
       const token = localStorage.getItem("token");
-
-      if (!token) {
-        setError("No tienes un token de autenticación. Inicia sesión nuevamente.");
-        window.location.href = "/login";
-        return;
-      }
-
-      const response = await axios.get(`${API_URL}/whatsapp/chats/${numero}`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+      if (!token) { window.location.href = "/login"; return; }
+      const { data } = await axios.get(`${API_URL}/whatsapp/chats/${numero}`, {
+        headers: { Authorization: `Bearer ${token}` },
       });
-
-      setMensajes(response.data.mensajes || []);
-      setPaciente(response.data.paciente);
-
-      // Marcar mensajes como leídos automáticamente al abrir el chat
+      setMensajes(data.mensajes || []);
+      setPaciente(data.paciente || null);
       markAsRead();
-    } catch (error) {
-      console.error("Error obteniendo mensajes:", error);
-      if (error.response?.status === 401) {
-        localStorage.removeItem("token");
-        window.location.href = "/login";
-        setError("Sesión expirada. Redirigiendo al login...");
+    } catch (err) {
+      if (err.response?.status === 401) {
+        localStorage.removeItem("token"); window.location.href = "/login";
       } else {
-        setError("Error al cargar los mensajes. Intenta nuevamente.");
+        setError("Error al cargar los mensajes.");
       }
     } finally {
       setIsLoading(false);
@@ -153,360 +191,274 @@ const ChatView = () => {
     try {
       const token = localStorage.getItem("token");
       if (!token) return;
-
-      await axios.put(
-        `${API_URL}/whatsapp/chats/${numero}/marcar-leido`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
-      );
-
-      console.log("Mensajes marcados como leídos");
-    } catch (error) {
-      console.error("Error marcando mensajes como leídos:", error);
-      // No mostrar error al usuario, es una operación en segundo plano
-    }
-  };
-
-  const getStatusColor = (estado) => {
-    switch(estado) {
-      case 'confirmada':
-        return "bg-green-500/10 text-green-400 border-green-500/20";
-      case 'cancelada':
-        return "bg-red-500/10 text-red-400 border-red-500/20";
-      case 'reagendamiento solicitado':
-        return "bg-blue-500/10 text-blue-400 border-blue-500/20";
-      default:
-        return "bg-orange-500/10 text-orange-400 border-orange-500/20";
-    }
-  };
-
-  const getStatusIcon = (estado) => {
-    switch(estado) {
-      case 'confirmada':
-        return <CheckCircle className="w-4 h-4" />;
-      case 'cancelada':
-        return <XCircle className="w-4 h-4" />;
-      case 'reagendamiento solicitado':
-        return <RefreshCw className="w-4 h-4" />;
-      default:
-        return <Clock className="w-4 h-4" />;
-    }
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
-    const date = new Date(dateString);
-    return date.toLocaleString('es-ES', {
-      day: '2-digit',
-      month: 'short',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  const formatPhone = (phone) => {
-    if (!phone) return "N/A";
-    const cleaned = phone.toString().replace(/\D/g, '');
-    if (cleaned.length === 10) {
-      return `${cleaned.slice(0, 3)} ${cleaned.slice(3, 6)} ${cleaned.slice(6)}`;
-    }
-    return phone;
-  };
-
-  // Formatear hora estilo WhatsApp (solo hora:minuto)
-  const formatTime = (dateString) => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    return date.toLocaleTimeString('es-ES', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false
-    });
-  };
-
-  // Formatear fecha completa para separadores
-  const formatDateSeparator = (dateString) => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-
-    // Normalizar fechas a medianoche para comparación
-    const messageDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    const yesterdayDate = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate());
-
-    if (messageDate.getTime() === todayDate.getTime()) {
-      return "Hoy";
-    } else if (messageDate.getTime() === yesterdayDate.getTime()) {
-      return "Ayer";
-    } else {
-      return date.toLocaleDateString('es-ES', {
-        day: '2-digit',
-        month: 'long',
-        year: 'numeric'
+      await axios.put(`${API_URL}/whatsapp/chats/${numero}/marcar-leido`, {}, {
+        headers: { Authorization: `Bearer ${token}` },
       });
-    }
+    } catch (_) {}
   };
 
-  // Agrupar mensajes por fecha para mostrar separadores
-  const groupedMessages = useMemo(() => {
-    if (!mensajes || mensajes.length === 0) return [];
-
-    const groups = [];
-    let currentDate = null;
-    let currentGroup = [];
-
-    mensajes.forEach((mensaje) => {
-      const messageDate = new Date(mensaje.fecha);
-      const messageDateOnly = new Date(
-        messageDate.getFullYear(),
-        messageDate.getMonth(),
-        messageDate.getDate()
-      ).getTime();
-
-      if (currentDate !== messageDateOnly) {
-        if (currentGroup.length > 0) {
-          groups.push({
-            date: currentDate,
-            messages: currentGroup
-          });
-        }
-        currentDate = messageDateOnly;
-        currentGroup = [mensaje];
-      } else {
-        currentGroup.push(mensaje);
+  /* ─── socket ─── */
+  useEffect(() => {
+    fetchMessages();
+    socketRef.current = io(SOCKET_URL);
+    socketRef.current.on("chat:nuevo_mensaje", (data) => {
+      if (data.numero === numero) {
+        setMensajes(prev => {
+          const exists = prev.some(m => m.id === data.mensaje.id);
+          if (exists) return prev;
+          return [...prev, data.mensaje];
+        });
+        markAsRead();
       }
     });
+    return () => socketRef.current?.disconnect();
+  }, [numero]);
 
-    // Agregar el último grupo
-    if (currentGroup.length > 0) {
-      groups.push({
-        date: currentDate,
-        messages: currentGroup
-      });
-    }
-
-    return groups;
+  /* ─── scroll to bottom on new messages ─── */
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [mensajes]);
 
+  const grouped = useMemo(() => groupMessages(mensajes), [mensajes]);
+  const [c1, c2] = avatarColor(paciente?.NOMBRE || numero);
+
+  /* ─── render ─── */
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 p-6">
-      <div className="max-w-5xl mx-auto">
-        {/* Header */}
-        <div className="mb-6">
-          <button
-            onClick={() => navigate('/dashboard/chats')}
-            className="flex items-center gap-2 text-gray-400 hover:text-orange-400 transition-colors mb-4"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            Volver a Chats
-          </button>
+    <div
+      className="flex flex-col bg-[#0b141a]"
+      style={{ height: "calc(100vh - 72px)" }}
+    >
+      {/* ══ Header ══ */}
+      <div className="flex-shrink-0 bg-[#202c33] px-4 py-2.5 flex items-center gap-3 border-b border-white/5 shadow-sm">
+        <button
+          onClick={() => navigate("/dashboard/chats")}
+          className="p-1.5 -ml-1.5 rounded-full hover:bg-white/10 transition-colors"
+        >
+          <ArrowLeft className="w-5 h-5 text-[#aebac1]" />
+        </button>
 
-          {paciente && (
-            <div className="bg-slate-800/50 backdrop-blur-lg rounded-2xl shadow-xl border border-slate-700/30 p-6">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center">
-                    <User className="w-8 h-8 text-white" />
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-bold text-white mb-1">
-                      {paciente.NOMBRE || "Sin nombre"}
-                    </h2>
-                    <div className="flex items-center gap-4 text-sm text-gray-400">
-                      <div className="flex items-center gap-1">
-                        <Phone className="w-4 h-4" />
-                        {formatPhone(numero)}
-                      </div>
-                      {paciente.EMAIL && (
-                        <div className="flex items-center gap-1">
-                          <Mail className="w-4 h-4" />
-                          {paciente.EMAIL}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                {paciente.ESTADO && (
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium border flex items-center gap-1 ${getStatusColor(paciente.ESTADO)}`}>
-                    {getStatusIcon(paciente.ESTADO)}
-                    {paciente.ESTADO}
-                  </span>
-                )}
-              </div>
+        {/* Avatar */}
+        <div
+          className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 text-white font-semibold text-sm select-none"
+          style={{ background: `linear-gradient(135deg, ${c1}, ${c2})` }}
+        >
+          {initials(paciente?.NOMBRE || numero)}
+        </div>
 
-              {/* Información de la cita */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6 pt-6 border-t border-slate-700/30">
-                {paciente.SERVICIO && (
-                  <div className="flex items-center gap-2 text-gray-300">
-                    <Briefcase className="w-5 h-5 text-orange-400" />
-                    <div>
-                      <p className="text-xs text-gray-500">Servicio</p>
-                      <p className="font-medium">{paciente.SERVICIO}</p>
-                    </div>
-                  </div>
-                )}
-                {paciente.FECHA_CITA && (
-                  <div className="flex items-center gap-2 text-gray-300">
-                    <Calendar className="w-5 h-5 text-orange-400" />
-                    <div>
-                      <p className="text-xs text-gray-500">Fecha de Cita</p>
-                      <p className="font-medium">
-                        {new Date(paciente.FECHA_CITA).toLocaleDateString('es-ES')}
-                      </p>
-                    </div>
-                  </div>
-                )}
-                {paciente.HORA_CITA && (
-                  <div className="flex items-center gap-2 text-gray-300">
-                    <Clock className="w-5 h-5 text-orange-400" />
-                    <div>
-                      <p className="text-xs text-gray-500">Hora</p>
-                      <p className="font-medium">{paciente.HORA_CITA}</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-              {paciente.PROFESIONAL && (
-                <div className="mt-4 pt-4 border-t border-slate-700/30">
-                  <div className="flex items-center gap-2 text-gray-300">
-                    <User className="w-5 h-5 text-orange-400" />
-                    <div>
-                      <p className="text-xs text-gray-500">Profesional</p>
-                      <p className="font-medium">{paciente.PROFESIONAL}</p>
-                    </div>
-                  </div>
+        {/* Name + phone */}
+        <div className="flex-1 min-w-0">
+          <p className="text-[#e9edef] font-semibold text-[15px] leading-tight truncate">
+            {paciente?.NOMBRE || formatPhone(numero)}
+          </p>
+          <p className="text-[#8696a0] text-xs leading-none mt-0.5">
+            {paciente?.NOMBRE ? formatPhone(numero) : ""}
+          </p>
+        </div>
+
+        {/* Status badge */}
+        {paciente?.ESTADO && statusBadge(paciente.ESTADO)}
+
+        {/* Info toggle */}
+        <button
+          onClick={() => setShowInfo(v => !v)}
+          title={showInfo ? "Ocultar info" : "Ver info de cita"}
+          className={`p-2 rounded-full transition-colors ${
+            showInfo ? "bg-orange-500/20 text-orange-400" : "text-[#aebac1] hover:bg-white/10"
+          }`}
+        >
+          <Info className="w-5 h-5" />
+        </button>
+      </div>
+
+      {/* ══ Patient info panel (collapsible) ══ */}
+      {showInfo && paciente && (
+        <div className="flex-shrink-0 bg-[#182229] border-b border-white/5 px-5 py-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {paciente.SERVICIO && (
+              <div className="flex items-center gap-2">
+                <Briefcase className="w-4 h-4 text-orange-400 flex-shrink-0"/>
+                <div>
+                  <p className="text-[10px] text-[#8696a0] uppercase tracking-wide">Servicio</p>
+                  <p className="text-[#e9edef] text-sm font-medium">{paciente.SERVICIO}</p>
                 </div>
-              )}
+              </div>
+            )}
+            {paciente.FECHA_CITA && (
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-orange-400 flex-shrink-0"/>
+                <div>
+                  <p className="text-[10px] text-[#8696a0] uppercase tracking-wide">Fecha cita</p>
+                  <p className="text-[#e9edef] text-sm font-medium">
+                    {new Date(paciente.FECHA_CITA).toLocaleDateString("es-ES",{day:"2-digit",month:"short",year:"numeric"})}
+                  </p>
+                </div>
+              </div>
+            )}
+            {paciente.HORA_CITA && (
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4 text-orange-400 flex-shrink-0"/>
+                <div>
+                  <p className="text-[10px] text-[#8696a0] uppercase tracking-wide">Hora</p>
+                  <p className="text-[#e9edef] text-sm font-medium">{paciente.HORA_CITA}</p>
+                </div>
+              </div>
+            )}
+            {paciente.PROFESIONAL && (
+              <div className="flex items-center gap-2">
+                <User className="w-4 h-4 text-orange-400 flex-shrink-0"/>
+                <div>
+                  <p className="text-[10px] text-[#8696a0] uppercase tracking-wide">Profesional</p>
+                  <p className="text-[#e9edef] text-sm font-medium">{paciente.PROFESIONAL}</p>
+                </div>
+              </div>
+            )}
+            {paciente.EMAIL && (
+              <div className="flex items-center gap-2 col-span-2">
+                <Mail className="w-4 h-4 text-orange-400 flex-shrink-0"/>
+                <div>
+                  <p className="text-[10px] text-[#8696a0] uppercase tracking-wide">Correo</p>
+                  <p className="text-[#e9edef] text-sm font-medium">{paciente.EMAIL}</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ══ Messages area ══ */}
+      <div
+        ref={chatAreaRef}
+        className="flex-1 overflow-y-auto px-4 py-3"
+        style={{
+          backgroundImage: `
+            radial-gradient(circle at 1px 1px, rgba(255,255,255,0.03) 1px, transparent 0)
+          `,
+          backgroundSize: "32px 32px",
+          backgroundColor: "#0b141a",
+        }}
+      >
+        {error && (
+          <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-xl text-sm mb-4">
+            {error}
+          </div>
+        )}
+
+        {isLoading ? (
+          <div className="flex justify-center items-center h-full">
+            <Loader2 className="w-8 h-8 text-orange-400 animate-spin"/>
+          </div>
+        ) : mensajes.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full gap-3">
+            <div className="w-16 h-16 rounded-full bg-[#202c33] flex items-center justify-center">
+              <User className="w-8 h-8 text-[#8696a0]"/>
             </div>
-          )}
-        </div>
-
-        {/* Chat Messages */}
-        <div className="bg-slate-800/50 backdrop-blur-lg rounded-2xl shadow-xl border border-slate-700/30">
-          <div className="p-6 border-b border-slate-700/30">
-            <h3 className="text-xl font-semibold text-white">Conversación</h3>
+            <p className="text-[#8696a0] text-sm">No hay mensajes en esta conversación</p>
           </div>
-
-          <div className="p-6 h-[600px] overflow-y-auto bg-slate-900/30" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'20\' height=\'20\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M0 0h20v20H0z\' fill=\'%23334155\' fill-opacity=\'0.05\'/%3E%3C/svg%3E")' }}>
-            {error && (
-              <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-lg mb-4">
-                <p className="text-sm">{error}</p>
-              </div>
-            )}
-
-            {isLoading ? (
-              <div className="flex justify-center items-center h-full">
-                <Loader2 className="w-8 h-8 text-orange-400 animate-spin" />
-              </div>
-            ) : mensajes.length === 0 ? (
-              <div className="flex flex-col justify-center items-center h-full">
-                <div className="w-20 h-20 bg-slate-700/50 rounded-full flex items-center justify-center mb-4">
-                  <User className="w-10 h-10 text-gray-500" />
+        ) : (
+          <div className="space-y-0.5">
+            {grouped.map((group, gi) => (
+              <div key={gi}>
+                {/* Date separator */}
+                <div className="flex justify-center my-4 sticky top-2 z-10">
+                  <span className="bg-[#182229] text-[#8696a0] text-xs px-3 py-1 rounded-full shadow">
+                    {formatDateSeparator(group.messages[0]?.fecha)}
+                  </span>
                 </div>
-                <p className="text-gray-400">No hay mensajes en esta conversación</p>
+
+                {/* Messages */}
+                {group.messages.map((msg, mi) => {
+                  const prev = mi > 0 ? group.messages[mi - 1] : null;
+                  const next = mi < group.messages.length - 1 ? group.messages[mi + 1] : null;
+                  const isSent = msg.tipo === "saliente";
+
+                  /* grouping: same side + within 2 minutes */
+                  const mTime = new Date(msg.fecha).getTime();
+                  const pTime = prev ? new Date(prev.fecha).getTime() : 0;
+                  const nTime = next ? new Date(next.fecha).getTime() : 0;
+
+                  const isFirst = !prev || prev.tipo !== msg.tipo || mTime - pTime > 120000;
+                  const isLast  = !next || next.tipo !== msg.tipo || nTime - mTime > 120000;
+
+                  return (
+                    <MessageBubble
+                      key={msg.id}
+                      msg={msg}
+                      isSent={isSent}
+                      isFirst={isFirst}
+                      isLast={isLast}
+                    />
+                  );
+                })}
               </div>
-            ) : (
-              <div className="space-y-3">
-                {groupedMessages.map((group, groupIndex) => (
-                  <div key={groupIndex} className="space-y-2">
-                    {/* Separador de fecha */}
-                    <div className="flex justify-center my-4">
-                      <div className="bg-slate-700/60 backdrop-blur-sm px-4 py-1.5 rounded-full shadow-lg">
-                        <p className="text-xs font-medium text-gray-300">
-                          {formatDateSeparator(group.messages[0]?.fecha)}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Mensajes del día */}
-                    {group.messages.map((mensaje, index) => {
-                      const isSaliente = mensaje.tipo === 'saliente';
-                      const prevMessage = index > 0 ? group.messages[index - 1] : null;
-                      const nextMessage = index < group.messages.length - 1 ? group.messages[index + 1] : null;
-
-                      // Determinar si es parte de un grupo de mensajes consecutivos
-                      const isFirstInGroup = !prevMessage || prevMessage.tipo !== mensaje.tipo;
-                      const isLastInGroup = !nextMessage || nextMessage.tipo !== mensaje.tipo;
-
-                      return (
-                        <div
-                          key={mensaje.id}
-                          className={`flex ${isSaliente ? 'justify-end' : 'justify-start'} px-2`}
-                        >
-                          <div
-                            className={`max-w-[75%] relative ${
-                              isSaliente
-                                ? 'bg-gradient-to-br from-orange-500 to-orange-600 text-white shadow-lg'
-                                : 'bg-slate-700/80 text-gray-100 border border-slate-600/40 shadow-md'
-                            } ${
-                              isSaliente
-                                ? isFirstInGroup
-                                  ? 'rounded-tl-2xl rounded-tr-lg rounded-bl-2xl rounded-br-2xl'
-                                  : isLastInGroup
-                                  ? 'rounded-tl-2xl rounded-tr-2xl rounded-bl-2xl rounded-br-lg'
-                                  : 'rounded-tl-2xl rounded-tr-2xl rounded-bl-2xl rounded-br-2xl'
-                                : isFirstInGroup
-                                ? 'rounded-tl-lg rounded-tr-2xl rounded-bl-2xl rounded-br-2xl'
-                                : isLastInGroup
-                                ? 'rounded-tl-2xl rounded-tr-2xl rounded-bl-lg rounded-br-2xl'
-                                : 'rounded-tl-2xl rounded-tr-2xl rounded-bl-2xl rounded-br-2xl'
-                            } px-3 py-2`}
-                          >
-                            {/* Cola de la burbuja estilo WhatsApp */}
-                            {isLastInGroup && (
-                              <div
-                                className={`absolute bottom-0 ${
-                                  isSaliente ? '-right-1' : '-left-1'
-                                } w-3 h-3 ${
-                                  isSaliente
-                                    ? 'bg-orange-600'
-                                    : 'bg-slate-700/80 border-l border-b border-slate-600/40'
-                                }`}
-                                style={{
-                                  clipPath: isSaliente
-                                    ? 'polygon(0 0, 100% 0, 0 100%)'
-                                    : 'polygon(100% 0, 100% 100%, 0 0)',
-                                }}
-                              />
-                            )}
-
-                            <MediaBubble mensaje={mensaje} isSaliente={isSaliente} />
-
-                            <div className="flex items-center justify-end gap-1 mt-1">
-                              <p className={`text-[11px] ${isSaliente ? 'text-orange-100/90' : 'text-gray-400'}`}>
-                                {formatTime(mensaje.fecha)}
-                              </p>
-                              {isSaliente && (
-                                <div className="flex items-center">
-                                  {mensaje.leido ? (
-                                    <CheckCheck className="w-4 h-4 text-blue-300" title={`Leído${mensaje.fecha_leido ? ': ' + formatDate(mensaje.fecha_leido) : ''}`} />
-                                  ) : (
-                                    <CheckCheck className="w-4 h-4 text-orange-200/70" title="Enviado" />
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ))}
-                <div ref={messagesEndRef} />
-              </div>
-            )}
+            ))}
+            <div ref={messagesEndRef}/>
           </div>
-        </div>
+        )}
+      </div>
+
+      {/* ══ Footer (read-only notice) ══ */}
+      <div className="flex-shrink-0 bg-[#202c33] border-t border-white/5 px-4 py-3 flex items-center justify-center gap-2">
+        <Phone className="w-3.5 h-3.5 text-[#8696a0]"/>
+        <p className="text-[#8696a0] text-xs">
+          Vista de solo lectura · Responde desde WhatsApp Business
+        </p>
       </div>
     </div>
   );
 };
+
+/* ─── MessageBubble ─── */
+function MessageBubble({ msg, isSent, isFirst, isLast }) {
+  const hasMedia = !!msg.tipo_media;
+
+  /* Border radius: mimic WhatsApp shape */
+  const radius = isSent
+    ? `${isFirst ? "18px" : "18px"} ${isFirst ? "4px" : "18px"} ${isLast ? "4px" : "18px"} 18px`
+    : `${isFirst ? "4px" : "18px"} ${isFirst ? "18px" : "18px"} 18px ${isLast ? "4px" : "18px"}`;
+
+  return (
+    <div className={`flex ${isSent ? "justify-end" : "justify-start"} ${isLast ? "mb-1" : "mb-0.5"}`}>
+      <div
+        className={`relative max-w-[70%] min-w-[80px] px-3 py-2 shadow-sm ${
+          isSent
+            ? "bg-[#005c4b] text-[#e9edef]"
+            : "bg-[#202c33] text-[#e9edef]"
+        }`}
+        style={{ borderRadius: radius }}
+      >
+        {/* Tail */}
+        {isFirst && (
+          <div
+            className="absolute top-0"
+            style={{
+              [isSent ? "right" : "left"]: "-7px",
+              width: 0, height: 0,
+              borderStyle: "solid",
+              borderWidth: isSent ? "0 0 8px 8px" : "0 8px 8px 0",
+              borderColor: isSent
+                ? "transparent transparent transparent #005c4b"
+                : "transparent #202c33 transparent transparent",
+            }}
+          />
+        )}
+
+        {/* Content */}
+        <MediaBubble mensaje={msg} isSaliente={isSent}/>
+
+        {/* Timestamp + status */}
+        <div className={`flex items-center gap-1 mt-0.5 ${hasMedia ? "justify-end" : "justify-end"}`}>
+          <span className="text-[11px] text-[#8696a0] leading-none">
+            {formatTime(msg.fecha)}
+          </span>
+          {isSent && (
+            msg.leido
+              ? <CheckCheck className="w-3.5 h-3.5 text-[#53bdeb]" title={`Leído`}/>
+              : <CheckCheck className="w-3.5 h-3.5 text-[#8696a0]" title="Enviado"/>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default ChatView;

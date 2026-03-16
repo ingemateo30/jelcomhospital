@@ -1,667 +1,355 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import io from "socket.io-client";
 import {
-  MessageSquare, Calendar, User, Phone, Loader2, CheckCircle,
-  XCircle, Clock, RefreshCw, Search, Filter, Pin, X, ChevronDown, ChevronRight,
-  LayoutList, LayoutGrid, Briefcase, CheckCheck
+  MessageSquare, Search, Pin, CheckCheck, Check,
+  Image, Video, Headphones, FileText, Loader2,
+  SlidersHorizontal, X, Circle
 } from "lucide-react";
-import { useChatOrganization, useInfiniteScroll } from "../hooks/useChatOrganization";
+import { useInfiniteScroll } from "../hooks/useChatOrganization";
 
 const API_URL = process.env.REACT_APP_API_URL || "http://localhost:3001/api";
 const SOCKET_URL = process.env.REACT_APP_API_URL?.replace('/api', '') || "http://localhost:3001";
+const CHATS_PER_PAGE = 30;
 
-const CHATS_PER_PAGE = 20;
+/* ─── helpers ─── */
+const AVATAR_COLORS = [
+  ["#e53935", "#b71c1c"], ["#8e24aa", "#4a148c"], ["#1e88e5", "#0d47a1"],
+  ["#00897b", "#004d40"], ["#fb8c00", "#e65100"], ["#6d4c41", "#3e2723"],
+  ["#039be5", "#01579b"], ["#43a047", "#1b5e20"],
+];
 
-const ChatList = () => {
-  const [chats, setChats] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [error, setError] = useState("");
-  const [activeTab, setActiveTab] = useState("active");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [hasMore, setHasMore] = useState(false);
-  const [offset, setOffset] = useState(0);
-  const [total, setTotal] = useState(0);
+function avatarColor(name = "") {
+  const n = name.charCodeAt(0) + (name.charCodeAt(1) || 0);
+  return AVATAR_COLORS[n % AVATAR_COLORS.length];
+}
 
-  // Filtros avanzados
-  const [showFilters, setShowFilters] = useState(false);
-  const [selectedServicio, setSelectedServicio] = useState("todos");
-  const [selectedProfesional, setSelectedProfesional] = useState("todos");
-  const [readFilter, setReadFilter] = useState("todos"); // "todos", "leidos", "no_leidos"
-  const [servicios, setServicios] = useState([]);
-  const [profesionales, setProfesionales] = useState([]);
+function initials(name = "") {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+  return name.slice(0, 2).toUpperCase() || "?";
+}
 
-  // Vista
-  const [compactView, setCompactView] = useState(() => {
-    const saved = localStorage.getItem('chatListCompactView');
-    return saved ? JSON.parse(saved) : false;
-  });
-  const [collapsedSections, setCollapsedSections] = useState(() => {
-    const saved = localStorage.getItem('chatListCollapsedSections');
-    return saved ? JSON.parse(saved) : {};
-  });
+function formatChatTime(dateStr) {
+  if (!dateStr) return "";
+  const d = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now - d;
+  const diffDays = Math.floor(diffMs / 86400000);
+  if (diffDays === 0) return d.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit", hour12: false });
+  if (diffDays === 1) return "Ayer";
+  if (diffDays < 7) return d.toLocaleDateString("es-ES", { weekday: "short" });
+  return d.toLocaleDateString("es-ES", { day: "2-digit", month: "2-digit", year: "2-digit" });
+}
 
-  const navigate = useNavigate();
-  const socketRef = useRef(null);
-  const scrollContainerRef = useRef(null);
+const MEDIA_ICONS = {
+  image:    <><Image    className="w-3.5 h-3.5 flex-shrink-0" /><span>Imagen</span></>,
+  video:    <><Video    className="w-3.5 h-3.5 flex-shrink-0" /><span>Video</span></>,
+  audio:    <><Headphones className="w-3.5 h-3.5 flex-shrink-0" /><span>Audio</span></>,
+  document: <><FileText className="w-3.5 h-3.5 flex-shrink-0" /><span>Documento</span></>,
+};
 
-  // Filtrar chats por búsqueda local y filtro de leídos
-  const filteredChats = chats.filter(chat => {
-    // Filtro de búsqueda
-    const matchesSearch = chat.NOMBRE?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      chat.numero?.includes(searchTerm) ||
-      chat.SERVICIO?.toLowerCase().includes(searchTerm.toLowerCase());
+function LastMessagePreview({ chat }) {
+  const isSent = chat.ultimo_mensaje_tipo === "saliente";
+  const mediaType = chat.ultimo_tipo_media || (
+    chat.ultimo_mensaje_texto === "[Imagen]"    ? "image"    :
+    chat.ultimo_mensaje_texto === "[Video]"     ? "video"    :
+    chat.ultimo_mensaje_texto === "[Audio]"     ? "audio"    :
+    chat.ultimo_mensaje_texto === "[Documento]" ? "document" : null
+  );
 
-    // Filtro de leídos/no leídos
-    let matchesReadFilter = true;
-    if (readFilter === "leidos") {
-      matchesReadFilter = !chat.mensajes_no_leidos || chat.mensajes_no_leidos === 0;
-    } else if (readFilter === "no_leidos") {
-      matchesReadFilter = chat.mensajes_no_leidos > 0;
-    }
-
-    return matchesSearch && matchesReadFilter;
-  });
-
-  // Usar hook de organización
-  const { sections } = useChatOrganization(filteredChats);
-
-  // Persistir preferencias de vista
-  useEffect(() => {
-    localStorage.setItem('chatListCompactView', JSON.stringify(compactView));
-  }, [compactView]);
-
-  useEffect(() => {
-    localStorage.setItem('chatListCollapsedSections', JSON.stringify(collapsedSections));
-  }, [collapsedSections]);
-
-  useEffect(() => {
-    loadInitialData();
-    loadFiltersData();
-
-    // Conectar a Socket.io
-    socketRef.current = io(SOCKET_URL);
-
-    // Escuchar nuevos mensajes para actualizar la lista
-    socketRef.current.on("chat:nuevo_mensaje", () => {
-      // Recargar la lista de chats cuando llegue un nuevo mensaje
-      loadInitialData();
-    });
-
-    // Cleanup al desmontar
-    return () => {
-      if (socketRef.current) {
-        socketRef.current.disconnect();
+  return (
+    <p className={`text-[13px] truncate flex items-center gap-1 ${
+      chat.mensajes_no_leidos > 0 ? "text-[#e9edef]" : "text-[#8696a0]"
+    }`}>
+      {isSent && (
+        chat.leido_ultimo
+          ? <CheckCheck className="w-3.5 h-3.5 text-[#53bdeb] flex-shrink-0" />
+          : <CheckCheck className="w-3.5 h-3.5 text-[#8696a0] flex-shrink-0" />
+      )}
+      {mediaType && MEDIA_ICONS[mediaType]
+        ? <span className="flex items-center gap-1 text-[#8696a0]">{MEDIA_ICONS[mediaType]}</span>
+        : <span className="truncate">{chat.ultimo_mensaje_texto || "Sin mensajes"}</span>
       }
-    };
-  }, [activeTab, selectedServicio, selectedProfesional]);
+    </p>
+  );
+}
 
-  const loadInitialData = async () => {
-    setIsLoading(true);
-    setOffset(0);
-    await fetchChats(0, true);
-  };
+/* ─── component ─── */
+const ChatList = () => {
+  const [chats, setChats]           = useState([]);
+  const [isLoading, setIsLoading]   = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [error, setError]           = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [unreadOnly, setUnreadOnly] = useState(false);
+  const [hasMore, setHasMore]       = useState(false);
+  const [offset, setOffset]         = useState(0);
+  const [total, setTotal]           = useState(0);
 
-  const loadFiltersData = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      const response = await axios.get(`${API_URL}/whatsapp/filters`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+  const navigate    = useNavigate();
+  const socketRef   = useRef(null);
+  const scrollRef   = useRef(null);
 
-      setServicios(response.data.servicios || []);
-      setProfesionales(response.data.profesionales || []);
-    } catch (error) {
-      console.error("Error obteniendo filtros:", error);
-    }
-  };
+  /* filtered list (client-side search + unread toggle) */
+  const visible = chats.filter(c => {
+    const q = searchTerm.toLowerCase();
+    const matchesSearch =
+      !q ||
+      (c.NOMBRE || "").toLowerCase().includes(q) ||
+      (c.numero || "").includes(q) ||
+      (c.SERVICIO || "").toLowerCase().includes(q);
+    const matchesUnread = !unreadOnly || c.mensajes_no_leidos > 0;
+    return matchesSearch && matchesUnread;
+  });
 
-  const fetchChats = async (currentOffset = 0, reset = false) => {
+  /* ─── data fetching ─── */
+  const fetchChats = useCallback(async (currentOffset = 0, reset = false) => {
     try {
       if (!reset) setIsLoadingMore(true);
-
       const token = localStorage.getItem("token");
+      if (!token) { window.location.href = "/login"; return; }
 
-      if (!token) {
-        setError("No tienes un token de autenticación. Inicia sesión nuevamente.");
-        window.location.href = "/login";
-        return;
-      }
-
-      const params = {
-        filter: activeTab,
-        limit: CHATS_PER_PAGE,
-        offset: currentOffset
-      };
-
-      if (selectedServicio !== "todos") {
-        params.servicio = selectedServicio;
-      }
-
-      if (selectedProfesional !== "todos") {
-        params.profesional = selectedProfesional;
-      }
-
-      const response = await axios.get(`${API_URL}/whatsapp/chats`, {
-        params,
-        headers: { Authorization: `Bearer ${token}` }
+      const { data } = await axios.get(`${API_URL}/whatsapp/chats`, {
+        params: { filter: "active", limit: CHATS_PER_PAGE, offset: currentOffset },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
-      const newChats = response.data.chats || [];
-
-      if (reset) {
-        setChats(newChats);
-      } else {
-        setChats(prev => [...prev, ...newChats]);
-      }
-
-      setTotal(response.data.total || 0);
-      setHasMore(response.data.hasMore || false);
-      setOffset(currentOffset + newChats.length);
-    } catch (error) {
-      console.error("Error obteniendo chats:", error);
-      if (error.response?.status === 401) {
+      const incoming = data.chats || [];
+      reset ? setChats(incoming) : setChats(prev => [...prev, ...incoming]);
+      setTotal(data.total || 0);
+      setHasMore(data.hasMore || false);
+      setOffset(currentOffset + incoming.length);
+    } catch (err) {
+      if (err.response?.status === 401) {
         localStorage.removeItem("token");
         window.location.href = "/login";
-        setError("Sesión expirada. Redirigiendo al login...");
       } else {
-        setError("Error al cargar los chats. Intenta nuevamente.");
+        setError("Error al cargar los chats.");
       }
     } finally {
       setIsLoading(false);
       setIsLoadingMore(false);
     }
-  };
+  }, []);
 
-  const loadMoreChats = () => {
-    if (!isLoadingMore && hasMore) {
-      fetchChats(offset, false);
-    }
-  };
+  /* initial load */
+  useEffect(() => {
+    setIsLoading(true);
+    setOffset(0);
+    fetchChats(0, true);
+  }, [fetchChats]);
 
-  const handleScroll = useInfiniteScroll(loadMoreChats, hasMore);
+  /* socket */
+  useEffect(() => {
+    socketRef.current = io(SOCKET_URL);
 
-  const togglePinChat = async (numero, currentPinStatus, e) => {
-    e.stopPropagation();
-
-    try {
-      const token = localStorage.getItem("token");
-      await axios.put(
-        `${API_URL}/whatsapp/chats/${numero}/pin`,
-        { pin: !currentPinStatus },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      // Actualizar el estado local
-      setChats(prevChats =>
-        prevChats.map(chat =>
-          chat.numero === numero
-            ? { ...chat, anclado: !currentPinStatus }
-            : chat
-        )
-      );
-    } catch (error) {
-      console.error("Error anclando/desanclando chat:", error);
-    }
-  };
-
-  const toggleSection = (sectionKey) => {
-    setCollapsedSections(prev => ({
-      ...prev,
-      [sectionKey]: !prev[sectionKey]
-    }));
-  };
-
-  const getStatusColor = (estado) => {
-    switch(estado) {
-      case 'confirmada':
-        return "bg-green-500/10 text-green-400 border-green-500/20";
-      case 'cancelada':
-        return "bg-red-500/10 text-red-400 border-red-500/20";
-      case 'reagendamiento solicitado':
-        return "bg-blue-500/10 text-blue-400 border-blue-500/20";
-      default:
-        return "bg-orange-500/10 text-orange-400 border-orange-500/20";
-    }
-  };
-
-  const getStatusIcon = (estado) => {
-    switch(estado) {
-      case 'confirmada':
-        return <CheckCircle className="w-4 h-4" />;
-      case 'cancelada':
-        return <XCircle className="w-4 h-4" />;
-      case 'reagendamiento solicitado':
-        return <RefreshCw className="w-4 h-4" />;
-      default:
-        return <Clock className="w-4 h-4" />;
-    }
-  };
-
-  const formatDate = (dateString) => {
-    if (!dateString) return "N/A";
-    const date = new Date(dateString);
-    return date.toLocaleString('es-ES', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    socketRef.current.on("chat:nuevo_mensaje", (data) => {
+      setChats(prev => {
+        const idx = prev.findIndex(c => c.numero === data.numero);
+        if (idx === -1) {
+          // unknown chat: reload
+          fetchChats(0, true);
+          return prev;
+        }
+        const updated = {
+          ...prev[idx],
+          ultimo_mensaje: data.mensaje.fecha,
+          ultimo_mensaje_texto: data.mensaje.tipo_media
+            ? `[${data.mensaje.tipo_media.charAt(0).toUpperCase() + data.mensaje.tipo_media.slice(1)}]`
+            : data.mensaje.mensaje,
+          ultimo_mensaje_tipo: data.mensaje.tipo,
+          ultimo_tipo_media: data.mensaje.tipo_media || null,
+          mensajes_no_leidos:
+            data.mensaje.tipo === "entrante"
+              ? (prev[idx].mensajes_no_leidos || 0) + 1
+              : prev[idx].mensajes_no_leidos,
+        };
+        // move to top (after pinned)
+        const rest = prev.filter((_, i) => i !== idx);
+        const pinnedEnd = rest.findLastIndex?.(c => c.anclado) ?? -1;
+        const insertAt = updated.anclado ? 0 : pinnedEnd + 1;
+        const next = [...rest];
+        next.splice(insertAt, 0, updated);
+        return next;
+      });
     });
-  };
 
-  const formatPhone = (phone) => {
-    if (!phone) return "N/A";
-    const cleaned = phone.toString().replace(/\D/g, '');
-    if (cleaned.length === 10) {
-      return `${cleaned.slice(0, 3)} ${cleaned.slice(3, 6)} ${cleaned.slice(6)}`;
-    }
-    return phone;
-  };
+    return () => socketRef.current?.disconnect();
+  }, [fetchChats]);
 
-  const handleChatClick = (numero) => {
-    navigate(`/dashboard/chats/${numero}`);
-  };
+  /* infinite scroll */
+  const loadMore = useCallback(() => {
+    if (!isLoadingMore && hasMore) fetchChats(offset, false);
+  }, [isLoadingMore, hasMore, offset, fetchChats]);
+  const handleScroll = useInfiniteScroll(loadMore, hasMore);
 
-  const resetFilters = () => {
-    setSelectedServicio("todos");
-    setSelectedProfesional("todos");
-    setReadFilter("todos");
-  };
+  const totalUnread = chats.reduce((s, c) => s + (c.mensajes_no_leidos || 0), 0);
 
-  const ChatCard = ({ chat, compact }) => {
-    if (compact) {
-      // Vista ultra-compacta: una sola línea optimizada para muchos chats
-      return (
-        <div
-          onClick={() => handleChatClick(chat.numero)}
-          className={`group flex items-center gap-2 px-3 py-2 bg-slate-700/30 hover:bg-slate-700/60 border border-slate-600/20 rounded-lg cursor-pointer transition-all hover:shadow-md ${
-            chat.mensajes_no_leidos > 0 ? 'ring-1 ring-orange-500/30' : ''
-          } ${getStatusColor(chat.estado_cita)} bg-opacity-5`}
-        >
-          {/* Avatar pequeño */}
-          <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center flex-shrink-0">
-            <User className="w-4 h-4 text-white" />
-          </div>
-
-          {/* Nombre y servicio */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <span className="text-white font-semibold text-sm truncate">
-                {chat.NOMBRE || "Sin nombre"}
-              </span>
-              {chat.SERVICIO && (
-                <span className="text-gray-500 text-xs truncate max-w-[120px]">
-                  • {chat.SERVICIO}
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* Estado, hora y badges */}
-          <div className="flex items-center gap-2 flex-shrink-0">
-            {/* Estado de cita */}
-            {chat.estado_cita && (
-              <div className={`px-1.5 py-0.5 rounded text-xs flex items-center gap-1 ${getStatusColor(chat.estado_cita)}`}>
-                {getStatusIcon(chat.estado_cita)}
-              </div>
-            )}
-
-            {/* Hora */}
-            <span className="text-xs text-gray-500 min-w-[45px] text-right">
-              {(() => {
-                const date = new Date(chat.ultimo_mensaje);
-                return date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-              })()}
-            </span>
-
-            {/* Badge de no leídos */}
-            {chat.mensajes_no_leidos > 0 && (
-              <span className="px-1.5 py-0.5 bg-orange-500 text-white text-xs font-bold rounded-full min-w-[18px] text-center">
-                {chat.mensajes_no_leidos}
-              </span>
-            )}
-
-            {/* Pin indicator */}
-            {chat.anclado && (
-              <Pin className="w-3 h-3 text-orange-400" fill="currentColor" />
-            )}
-          </div>
-        </div>
-      );
-    }
-
-    // Vista normal (expandida)
-    return (
-      <div
-        onClick={() => handleChatClick(chat.numero)}
-        className={`group bg-slate-700/40 hover:bg-slate-700/60 border border-slate-600/30 rounded-xl cursor-pointer transition-all hover:shadow-xl p-4 ${
-          chat.mensajes_no_leidos > 0 ? 'ring-2 ring-orange-500/20' : ''
-        }`}
-      >
-        <div className="flex items-start gap-3">
-          {/* Avatar */}
-          <div className="w-14 h-14 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg">
-            <User className="w-7 h-7 text-white" />
-          </div>
-
-          {/* Content */}
-          <div className="flex-1 min-w-0">
-            {/* Header: Nombre y Fecha */}
-            <div className="flex items-start justify-between gap-2 mb-1">
-              <h3 className="text-white font-bold text-lg truncate flex-1">
-                {chat.NOMBRE || "Sin nombre"}
-              </h3>
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <span className="text-xs text-gray-400">
-                  {formatDate(chat.ultimo_mensaje).split(',')[1]?.trim() || formatDate(chat.ultimo_mensaje)}
-                </span>
-                {chat.anclado && (
-                  <Pin className="w-4 h-4 text-orange-400" fill="currentColor" />
-                )}
-              </div>
-            </div>
-
-            {/* Phone */}
-            <div className="flex items-center gap-2 text-gray-400 text-sm mb-2">
-              <Phone className="w-3.5 h-3.5" />
-              {formatPhone(chat.numero)}
-            </div>
-
-            {/* Último mensaje */}
-            <div className="flex items-start justify-between gap-3 mb-2">
-              <div className="flex-1 min-w-0">
-                <p className="text-gray-300 text-sm line-clamp-2">
-                  {chat.ultimo_mensaje_tipo === 'saliente' && (
-                    <CheckCheck className="w-3.5 h-3.5 inline mr-1 text-blue-400" />
-                  )}
-                  <span className={`${chat.mensajes_no_leidos > 0 ? 'font-semibold text-white' : 'text-gray-400'}`}>
-                    {chat.ultimo_mensaje_texto || "Sin mensajes"}
-                  </span>
-                </p>
-              </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
-                {chat.mensajes_no_leidos > 0 && (
-                  <span className="px-2 py-0.5 bg-orange-500 text-white text-xs font-bold rounded-full min-w-[20px] text-center shadow-lg">
-                    {chat.mensajes_no_leidos}
-                  </span>
-                )}
-              </div>
-            </div>
-
-            {/* Info de cita */}
-            <div className="flex flex-wrap items-center gap-3 text-xs">
-              {chat.SERVICIO && (
-                <div className="flex items-center gap-1.5 text-gray-400 bg-slate-800/50 px-2 py-1 rounded-md">
-                  <Briefcase className="w-3.5 h-3.5 text-orange-400" />
-                  <span className="truncate max-w-[150px]">{chat.SERVICIO}</span>
-                </div>
-              )}
-              {chat.FECHA_CITA && (
-                <div className="flex items-center gap-1.5 text-gray-400 bg-slate-800/50 px-2 py-1 rounded-md">
-                  <Calendar className="w-3.5 h-3.5 text-orange-400" />
-                  <span>
-                    {new Date(chat.FECHA_CITA).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })}
-                    {chat.HORA_CITA && ` ${chat.HORA_CITA}`}
-                  </span>
-                </div>
-              )}
-              {chat.estado_cita && (
-                <span className={`px-2 py-1 rounded-md text-xs font-medium border flex items-center gap-1 ${getStatusColor(chat.estado_cita)}`}>
-                  {getStatusIcon(chat.estado_cita)}
-                  <span className="capitalize">{chat.estado_cita}</span>
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* Action button */}
-          <button
-            onClick={(e) => togglePinChat(chat.numero, chat.anclado, e)}
-            className="p-2 hover:bg-slate-600/50 rounded-full transition-colors self-start opacity-0 group-hover:opacity-100"
-            title={chat.anclado ? "Desanclar chat" : "Anclar chat"}
-          >
-            <Pin className={`w-4 h-4 ${chat.anclado ? 'text-orange-400' : 'text-gray-400'}`} />
-          </button>
-        </div>
-      </div>
-    );
-  };
-
+  /* ─── render ─── */
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800 p-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-6">
-          <h2 className="text-3xl font-bold bg-gradient-to-r from-orange-400 to-orange-600 bg-clip-text text-transparent">
-            Chats de WhatsApp
-          </h2>
-          <p className="text-gray-400 mt-2 text-sm">
-            Gestiona las conversaciones con tus pacientes ({total} chats)
-          </p>
-        </div>
+    <div className="flex flex-col bg-[#111b21]" style={{ height: "calc(100vh - 72px)" }}>
 
-        <div className="bg-slate-800/50 backdrop-blur-lg rounded-2xl shadow-xl border border-slate-700/30 mb-6">
-          {/* Tabs */}
-          <div className="flex border-b border-slate-700/30">
-            <button
-              onClick={() => setActiveTab("active")}
-              className={`flex-1 py-4 px-6 font-medium transition-colors ${
-                activeTab === "active"
-                  ? "text-orange-400 border-b-2 border-orange-400"
-                  : "text-gray-400 hover:text-gray-300"
-              }`}
-            >
-              <div className="flex items-center justify-center gap-2">
-                <MessageSquare className="w-5 h-5" />
-                Chats Activos
-              </div>
-            </button>
-            <button
-              onClick={() => setActiveTab("cancelled")}
-              className={`flex-1 py-4 px-6 font-medium transition-colors ${
-                activeTab === "cancelled"
-                  ? "text-orange-400 border-b-2 border-orange-400"
-                  : "text-gray-400 hover:text-gray-300"
-              }`}
-            >
-              <div className="flex items-center justify-center gap-2">
-                <XCircle className="w-5 h-5" />
-                Chats Cancelados
-              </div>
-            </button>
+      {/* ── Top bar ── */}
+      <div className="flex-shrink-0 bg-[#202c33] px-4 py-3 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center">
+            <MessageSquare className="w-4 h-4 text-white" />
           </div>
-
-          {/* Search Bar and Filters */}
-          <div className="p-4 border-b border-slate-700/30 space-y-3">
-            <div className="flex gap-3">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <input
-                  type="text"
-                  placeholder="Buscar por nombre, teléfono o servicio..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500"
-                />
-              </div>
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-colors ${
-                  showFilters || selectedServicio !== "todos" || selectedProfesional !== "todos" || readFilter !== "todos"
-                    ? "bg-orange-500 text-white"
-                    : "bg-slate-700/50 text-gray-400 hover:bg-slate-700"
-                }`}
-              >
-                <Filter className="w-5 h-5" />
-                Filtros
-                {(selectedServicio !== "todos" || selectedProfesional !== "todos" || readFilter !== "todos") && (
-                  <span className="ml-1 px-1.5 py-0.5 bg-white/20 rounded-full text-xs">
-                    {[selectedServicio !== "todos" ? 1 : 0, selectedProfesional !== "todos" ? 1 : 0, readFilter !== "todos" ? 1 : 0].reduce((a, b) => a + b, 0)}
-                  </span>
-                )}
-              </button>
-              <button
-                onClick={() => setCompactView(!compactView)}
-                className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-colors ${
-                  compactView
-                    ? 'bg-orange-500 text-white'
-                    : total > 100
-                      ? 'bg-orange-500/20 text-orange-400 hover:bg-orange-500/30 animate-pulse'
-                      : 'bg-slate-700/50 text-gray-400 hover:bg-slate-700'
-                }`}
-                title={compactView ? "Vista expandida" : "Vista compacta (recomendada para muchos chats)"}
-              >
-                {compactView ? <LayoutGrid className="w-5 h-5" /> : <LayoutList className="w-5 h-5" />}
-                {!compactView && total > 100 && (
-                  <span className="text-xs">Compacta</span>
-                )}
-              </button>
-            </div>
-
-            {/* Advanced Filters */}
-            {showFilters && (
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-3 pt-3 border-t border-slate-700/30">
-                <div>
-                  <label className="block text-sm text-gray-400 mb-1">Estado de Lectura</label>
-                  <select
-                    value={readFilter}
-                    onChange={(e) => setReadFilter(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
-                  >
-                    <option value="todos">Todos los mensajes</option>
-                    <option value="no_leidos">No leídos</option>
-                    <option value="leidos">Leídos</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm text-gray-400 mb-1">Servicio</label>
-                  <select
-                    value={selectedServicio}
-                    onChange={(e) => setSelectedServicio(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
-                  >
-                    <option value="todos">Todos los servicios</option>
-                    {servicios.map(servicio => (
-                      <option key={servicio} value={servicio}>{servicio}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm text-gray-400 mb-1">Profesional</label>
-                  <select
-                    value={selectedProfesional}
-                    onChange={(e) => setSelectedProfesional(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
-                  >
-                    <option value="todos">Todos los profesionales</option>
-                    {profesionales.map(profesional => (
-                      <option key={profesional} value={profesional}>{profesional}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="flex items-end">
-                  <button
-                    onClick={resetFilters}
-                    className="w-full px-4 py-2 bg-slate-700/50 text-gray-400 hover:bg-slate-700 rounded-lg flex items-center justify-center gap-2 transition-colors"
-                  >
-                    <X className="w-4 h-4" />
-                    Limpiar filtros
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Content */}
-          <div
-            ref={scrollContainerRef}
-            onScroll={handleScroll}
-            className="p-6 max-h-[calc(100vh-400px)] overflow-y-auto"
-          >
-            {error && (
-              <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-lg mb-4">
-                <p className="text-sm">{error}</p>
-              </div>
-            )}
-
-            {isLoading ? (
-              <div className="flex justify-center items-center py-12">
-                <Loader2 className="w-8 h-8 text-orange-400 animate-spin" />
-              </div>
-            ) : sections.length === 0 ? (
-              <div className="text-center py-12">
-                <MessageSquare className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-                <p className="text-gray-400">
-                  {searchTerm ? "No se encontraron chats que coincidan con tu búsqueda" : "No hay chats disponibles en esta categoría"}
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-6">
-                {sections.map(section => (
-                  <div key={section.key} className="space-y-3">
-                    <button
-                      onClick={() => toggleSection(section.key)}
-                      className="w-full flex items-center justify-between text-left px-4 py-3 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition-all border border-slate-600/20 hover:border-slate-600/40"
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="text-2xl">{section.icon}</span>
-                        <div>
-                          <h3 className="text-white font-bold text-lg">
-                            {section.title}
-                          </h3>
-                          <p className="text-gray-400 text-xs">
-                            {section.chats.length} {section.chats.length === 1 ? 'chat' : 'chats'}
-                            {section.chats.filter(c => c.mensajes_no_leidos > 0).length > 0 &&
-                              ` • ${section.chats.filter(c => c.mensajes_no_leidos > 0).length} sin leer`
-                            }
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {collapsedSections[section.key] && section.chats.filter(c => c.mensajes_no_leidos > 0).length > 0 && (
-                          <span className="px-2 py-1 bg-red-500 text-white text-xs font-bold rounded-full">
-                            {section.chats.reduce((sum, c) => sum + (c.mensajes_no_leidos || 0), 0)}
-                          </span>
-                        )}
-                        {collapsedSections[section.key] ? (
-                          <ChevronRight className="w-5 h-5 text-gray-400" />
-                        ) : (
-                          <ChevronDown className="w-5 h-5 text-gray-400" />
-                        )}
-                      </div>
-                    </button>
-
-                    {!collapsedSections[section.key] && (
-                      <div className={`${compactView ? 'space-y-1' : 'space-y-3'} pl-2 animate-fadeIn`}>
-                        {section.chats.map(chat => (
-                          <ChatCard key={chat.numero} chat={chat} compact={compactView} />
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                ))}
-
-                {isLoadingMore && (
-                  <div className="flex justify-center items-center py-4">
-                    <Loader2 className="w-6 h-6 text-orange-400 animate-spin" />
-                    <span className="ml-2 text-gray-400">Cargando más chats...</span>
-                  </div>
-                )}
-
-                {!hasMore && chats.length > 0 && (
-                  <div className="text-center py-4 text-gray-500 text-sm">
-                    No hay más chats para mostrar
-                  </div>
-                )}
-              </div>
-            )}
+          <div>
+            <h1 className="text-[#e9edef] font-semibold text-[15px] leading-none">WhatsApp</h1>
+            <p className="text-[#8696a0] text-xs mt-0.5">{total} conversaciones</p>
           </div>
         </div>
+        {totalUnread > 0 && (
+          <span className="px-2 py-0.5 bg-orange-500 text-white text-xs font-bold rounded-full">
+            {totalUnread}
+          </span>
+        )}
+      </div>
+
+      {/* ── Search bar ── */}
+      <div className="flex-shrink-0 bg-[#111b21] px-3 py-2 flex items-center gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#8696a0]" />
+          {searchTerm && (
+            <button
+              onClick={() => setSearchTerm("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2"
+            >
+              <X className="w-4 h-4 text-[#8696a0] hover:text-[#e9edef]" />
+            </button>
+          )}
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            placeholder="Buscar o empezar un chat"
+            className="w-full bg-[#202c33] text-[#e9edef] placeholder-[#8696a0] text-[15px] pl-9 pr-9 py-2 rounded-lg focus:outline-none focus:ring-1 focus:ring-orange-500/50"
+          />
+        </div>
+        <button
+          onClick={() => setUnreadOnly(!unreadOnly)}
+          title={unreadOnly ? "Mostrar todos" : "Solo no leídos"}
+          className={`p-2 rounded-lg transition-colors ${
+            unreadOnly ? "bg-orange-500 text-white" : "text-[#8696a0] hover:bg-[#202c33]"
+          }`}
+        >
+          <SlidersHorizontal className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* ── List ── */}
+      <div
+        ref={scrollRef}
+        onScroll={handleScroll}
+        className="flex-1 overflow-y-auto"
+      >
+        {error && (
+          <div className="mx-4 mt-3 bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-lg text-sm">
+            {error}
+          </div>
+        )}
+
+        {isLoading ? (
+          <div className="flex justify-center items-center h-40">
+            <Loader2 className="w-7 h-7 text-orange-400 animate-spin" />
+          </div>
+        ) : visible.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-40 gap-3">
+            <MessageSquare className="w-12 h-12 text-[#8696a0]" />
+            <p className="text-[#8696a0] text-sm">
+              {searchTerm || unreadOnly ? "Sin resultados" : "No hay conversaciones"}
+            </p>
+          </div>
+        ) : (
+          <>
+            {visible.map((chat, i) => (
+              <ChatItem
+                key={chat.numero}
+                chat={chat}
+                isLast={i === visible.length - 1}
+                onClick={() => navigate(`/dashboard/chats/${chat.numero}`)}
+              />
+            ))}
+
+            {isLoadingMore && (
+              <div className="flex justify-center py-4">
+                <Loader2 className="w-5 h-5 text-orange-400 animate-spin" />
+              </div>
+            )}
+
+            {!hasMore && chats.length > CHATS_PER_PAGE && (
+              <p className="text-center text-[#8696a0] text-xs py-4">
+                Fin de las conversaciones
+              </p>
+            )}
+          </>
+        )}
       </div>
     </div>
   );
 };
+
+/* ─── ChatItem ─── */
+function ChatItem({ chat, isLast, onClick }) {
+  const [c1, c2] = avatarColor(chat.NOMBRE || chat.numero);
+  const unread = chat.mensajes_no_leidos || 0;
+
+  return (
+    <div
+      onClick={onClick}
+      className="flex items-center gap-3 px-4 py-3 hover:bg-[#202c33] cursor-pointer transition-colors border-b border-[#202c33]/60 relative"
+    >
+      {/* Avatar */}
+      <div
+        className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 text-white font-semibold text-[15px] select-none"
+        style={{ background: `linear-gradient(135deg, ${c1}, ${c2})` }}
+      >
+        {initials(chat.NOMBRE || chat.numero)}
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center justify-between mb-0.5">
+          <div className="flex items-center gap-1.5 min-w-0">
+            {chat.anclado === 1 && (
+              <Pin className="w-3 h-3 text-[#8696a0] flex-shrink-0" fill="currentColor" />
+            )}
+            <span className={`text-[15px] truncate ${
+              unread > 0 ? "text-[#e9edef] font-semibold" : "text-[#e9edef]"
+            }`}>
+              {chat.NOMBRE || chat.numero}
+            </span>
+          </div>
+          <span className={`text-xs flex-shrink-0 ml-2 ${
+            unread > 0 ? "text-orange-400 font-medium" : "text-[#8696a0]"
+          }`}>
+            {formatChatTime(chat.ultimo_mensaje)}
+          </span>
+        </div>
+
+        <div className="flex items-center justify-between gap-2">
+          <LastMessagePreview chat={chat} />
+          <div className="flex-shrink-0 flex items-center gap-1.5">
+            {unread > 0 && (
+              <span className="min-w-[20px] h-5 px-1 bg-orange-500 text-white text-[11px] font-bold rounded-full flex items-center justify-center">
+                {unread > 99 ? "99+" : unread}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Appointment info */}
+        {(chat.SERVICIO || chat.FECHA_CITA) && (
+          <p className="text-[11px] text-[#8696a0] mt-0.5 truncate">
+            {[chat.SERVICIO, chat.FECHA_CITA && new Date(chat.FECHA_CITA).toLocaleDateString("es-ES", { day: "2-digit", month: "short" })].filter(Boolean).join(" · ")}
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
 
 export default ChatList;
