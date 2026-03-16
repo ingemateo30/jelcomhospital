@@ -1221,7 +1221,11 @@ async function getChatMessages(req, res) {
         tipo,
         estado,
         leido,
-        fecha_leido
+        fecha_leido,
+        tipo_media,
+        url_media,
+        media_id,
+        mime_type
       FROM mensajes
       WHERE numero = ?
       ORDER BY fecha ASC`,
