@@ -1,4 +1,6 @@
 const soap = require('soap');
+const path = require('path');
+const fs = require('fs');
 require('dotenv').config();
 
 /**
@@ -12,39 +14,46 @@ class Salud360Client {
     this.empresaCod = process.env.SALUD360_EMPRESA_COD;
     this.sedeCod = process.env.SALUD360_SEDE_COD;
     this.homsedciucli = process.env.SALUD360_HOMSEDCIUCLI;
+    this.wsdlDir = path.join(__dirname, '..', 'wsdl');
   }
 
   /**
-   * Crea un cliente SOAP para el servicio especificado
-   * @param {string} serviceName - Nombre del servicio (ej: 'awsproximascitas')
-   * @returns {Promise<Object>} Cliente SOAP
+   * Crea un cliente SOAP para el servicio especificado.
+   * Usa WSDL local si existe, si no intenta descargarlo de la red.
    */
   async createClient(serviceName) {
+    const localWsdlPath = path.join(this.wsdlDir, `${serviceName}.wsdl`);
+    const remoteWsdlUrl = `${this.baseUrl}${serviceName}?wsdl`;
+    const endpoint = `${this.baseUrl}${serviceName}`;
+
+    const useLocal = fs.existsSync(localWsdlPath);
+    const wsdlSource = useLocal ? localWsdlPath : remoteWsdlUrl;
+
+    console.log(`[Salud360] Cargando WSDL ${useLocal ? 'LOCAL' : 'REMOTO'}: ${wsdlSource}`);
+
     try {
-      const wsdlUrl = `${this.baseUrl}${serviceName}?wsdl`;
-      console.log(`[Salud360] Conectando a: ${wsdlUrl}`);
-
-      const client = await soap.createClientAsync(wsdlUrl, {
+      const client = await soap.createClientAsync(wsdlSource, {
         disableCache: true,
-        endpoint: `${this.baseUrl}${serviceName}`
+        endpoint,
       });
-
       console.log(`[Salud360] Cliente SOAP creado para: ${serviceName}`);
       return client;
     } catch (error) {
-      const detail = error?.response?.body || error?.cause?.message || error?.stack || error?.message || String(error);
+      const aggregateErrors = error?.cause?.errors || error?.errors || [];
+      const detail = error?.cause?.message || error?.response?.body || error?.stack || error?.message || String(error);
+
       console.error(`[Salud360] Error creando cliente SOAP para ${serviceName}:`);
       console.error(`   Tipo: ${error?.constructor?.name}`);
       console.error(`   Mensaje: ${error?.message}`);
       console.error(`   Código: ${error?.code}`);
       console.error(`   Detalle: ${detail}`);
-      if (error?.errors) {
-        error.errors.forEach((e, i) => {
-          console.error(`   Error[${i}]: ${e?.constructor?.name} - ${e?.code} - ${e?.message}`);
-        });
-      }
-      if (error?.cause) {
-        console.error(`   Causa: ${error.cause?.code} - ${error.cause?.message}`);
+      aggregateErrors.forEach((e, i) => {
+        console.error(`   Error[${i}]: ${e?.constructor?.name} - código=${e?.code} - ${e?.message}`);
+      });
+
+      // Si falló con WSDL local, no hay fallback útil
+      if (useLocal) {
+        throw new Error(`Fallo al crear cliente SOAP desde WSDL local (${serviceName}): ${error?.message}`);
       }
       throw new Error(`No se pudo conectar al servicio ${serviceName}: ${error?.message || String(error)}`);
     }
@@ -52,16 +61,11 @@ class Salud360Client {
 
   /**
    * Ejecuta un método del WebService de Salud360
-   * @param {string} serviceName - Nombre del servicio
-   * @param {string} methodName - Nombre del método (ej: 'Execute')
-   * @param {Object} params - Parámetros del método
-   * @returns {Promise<Object>} Respuesta del servicio
    */
   async executeMethod(serviceName, methodName, params) {
     try {
       const client = await this.createClient(serviceName);
 
-      // Agregar credenciales a los parámetros
       const paramsWithAuth = {
         ...params,
         Usulog: this.usuario,
@@ -85,24 +89,15 @@ class Salud360Client {
 
   /**
    * Maneja los errores de Salud360
-   * @param {Object} response - Respuesta del servicio
-   * @returns {Object} Respuesta procesada o error
    */
   handleResponse(response) {
     const codigo = response.Codigo;
     const resultado = response.Resultado;
 
-    // Códigos de éxito
     if (codigo === 'S01') {
-      return {
-        success: true,
-        codigo,
-        resultado,
-        data: response
-      };
+      return { success: true, codigo, resultado, data: response };
     }
 
-    // Códigos de error
     const errorMessages = {
       'S02': 'Usuario o contraseña incorrecta',
       'S03': 'Código de Ciudad no existe o Cita Inexistente o Paciente no encontrado',
