@@ -2,7 +2,72 @@ import { useEffect, useState, useRef, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import io from "socket.io-client";
-import { ArrowLeft, User, Phone, Calendar, Briefcase, Loader2, CheckCircle, XCircle, Clock, RefreshCw, Mail, Check, CheckCheck, Reply } from "lucide-react";
+import { ArrowLeft, User, Phone, Calendar, Briefcase, Loader2, CheckCircle, XCircle, Clock, RefreshCw, Mail, Check, CheckCheck, Reply, Image, Video, Headphones, FileText, Download } from "lucide-react";
+
+const BASE_URL = process.env.REACT_APP_API_URL?.replace('/api', '') || "http://localhost:3001";
+
+function MediaBubble({ mensaje, isSaliente }) {
+  const src = mensaje.url_media ? `${BASE_URL}${mensaje.url_media}` : null;
+  const caption = mensaje.mensaje && !mensaje.mensaje.startsWith('[') ? mensaje.mensaje : null;
+
+  if (mensaje.tipo_media === 'image') {
+    return (
+      <div className="space-y-1">
+        {src
+          ? <img src={src} alt="imagen" className="rounded-lg max-w-full max-h-60 object-cover" />
+          : <div className="flex items-center gap-2 text-sm opacity-70"><Image className="w-4 h-4" /><span>Imagen no disponible</span></div>
+        }
+        {caption && <p className="text-[15px] leading-relaxed whitespace-pre-wrap break-words">{caption}</p>}
+      </div>
+    );
+  }
+
+  if (mensaje.tipo_media === 'video') {
+    return (
+      <div className="space-y-1">
+        {src
+          ? <video src={src} controls className="rounded-lg max-w-full max-h-60" />
+          : <div className="flex items-center gap-2 text-sm opacity-70"><Video className="w-4 h-4" /><span>Video no disponible</span></div>
+        }
+        {caption && <p className="text-[15px] leading-relaxed whitespace-pre-wrap break-words">{caption}</p>}
+      </div>
+    );
+  }
+
+  if (mensaje.tipo_media === 'audio') {
+    return (
+      <div className="space-y-1">
+        {src
+          ? <audio src={src} controls className="w-full min-w-[200px]" />
+          : <div className="flex items-center gap-2 text-sm opacity-70"><Headphones className="w-4 h-4" /><span>Audio no disponible</span></div>
+        }
+        {caption && <p className="text-[15px] leading-relaxed whitespace-pre-wrap break-words">{caption}</p>}
+      </div>
+    );
+  }
+
+  if (mensaje.tipo_media === 'document') {
+    const filename = mensaje.url_media ? mensaje.url_media.split('/').pop() : 'documento';
+    return (
+      <div className="space-y-1">
+        {src
+          ? (
+            <a href={src} target="_blank" rel="noopener noreferrer"
+               className={`flex items-center gap-2 text-sm underline ${isSaliente ? 'text-orange-100' : 'text-blue-300'}`}>
+              <FileText className="w-4 h-4 flex-shrink-0" />
+              <span className="break-all">{caption || filename}</span>
+              <Download className="w-4 h-4 flex-shrink-0" />
+            </a>
+          )
+          : <div className="flex items-center gap-2 text-sm opacity-70"><FileText className="w-4 h-4" /><span>Documento no disponible</span></div>
+        }
+      </div>
+    );
+  }
+
+  // Texto plano
+  return <p className="text-[15px] leading-relaxed whitespace-pre-wrap break-words mb-1">{mensaje.mensaje}</p>;
+}
 
 const API_URL = process.env.REACT_APP_API_URL || "http://localhost:3001/api";
 const SOCKET_URL = process.env.REACT_APP_API_URL?.replace('/api', '') || "http://localhost:3001";
@@ -412,9 +477,7 @@ const ChatView = () => {
                               />
                             )}
 
-                            <p className="text-[15px] leading-relaxed whitespace-pre-wrap break-words mb-1">
-                              {mensaje.mensaje}
-                            </p>
+                            <MediaBubble mensaje={mensaje} isSaliente={isSaliente} />
 
                             <div className="flex items-center justify-end gap-1 mt-1">
                               <p className={`text-[11px] ${isSaliente ? 'text-orange-100/90' : 'text-gray-400'}`}>
