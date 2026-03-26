@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { BarChart, LineChart, PieChart, AreaChart, CartesianGrid, XAxis, YAxis, Tooltip, Legend, Bar, Line, Pie, Cell, ResponsiveContainer, Area } from 'recharts';
 import { MessageSquare, Calendar, CheckCircle, XCircle, Clock, TrendingUp, TrendingDown, Users, Activity, Download, Filter } from 'lucide-react';
+import { API_BASE_URL } from "../config";
 
 const DashboardHome = () => {
   const [data, setData] = useState({
@@ -31,7 +32,7 @@ const DashboardHome = () => {
 
   const fetchData = () => {
     setLoading(true);
-    axios.get(`${process.env.REACT_APP_API_URL || "http://192.168.70.23:3000/api"}/dashboard/stats`)
+    axios.get(`${API_BASE_URL}/dashboard/stats`)
       .then(response => {
         setData(response.data);
         setLoading(false);

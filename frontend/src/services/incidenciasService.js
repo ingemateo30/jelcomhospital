@@ -1,9 +1,10 @@
 // frontend/src/services/incidenciasService.js
 import authService from './authService';
+import { API_BASE_URL } from '../config';
 
 class IncidenciasService {
     constructor() {
-        this.baseURL = `${process.env.REACT_APP_API_URL || "http://192.168.70.23:3000/api"}/incidencias`;
+        this.baseURL = `${API_BASE_URL}/incidencias`;
     }
 
     // Método auxiliar para hacer peticiones

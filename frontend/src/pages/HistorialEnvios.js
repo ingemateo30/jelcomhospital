@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Calendar, Search, Filter, Download, CheckCircle, XCircle, Clock, TrendingUp, Shield } from "lucide-react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { API_BASE_URL } from "../config";
 
 const HistorialEnvios = () => {
     const navigate = useNavigate();
@@ -41,7 +42,7 @@ const HistorialEnvios = () => {
                 return;
             }
 
-            const response = await axios.get(`${process.env.REACT_APP_API_URL || "http://192.168.70.23:3000/api"}/envios/historial`, {
+            const response = await axios.get(`${API_BASE_URL}/envios/historial`, {
                 params: filtros,
                 headers: { Authorization: `Bearer ${token}` }
             });

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import axios from "axios";
 import { Upload, AlertCircle, CheckCircle, Loader2 } from "lucide-react";
+import { API_BASE_URL } from "../config";
 
 const UploadExcel = () => {
     const [file, setFile] = useState(null);
@@ -41,7 +42,7 @@ const UploadExcel = () => {
         try {
             setIsLoading(true);
             const response = await axios.post(
-                `${process.env.REACT_APP_API_URL || "http://192.168.70.23:3000/api"}/citas/subir-excel`,
+                `${API_BASE_URL}/citas/subir-excel`,
                 formData,
                 {
                     headers: {

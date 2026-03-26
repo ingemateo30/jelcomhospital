@@ -1,9 +1,10 @@
 // frontend/src/services/pqrService.js
 import authService from './authService';
+import { API_BASE_URL } from '../config';
 
 class PQRService {
     constructor() {
-        this.baseURL = `${process.env.REACT_APP_API_URL || "http://192.168.70.23:3000/api"}/pqr`;
+        this.baseURL = `${API_BASE_URL}/pqr`;
     }
 
     // Método auxiliar para hacer peticiones
@@ -176,7 +177,7 @@ class PQRService {
     async getClientesActivos(search = '') {
         try {
             const token = authService.getToken();
-            const url = `${process.env.REACT_APP_API_URL || "http://192.168.70.23:3000/api"}/v1/clients?search=${encodeURIComponent(search)}&limit=50&estado=activo`;
+            const url = `${API_BASE_URL}/v1/clients?search=${encodeURIComponent(search)}&limit=50&estado=activo`;
             
             const response = await fetch(url, {
                 headers: {
