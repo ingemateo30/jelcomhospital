@@ -9,8 +9,8 @@ import {
   Info,
 } from "lucide-react";
 
-const API_URL    = process.env.REACT_APP_API_URL || "http://localhost:3001/api";
-const SOCKET_URL = process.env.REACT_APP_API_URL?.replace('/api', '') || "http://localhost:3001";
+const API_URL    = process.env.REACT_APP_API_URL || "http://192.168.70.23:3000/api";
+const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || "http://192.168.70.23:3000";
 const BASE_URL   = SOCKET_URL;
 
 /* ─── helpers ─── */

@@ -41,7 +41,7 @@ const HistorialEnvios = () => {
                 return;
             }
 
-            const response = await axios.get('http://localhost:3001/api/envios/historial', {
+            const response = await axios.get(`${process.env.REACT_APP_API_URL || "http://192.168.70.23:3000/api"}/envios/historial`, {
                 params: filtros,
                 headers: { Authorization: `Bearer ${token}` }
             });

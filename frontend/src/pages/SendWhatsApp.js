@@ -20,7 +20,7 @@ const SendWhatsApp = () => {
 
     useEffect(() => {
         // Conectar a Socket.io
-        const newSocket = io(process.env.REACT_APP_API_URL || 'http://localhost:3001', {
+        const newSocket = io(process.env.REACT_APP_SOCKET_URL || 'http://192.168.70.23:3000', {
             transports: ['websocket', 'polling']
         });
 

@@ -33,7 +33,7 @@ const Blacklist = () => {
                 return;
             }
 
-            const response = await axios.get('http://localhost:3001/api/blacklist', {
+            const response = await axios.get(`${process.env.REACT_APP_API_URL || "http://192.168.70.23:3000/api"}/blacklist`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
@@ -65,7 +65,7 @@ const Blacklist = () => {
             const token = localStorage.getItem("token");
             const nombre = localStorage.getItem("nombre");
 
-            const response = await axios.post('http://localhost:3001/api/blacklist', {
+            const response = await axios.post(`${process.env.REACT_APP_API_URL || "http://192.168.70.23:3000/api"}/blacklist`, {
                 telefono: nuevoNumero.telefono,
                 razon: nuevoNumero.razon || "Sin especificar",
                 bloqueadoPor: nombre || "Usuario"
@@ -103,7 +103,7 @@ const Blacklist = () => {
         try {
             const token = localStorage.getItem("token");
 
-            await axios.delete(`http://localhost:3001/api/blacklist/${id}`, {
+            await axios.delete(`${process.env.REACT_APP_API_URL || "http://192.168.70.23:3000/api"}/blacklist/${id}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 

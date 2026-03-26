@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:3001/api/correo";
+const API_URL = `${process.env.REACT_APP_API_URL || "http://192.168.70.23:3000/api"}/correo`;
 
 const handleUnauthorized = (response) => {
     if (response.status === 401) {
