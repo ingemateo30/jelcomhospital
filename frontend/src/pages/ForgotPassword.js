@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Mail, ArrowRight, AlertCircle, CheckCircle } from "lucide-react";
 import logo from '../assets/logos-jelcom.png';
 
-const API_URL = process.env.REACT_APP_API_URL || "http://localhost:3000/api";
+const API_URL = process.env.REACT_APP_API_URL || "http://192.168.70.23:3000/api";
 
 const ForgotPassword = () => {
     const [email, setEmail] = useState("");

@@ -23,7 +23,7 @@ const ProgramarRecordatorio = () => {
 
     useEffect(() => {
         // Conectar a Socket.io
-        const newSocket = io(process.env.REACT_APP_API_URL || 'http://localhost:3001', {
+        const newSocket = io(process.env.REACT_APP_SOCKET_URL || 'http://192.168.70.23:3000', {
             transports: ['websocket', 'polling']
         });
 
@@ -162,7 +162,7 @@ const ProgramarRecordatorio = () => {
         try {
             setIsLoading(true);
             const response = await axios.post(
-                "http://localhost:3001/api/voz/programar-llamada", 
+                `${process.env.REACT_APP_API_URL || "http://192.168.70.23:3000/api"}/voz/programar-llamada`,
                 { citaId },
                 { headers: { "Authorization": `Bearer ${token}` } }
             );
@@ -187,7 +187,7 @@ const ProgramarRecordatorio = () => {
         try {
             setIsLoadingAll(true);
             const response = await axios.post(
-                "http://localhost:3001/api/voz/llamar-todos",
+                `${process.env.REACT_APP_API_URL || "http://192.168.70.23:3000/api"}/voz/llamar-todos`,
                 {},
                 { headers: { "Authorization": `Bearer ${token}` } }
             );

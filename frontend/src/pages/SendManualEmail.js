@@ -29,7 +29,7 @@ const EnviarCorreo = () => {
         }
     
         try {
-            const res = await axios.post("http://localhost:3000/api/correo/enviar-manual", {
+            const res = await axios.post(`${process.env.REACT_APP_API_URL || "http://192.168.70.23:3000/api"}/correo/enviar-manual`, {
                 nombre,
                 correo,
                 mensaje,
