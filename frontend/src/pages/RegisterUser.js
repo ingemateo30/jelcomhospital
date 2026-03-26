@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { API_BASE_URL } from "../config";
 
 const RegisterUser = () => {
   const [formData, setFormData] = useState({ nombre: "", email: "", password: "" });
@@ -20,7 +21,7 @@ const RegisterUser = () => {
 
     try {
       setLoading(true);
-      const response = await fetch(`${process.env.REACT_APP_API_URL || "http://192.168.70.23:3000/api"}/auth/usuarios`, {
+      const response = await fetch(`${API_BASE_URL}/auth/usuarios`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -52,7 +53,7 @@ const RegisterUser = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem("token");
-      const response = await fetch(`${process.env.REACT_APP_API_URL || "http://192.168.70.23:3000/api"}/auth/register`, {
+      const response = await fetch(`${API_BASE_URL}/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -84,7 +85,7 @@ const RegisterUser = () => {
 
     try {
       const nuevoEstado = estado === "activo" ? "inactivo" : "activo";
-      const response = await fetch(`${process.env.REACT_APP_API_URL || "http://192.168.70.23:3000/api"}/auth/usuarios/${id}/estado`, {
+      const response = await fetch(`${API_BASE_URL}/auth/usuarios/${id}/estado`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

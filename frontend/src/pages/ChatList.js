@@ -8,9 +8,10 @@ import {
   SlidersHorizontal, X, Circle
 } from "lucide-react";
 import { useInfiniteScroll } from "../hooks/useChatOrganization";
+import { API_BASE_URL, SOCKET_BASE_URL } from "../config";
 
-const API_URL = process.env.REACT_APP_API_URL || "http://192.168.70.23:3000/api";
-const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || "http://192.168.70.23:3000";
+const API_URL = API_BASE_URL;
+const SOCKET_URL = SOCKET_BASE_URL;
 const CHATS_PER_PAGE = 30;
 
 /* ─── helpers ─── */

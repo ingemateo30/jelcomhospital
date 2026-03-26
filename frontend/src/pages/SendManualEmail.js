@@ -1,6 +1,7 @@
 import { useState } from "react";
 import axios from "axios";
 import { FaPaperPlane } from "react-icons/fa";
+import { API_BASE_URL } from "../config";
 
 const EnviarCorreo = () => {
     const [nombre, setNombre] = useState("");
@@ -29,7 +30,7 @@ const EnviarCorreo = () => {
         }
     
         try {
-            const res = await axios.post(`${process.env.REACT_APP_API_URL || "http://192.168.70.23:3000/api"}/correo/enviar-manual`, {
+            const res = await axios.post(`${API_BASE_URL}/correo/enviar-manual`, {
                 nombre,
                 correo,
                 mensaje,

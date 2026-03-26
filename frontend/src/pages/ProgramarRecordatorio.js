@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { Phone, Send, Loader2, AlertCircle, CheckCircle, XCircle, Clock, Users, TrendingUp, Pause } from "lucide-react";
 import io from "socket.io-client";
+import { API_BASE_URL, SOCKET_BASE_URL } from "../config";
 
 const ProgramarRecordatorio = () => {
     const [citaId, setCitaId] = useState("");
@@ -23,7 +24,7 @@ const ProgramarRecordatorio = () => {
 
     useEffect(() => {
         // Conectar a Socket.io
-        const newSocket = io(process.env.REACT_APP_SOCKET_URL || 'http://192.168.70.23:3000', {
+        const newSocket = io(SOCKET_BASE_URL, {
             transports: ['websocket', 'polling']
         });
 
@@ -162,7 +163,7 @@ const ProgramarRecordatorio = () => {
         try {
             setIsLoading(true);
             const response = await axios.post(
-                `${process.env.REACT_APP_API_URL || "http://192.168.70.23:3000/api"}/voz/programar-llamada`,
+                `${API_BASE_URL}/voz/programar-llamada`,
                 { citaId },
                 { headers: { "Authorization": `Bearer ${token}` } }
             );
@@ -187,7 +188,7 @@ const ProgramarRecordatorio = () => {
         try {
             setIsLoadingAll(true);
             const response = await axios.post(
-                `${process.env.REACT_APP_API_URL || "http://192.168.70.23:3000/api"}/voz/llamar-todos`,
+                `${API_BASE_URL}/voz/llamar-todos`,
                 {},
                 { headers: { "Authorization": `Bearer ${token}` } }
             );

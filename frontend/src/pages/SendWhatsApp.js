@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { sendWhatsAppReminders } from "../services/whatsappService";
 import { MessageCircle, Loader2, CheckCircle, AlertCircle, XCircle, Clock, Users, Send, TrendingUp, Pause } from "lucide-react";
 import io from "socket.io-client";
+import { SOCKET_BASE_URL } from "../config";
 
 const SendWhatsApp = () => {
     const [loading, setLoading] = useState(false);
@@ -20,7 +21,7 @@ const SendWhatsApp = () => {
 
     useEffect(() => {
         // Conectar a Socket.io
-        const newSocket = io(process.env.REACT_APP_SOCKET_URL || 'http://192.168.70.23:3000', {
+        const newSocket = io(SOCKET_BASE_URL, {
             transports: ['websocket', 'polling']
         });
 

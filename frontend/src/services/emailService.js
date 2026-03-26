@@ -1,4 +1,6 @@
-const API_URL = `${process.env.REACT_APP_API_URL || "http://192.168.70.23:3000/api"}/correo`;
+import { API_BASE_URL } from "../config";
+
+const API_URL = `${API_BASE_URL}/correo`;
 
 const handleUnauthorized = (response) => {
     if (response.status === 401) {
@@ -22,7 +24,7 @@ export const sendReminderEmails = async () => {
             }
         });
 
-        handleUnauthorized(response); // Verifica si el token ha expirado
+        handleUnauthorized(response);
 
         if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
 
@@ -57,7 +59,7 @@ export const getCronStatus = async () => {
             }
         });
 
-        handleUnauthorized(response); // Verifica si el token ha expirado y vence y lo saca de la sesión
+        handleUnauthorized(response);
 
         if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
 
@@ -67,6 +69,3 @@ export const getCronStatus = async () => {
         return null;
     }
 };
-
-
-

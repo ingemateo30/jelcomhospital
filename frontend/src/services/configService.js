@@ -1,6 +1,7 @@
 import axios from "axios";
+import { API_BASE_URL } from "../config";
 
-const API_URL = `${process.env.REACT_APP_API_URL || "http://192.168.70.23:3000/api"}/config`;
+const API_URL = `${API_BASE_URL}/config`;
 
 export const getAllConfigs = async () => {
     try {

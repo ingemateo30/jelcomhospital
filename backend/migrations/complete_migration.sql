@@ -1,28 +1,28 @@
 -- ============================================================
 -- MIGRACIÓN COMPLETA - recordatorios_db
--- Ejecutar este script para sincronizar la BD con el código
--- Fecha: 2026-03-16
+-- Compatible con MySQL 5.7+
+-- Fecha: 2026-03-26
 -- ============================================================
 
 USE recordatorios_db;
 
 -- ============================================================
--- 1. TABLA: blacklist (faltante en la BD)
+-- 1. TABLA: blacklist
 -- ============================================================
 CREATE TABLE IF NOT EXISTS `blacklist` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `telefono` varchar(20) NOT NULL,
   `razon` text DEFAULT NULL COMMENT 'Razón por la cual se bloqueó el número',
   `bloqueado_por` varchar(100) DEFAULT NULL COMMENT 'Usuario que bloqueó el número',
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `telefono_unique` (`telefono`),
   KEY `idx_telefono` (`telefono`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- ============================================================
--- 2. TABLA: chats_anclados (faltante en la BD)
+-- 2. TABLA: chats_anclados
 -- ============================================================
 CREATE TABLE IF NOT EXISTS `chats_anclados` (
   `id` INT AUTO_INCREMENT PRIMARY KEY,
@@ -34,46 +34,97 @@ CREATE TABLE IF NOT EXISTS `chats_anclados` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- ============================================================
--- 3. TABLA: mensajes - columnas faltantes
+-- 3. TABLA: mensajes - columnas faltantes (MySQL 5.7 compatible)
 -- ============================================================
 
--- Campo: leido (para mensajes no leídos)
-ALTER TABLE mensajes
-  ADD COLUMN IF NOT EXISTS `leido` BOOLEAN DEFAULT FALSE
-  COMMENT 'Indica si el mensaje ha sido leído por el administrador';
+DROP PROCEDURE IF EXISTS _agregar_columna;
+DELIMITER //
+CREATE PROCEDURE _agregar_columna(
+  IN p_tabla VARCHAR(64),
+  IN p_columna VARCHAR(64),
+  IN p_definicion TEXT
+)
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME   = p_tabla
+      AND COLUMN_NAME  = p_columna
+  ) THEN
+    SET @sql = CONCAT('ALTER TABLE `', p_tabla, '` ADD COLUMN `', p_columna, '` ', p_definicion);
+    PREPARE stmt FROM @sql;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+  END IF;
+END //
+DELIMITER ;
 
--- Campo: fecha_leido
-ALTER TABLE mensajes
-  ADD COLUMN IF NOT EXISTS `fecha_leido` DATETIME DEFAULT NULL
-  COMMENT 'Fecha y hora en que se marcó como leído';
+CALL _agregar_columna('mensajes', 'leido',
+  "BOOLEAN DEFAULT FALSE COMMENT 'Indica si el mensaje ha sido leído por el administrador'");
 
--- Campos de multimedia
-ALTER TABLE mensajes
-  ADD COLUMN IF NOT EXISTS `tipo_media` VARCHAR(50) DEFAULT NULL
-    COMMENT 'Tipo de multimedia: image, audio, video, document',
-  ADD COLUMN IF NOT EXISTS `url_media` TEXT DEFAULT NULL
-    COMMENT 'URL del archivo multimedia almacenado localmente',
-  ADD COLUMN IF NOT EXISTS `url_meta` TEXT DEFAULT NULL
-    COMMENT 'URL original de Meta API',
-  ADD COLUMN IF NOT EXISTS `media_id` VARCHAR(255) DEFAULT NULL
-    COMMENT 'ID del media en Meta API',
-  ADD COLUMN IF NOT EXISTS `mime_type` VARCHAR(100) DEFAULT NULL
-    COMMENT 'Tipo MIME del archivo',
-  ADD COLUMN IF NOT EXISTS `tamaño_archivo` INT DEFAULT NULL
-    COMMENT 'Tamaño del archivo en bytes',
-  ADD COLUMN IF NOT EXISTS `metadata` JSON DEFAULT NULL
-    COMMENT 'Metadata adicional del archivo';
+CALL _agregar_columna('mensajes', 'fecha_leido',
+  "DATETIME DEFAULT NULL COMMENT 'Fecha y hora en que se marcó como leído'");
 
--- Índices para mensajes (solo si no existen)
-CREATE INDEX IF NOT EXISTS `idx_mensajes_leido`     ON mensajes(`leido`, `tipo`);
-CREATE INDEX IF NOT EXISTS `idx_mensajes_tipo_media` ON mensajes(`tipo_media`);
-CREATE INDEX IF NOT EXISTS `idx_mensajes_media_id`   ON mensajes(`media_id`);
+CALL _agregar_columna('mensajes', 'tipo_media',
+  "VARCHAR(50) DEFAULT NULL COMMENT 'Tipo de multimedia: image, audio, video, document'");
+
+CALL _agregar_columna('mensajes', 'url_media',
+  "TEXT DEFAULT NULL COMMENT 'URL del archivo multimedia almacenado localmente'");
+
+CALL _agregar_columna('mensajes', 'url_meta',
+  "TEXT DEFAULT NULL COMMENT 'URL original de Meta API'");
+
+CALL _agregar_columna('mensajes', 'media_id',
+  "VARCHAR(255) DEFAULT NULL COMMENT 'ID del media en Meta API'");
+
+CALL _agregar_columna('mensajes', 'mime_type',
+  "VARCHAR(100) DEFAULT NULL COMMENT 'Tipo MIME del archivo'");
+
+CALL _agregar_columna('mensajes', 'tamanio_archivo',
+  "INT DEFAULT NULL COMMENT 'Tamaño del archivo en bytes'");
+
+CALL _agregar_columna('mensajes', 'metadata',
+  "JSON DEFAULT NULL COMMENT 'Metadata adicional del archivo'");
+
+DROP PROCEDURE IF EXISTS _agregar_columna;
+
+-- ============================================================
+-- 4. ÍNDICES para mensajes (MySQL 5.7 compatible)
+-- ============================================================
+
+DROP PROCEDURE IF EXISTS _agregar_indice;
+DELIMITER //
+CREATE PROCEDURE _agregar_indice(
+  IN p_tabla VARCHAR(64),
+  IN p_indice VARCHAR(64),
+  IN p_columnas TEXT
+)
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM INFORMATION_SCHEMA.STATISTICS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME   = p_tabla
+      AND INDEX_NAME   = p_indice
+  ) THEN
+    SET @sql = CONCAT('CREATE INDEX `', p_indice, '` ON `', p_tabla, '` (', p_columnas, ')');
+    PREPARE stmt FROM @sql;
+    EXECUTE stmt;
+    DEALLOCATE PREPARE stmt;
+  END IF;
+END //
+DELIMITER ;
+
+CALL _agregar_indice('mensajes', 'idx_mensajes_leido',     '`leido`, `tipo`');
+CALL _agregar_indice('mensajes', 'idx_mensajes_tipo_media', '`tipo_media`');
+CALL _agregar_indice('mensajes', 'idx_mensajes_media_id',   '`media_id`');
+
+DROP PROCEDURE IF EXISTS _agregar_indice;
 
 -- Marcar mensajes salientes como leídos
 UPDATE mensajes SET leido = TRUE WHERE tipo = 'saliente' AND leido = FALSE;
 
 -- ============================================================
--- 4. TABLA: multimedia_descargas (faltante en la BD)
+-- 5. TABLA: multimedia_descargas
 -- ============================================================
 CREATE TABLE IF NOT EXISTS `multimedia_descargas` (
     `id` INT AUTO_INCREMENT PRIMARY KEY,
@@ -93,21 +144,5 @@ CREATE TABLE IF NOT EXISTS `multimedia_descargas` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- ============================================================
--- RESUMEN DE CAMBIOS APLICADOS:
---
--- TABLAS NUEVAS:
---   - blacklist              (números bloqueados)
---   - chats_anclados         (chats fijados al inicio)
---   - multimedia_descargas   (tracking de descargas de media)
---
--- COLUMNAS AÑADIDAS A mensajes:
---   - leido          (BOOLEAN)
---   - fecha_leido    (DATETIME)
---   - tipo_media     (VARCHAR 50)
---   - url_media      (TEXT)
---   - url_meta       (TEXT)
---   - media_id       (VARCHAR 255)
---   - mime_type      (VARCHAR 100)
---   - tamaño_archivo (INT)
---   - metadata       (JSON)
+-- FIN DE MIGRACIÓN
 -- ============================================================

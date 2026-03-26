@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Shield, Trash2, Plus, Search, AlertCircle, CheckCircle } from "lucide-react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { API_BASE_URL } from "../config";
 
 const Blacklist = () => {
     const navigate = useNavigate();
@@ -33,7 +34,7 @@ const Blacklist = () => {
                 return;
             }
 
-            const response = await axios.get(`${process.env.REACT_APP_API_URL || "http://192.168.70.23:3000/api"}/blacklist`, {
+            const response = await axios.get(`${API_BASE_URL}/blacklist`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
@@ -65,7 +66,7 @@ const Blacklist = () => {
             const token = localStorage.getItem("token");
             const nombre = localStorage.getItem("nombre");
 
-            const response = await axios.post(`${process.env.REACT_APP_API_URL || "http://192.168.70.23:3000/api"}/blacklist`, {
+            const response = await axios.post(`${API_BASE_URL}/blacklist`, {
                 telefono: nuevoNumero.telefono,
                 razon: nuevoNumero.razon || "Sin especificar",
                 bloqueadoPor: nombre || "Usuario"
@@ -103,7 +104,7 @@ const Blacklist = () => {
         try {
             const token = localStorage.getItem("token");
 
-            await axios.delete(`${process.env.REACT_APP_API_URL || "http://192.168.70.23:3000/api"}/blacklist/${id}`, {
+            await axios.delete(`${API_BASE_URL}/blacklist/${id}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 

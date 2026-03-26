@@ -1,6 +1,7 @@
 import axios from "axios";
+import { API_BASE_URL } from "../config";
 
-const API_URL = `${process.env.REACT_APP_API_URL || "http://192.168.70.23:3000/api"}/sms`;
+const API_URL = `${API_BASE_URL}/sms`;
 
 export const sendReminderSMS = async () => {
     try {
@@ -14,11 +15,10 @@ export const sendReminderSMS = async () => {
 
 export const getSMSBalance = async () => {
     try {
-        const response = await axios.get(`${process.env.REACT_APP_API_URL || "http://192.168.70.23:3000/api"}/sms/saldo`);
+        const response = await axios.get(`${API_URL}/saldo`);
         return { success: true, balance: response.data.saldo };
     } catch (error) {
         console.error("Error al obtener el saldo:", error);
         return { success: false, balance: 0, message: "No se pudo obtener el saldo" };
     }
 };
-
