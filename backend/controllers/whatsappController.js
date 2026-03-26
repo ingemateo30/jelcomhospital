@@ -526,13 +526,10 @@ const getCitasCanceladas = async (req, res) => {
         SERVICIO,
         PROFESIONAL,
         ESTADO,
-        MOTIVO_CANCELACION,
-        FECHA_CANCELACION,
-        CANCELADO_POR,
         CREATED_AT
       FROM citas
       WHERE ESTADO = 'cancelada'
-      ORDER BY FECHA_CANCELACION DESC, FECHA_CITA DESC, HORA_CITA DESC
+      ORDER BY FECHA_CITA DESC, HORA_CITA DESC
     `);
 
     res.json(rows);
@@ -1151,12 +1148,9 @@ async function getChats(req, res) {
     const offsetVal = parseInt(offset);
 
     if (!isNaN(limitVal) && limitVal > 0) {
-      query += ` LIMIT ?`;
-      params.push(limitVal);
-
+      query += ` LIMIT ${limitVal}`;
       if (!isNaN(offsetVal) && offsetVal >= 0) {
-        query += ` OFFSET ?`;
-        params.push(offsetVal);
+        query += ` OFFSET ${offsetVal}`;
       }
     }
 
