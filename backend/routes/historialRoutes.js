@@ -6,7 +6,7 @@ const { verificarRol } = require('../middlewares/auth');
 // Obtener historial completo con filtros
 router.get('/historial', verificarRol(['admin', 'usuario']), async (req, res) => {
   try {
-    const { tipo, estado, fechaDesde, fechaHasta, busqueda, limit = 100 } = req.query;
+    const { tipo, estado, fechaDesde, fechaHasta, busqueda, limit = 5000 } = req.query;
 
     // Construir condiciones dinámicas para ambas tablas
     let whereConditions = [];
