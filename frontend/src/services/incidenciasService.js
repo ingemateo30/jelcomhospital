@@ -3,7 +3,7 @@ import authService from './authService';
 
 class IncidenciasService {
     constructor() {
-        this.baseURL = '/api/incidencias';
+        this.baseURL = `${process.env.REACT_APP_API_URL || "http://192.168.70.23:3000/api"}/incidencias`;
     }
 
     // Método auxiliar para hacer peticiones
