@@ -1147,13 +1147,16 @@ async function getChats(req, res) {
     `;
 
     // Agregar paginación si se especifica
-    if (limit) {
-      query += ` LIMIT ?`;
-      params.push(parseInt(limit));
+    const limitVal = parseInt(limit);
+    const offsetVal = parseInt(offset);
 
-      if (offset) {
+    if (!isNaN(limitVal) && limitVal > 0) {
+      query += ` LIMIT ?`;
+      params.push(limitVal);
+
+      if (!isNaN(offsetVal) && offsetVal >= 0) {
         query += ` OFFSET ?`;
-        params.push(parseInt(offset));
+        params.push(offsetVal);
       }
     }
 
